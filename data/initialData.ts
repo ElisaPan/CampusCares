@@ -1,5 +1,4 @@
-import { todo } from 'node:test';
-import { User, Opportunity, SignUp, Badge, Organization, Member } from '../types';
+import { Badge, Member, Opportunity, Organization, SignUp, User } from '../types';
 
 const countSignupsForCause = (
   cause: string,
@@ -10,6 +9,10 @@ const countSignupsForCause = (
     return opp?.causes?.includes(cause);
   }).length;
 };
+
+export const setFriendshipStatus = () => {
+  return
+}
 
 /**
  * Helper function to find a user's rank based on their points
@@ -29,6 +32,106 @@ export const findRank = (data: { points: number; users?: User[] }): number => {
   // If user not found, return a high rank (not in top 10)
   return rank > 0 ? rank : 999;
 };
+
+export const mockUsers: User[] = [
+  {
+    id: 1,
+    name: "Mock User", // Single name property from backend
+    email: "mockuser@example.com", // Must be @cornell.edu or @ithaca.edu
+    password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
+    profile_image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Profile image URL from backend
+    photoURL: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Google/Firebase profile image
+    interests: [""],
+    friendIds: [2,3],
+    organizationIds: [1,2], // Changed from groupIds to organizationIds
+    admin: false,
+    registered: false, // Whether user is registered for an opportunity
+    attended: false, // Whether user attended an opportunity
+    gender: "female", // Gender (nullable)
+    graduationYear: "2028", // Graduation year
+    academicLevel: "soph", // Academic level
+    major: "cs", // Major/field of study
+    birthday: "423", // Birthday (date)
+    points: 100000, // Points earned from attended opportunities
+    registration_date: "idk", // Date and time when user registered
+    phone: "0000000000", // Phone number
+    _lastUpdate: 3, // Internal timestamp for forcing re-renders
+    car_seats: 0, // Number of car seats available
+    bio: "none boringgg", // bio
+    carpool_waiver_signed: false,
+    subscribed: false,
+    heard_about: "sigh",
+  },
+  {
+    id: 2,
+    name: "Fake Friend", // Single name property from backend
+    email: "fakefriend@example.com", // Must be @cornell.edu or @ithaca.edu
+    password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
+    profile_image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Profile image URL from backend
+    photoURL: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Google/Firebase profile image
+    interests: [""],
+    friendIds: [1],
+    organizationIds: [], // Changed from groupIds to organizationIds
+    admin: false,
+    registered: false, // Whether user is registered for an opportunity
+    attended: false, // Whether user attended an opportunity
+    gender: "female", // Gender (nullable)
+    graduationYear: "2028", // Graduation year
+    academicLevel: "soph", // Academic level
+    major: "cs", // Major/field of study
+    birthday: "423", // Birthday (date)
+    points: 0, // Points earned from attended opportunities
+    registration_date: "idk", // Date and time when user registered
+    phone: "0000000000", // Phone number
+    _lastUpdate: 3, // Internal timestamp for forcing re-renders
+    car_seats: 0, // Number of car seats available
+    bio: "none boringgg", // bio
+    carpool_waiver_signed: false,
+    subscribed: false,
+    heard_about: "sigh",
+  },
+  {
+    id: 3,
+    name: "Fake Friend 2", // Single name property from backend
+    email: "copypaste@example.com", // Must be @cornell.edu or @ithaca.edu
+    password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
+    profile_image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Profile image URL from backend
+    photoURL: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Google/Firebase profile image
+    interests: [""],
+    friendIds: [1],
+    organizationIds: [], // Changed from groupIds to organizationIds
+    admin: false,
+    registered: false, // Whether user is registered for an opportunity
+    attended: false, // Whether user attended an opportunity
+    gender: "female", // Gender (nullable)
+    graduationYear: "2028", // Graduation year
+    academicLevel: "soph", // Academic level
+    major: "cs", // Major/field of study
+    birthday: "423", // Birthday (date)
+    points: 0, // Points earned from attended opportunities
+    registration_date: "idk", // Date and time when user registered
+    phone: "0000000000", // Phone number
+    _lastUpdate: 3, // Internal timestamp for forcing re-renders
+    car_seats: 0, // Number of car seats available
+    bio: "none boringgg", // bio
+    carpool_waiver_signed: false,
+    subscribed: false,
+    heard_about: "sigh",
+  },
+];
+
+export const mockOrganizations: Organization[] = [
+  { id: 1, name: 'Campus Cares', type: 'idk' },
+  { id: 2, name: 'Cru', type: 'fellowship' },
+];
+
+export const mockOpportunities: Opportunity[] = [
+  { id: 1, name: "Fake", description: "idk", date: "someday", time: "sometime", duration: 10, total_slots: 1, imageUrl: "none", points: 100, causes: [""], tags: [""], address: "somewhere", comments: [""], qualifications: [""], visibility: [0], allow_carpool: false, carpool_id: "none" },
+];
+
+export const mockSignups: SignUp[] = [
+  { userId: 0, opportunityId: 10 },
+];
 
 export const initialBadges: Badge[] = [
   {

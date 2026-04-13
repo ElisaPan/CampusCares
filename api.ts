@@ -2,17 +2,25 @@ import { auth } from './firebase-config';
 // import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 // import { canUnregisterFromOpportunity } from './utils/timeUtils';
 
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import type { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipsResponse, FriendshipStatus, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
+
+import { canUnregisterFromOpportunity } from '@/utils/timeUtils';
+
 // Helper function to get profile picture URL
 // Returns a generic silhouette when no profile image is available
-export const getProfilePictureUrl = (profile_image?: string | null, google_photo?: string | null): string => {
+export const getProfilePictureSource = (
+  profile_image?: string | null,
+  google_photo?: string | null
+) => {
   if (profile_image) {
-    return profile_image;
+    return { uri: profile_image };
   }
   if (google_photo) {
-    return google_photo;
+    return { uri: google_photo };
   }
-  // Return a generic silhouette SVG
-  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Ccircle cx='12' cy='12' r='12' fill='white'/%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+  return { uri: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Ccircle cx='12' cy='12' r='12' fill='white'/%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" };
 };
 
 // Helper function to format registration date for backend API
@@ -24,7 +32,7 @@ export const formatRegistrationDate = (date: Date = new Date()): string => {
 // A helper for making Acucaresbackend.onrender.comPI requests.
 // const ENDPOINT_URL = 'https://cucaresbackend.onrender.com'
 
-const ENDPOINT_URL = import.meta.env.VITE_ENDPOINT_URL;
+const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
 
 // Helper to get Firebase token
 const getFirebaseToken = async (): Promise<string | null> => {
@@ -241,8 +249,8 @@ export const getUser = async (id: number): Promise<User> => {
     heard_about: response.heard_about || ''
   };
 };
-export const updateUser = (id: number, data: object): Promise<User> => {
 
+export const updateUser = (id: number, data: object): Promise<User> => {
   return authenticatedRequest(`/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -259,14 +267,25 @@ export const updateSubscription = async (
   });
 };
 
-export const uploadProfilePicture = async (file: File): Promise<string> => {
+export interface UploadFile {
+  uri: string;
+  name: string;
+  type: string;
+}
+
+export const uploadProfilePicture = async (file: UploadFile): Promise<string> => {
   const formData = new FormData();
-  formData.append('file', file);
+  
+  formData.append('file', {
+    uri: file.uri,
+    name: file.name,
+    type: file.type,
+  } as unknown as Blob);
 
   const token = await getFirebaseToken();
   const headers: Record<string, string> = {};
   if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
   }
 
   const response = await fetch(`${ENDPOINT_URL}/upload`, {
@@ -276,15 +295,17 @@ export const uploadProfilePicture = async (file: File): Promise<string> => {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
     throw new Error(`Failed to upload profile picture: ${response.status} ${response.statusText}`);
   }
 
   const result = await response.json();
   return result.url; // Return the S3 URL
 };
-export const registerUser = async (data: object, token?: string): Promise<User> => {
-  // If caller provides a Firebase ID token, use it directly so registration is authenticated
+
+export const registerUser = async (
+  data: object,
+  token?: string
+): Promise<User> => {
   if (token) {
     const res = await fetch(`${ENDPOINT_URL}/api/users`, {
       method: 'POST',
@@ -294,21 +315,20 @@ export const registerUser = async (data: object, token?: string): Promise<User> 
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(data),
-      mode: 'cors',
-      credentials: 'omit',
     });
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({ message: res.statusText }));
       throw new Error(err.message || 'Failed to register user');
     }
-    return res.json();
+
+    return (await res.json()) as User;
   }
 
-  // Fallback: use existing authenticatedRequest (reads token from auth.currentUser)
-  return authenticatedRequest('/users', {
+  return (await authenticatedRequest('/users', {
     method: 'POST',
     body: JSON.stringify(data),
-  }) as Promise<User>;
+  })) as User;
 };
 
 // Get all user emails - returns array of email strings
@@ -437,6 +457,15 @@ export const getFriendshipId = async (
   } catch (error) {
     console.error(`API: Error getting friendship ID:`, error);
     return null;
+  }
+};
+
+export const getFriendsForUser = async (userId: number) => {
+  try {
+    return await getAcceptedFriendships(userId);
+  } catch (error) {
+    console.error(error);
+    return [];
   }
 };
 
@@ -1598,29 +1627,25 @@ export const downloadServiceJournalCSV = async (userId: string, token: string) =
 
     const data = await response.json();
 
-    // Convert data to CSV
     const csvRows = [
-      ["Event Name", "Date", "Hours", "Attended"], // header
+      ['Event Name', 'Date', 'Hours', 'Attended'],
       ...data.map((opp: any) => [
         opp.name,
         new Date(opp.date).toLocaleDateString(),
-        opp.duration / 60, // convert minutes to hours
-        opp.attended ? "Yes" : "No",
+        opp.duration / 60,
+        opp.attended ? 'Yes' : 'No',
       ]),
     ];
 
-    const csvContent = csvRows.map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = window.URL.createObjectURL(blob);
+    const csvContent = csvRows.map((row) => row.join(',')).join('\n');
 
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `service-journal_${userId}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
+    const file = new File(Paths.cache, `service-journal_${userId}.csv`);
+    file.create({ overwrite: true });
+    file.write(csvContent);
+
+    await Sharing.shareAsync(file.uri);
   } catch (err) {
-    console.error("Error downloading CSV:", err);
+    console.error('Error downloading CSV:', err);
+    throw err;
   }
 };

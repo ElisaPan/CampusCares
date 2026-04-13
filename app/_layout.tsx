@@ -16,9 +16,9 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="about-us" />
-        <Stack.Screen name="my-opportunities" />
-        <Stack.Screen name="notifications" />
+        <Stack.Screen name="AboutUs" />
+        <Stack.Screen name="MyOpportunitiesPage" />
+        <Stack.Screen name="NotificationsPage" />
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>

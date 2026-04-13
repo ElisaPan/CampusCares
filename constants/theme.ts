@@ -13,6 +13,8 @@ const darkRed = '#B31B1B';
 const azure = '#4B5563';
 const darkYellow = '#FAA018';
 
+export const cornellRed = 'rgb(179, 27, 27)'
+
 export const themes = {
   attention: {
     backgroundColor: 'rgba(211, 211, 211, 0.298)',
@@ -24,6 +26,7 @@ export const themes = {
   attentionText: {
     fontSize: 11,
   },
+
   btnRed: {
       width: '100%',
       justifyContent: 'center',
@@ -70,6 +73,13 @@ export const themes = {
   errorParagraph: {
     fontSize: 14,
     color: red,
+  },
+
+  termsFooter: {
+    fontSize: 12,
+    lineHeight: 16,
+    marginTop: 24,
+    color: 'rgb(107 114 128)',
   },
 
   textInput: {

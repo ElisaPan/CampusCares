@@ -1,7 +1,7 @@
 import { Redirect } from 'expo-router';
 
 export default function Index() {
-  return <Redirect href="/events" />;
+  return <Redirect href="/EventsPage" />;
 }
 
 // import { Image } from 'expo-image';

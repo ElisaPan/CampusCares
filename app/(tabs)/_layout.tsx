@@ -20,7 +20,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="events"
+        name="EventsPage"
         options={{
           title: 'Events',
           tabBarIcon: ({ color }) => (
@@ -34,7 +34,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="groups"
+        name="GroupsPage"
         options={{
           title: 'Groups',
           tabBarIcon: ({ color }) => (
@@ -48,7 +48,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="leaderboard"
+        name="LeaderboardPage"
         options={{
           title: 'Leaderboard',
           tabBarIcon: ({ color }) => (
@@ -62,7 +62,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="profile"
+        name="ProfilePage"
         options={{
           title: 'Profile',
           tabBarIcon: ({ color }) => (
@@ -76,7 +76,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="admin"
+        name="AdminPage"
         options={{
           title: 'Admin',
           tabBarIcon: ({ color }) => (

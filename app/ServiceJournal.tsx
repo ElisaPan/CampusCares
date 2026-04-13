@@ -1,0 +1,192 @@
+import React from 'react';
+import { Text, View } from 'react-native';
+
+export default function MyOpportunitiesScreen() {
+  return (
+    <View>
+      <Text>Service Journal</Text>
+    </View>
+  );
+}
+
+// import React, { useEffect, useState } from "react";
+// import { useNavigate, useParams } from "react-router-dom";
+// import { downloadServiceJournalCSV, getServiceJournal, getUserAllTimeOpps } from "../api";
+// import OppLookup from "../components/OppLookup";
+// import PastAttendedOpportunities from "../components/PastAttendedOpportunities";
+// import { auth } from "../firebase-config";
+// import { Opportunity, Organization, User } from "../types";
+
+// type ServiceJournalEntry = {
+//   id: number;
+//   name: string;
+//   date: string;
+//   duration: number;
+//   attended: boolean;
+// };
+
+// interface ServiceJournalProps {
+//   currentUser: User;
+//   allOrgs: Organization[];
+//   allTimeMyOpps: Opportunity[];
+//   setAllTimeMyOpps: React.Dispatch<React.SetStateAction<Opportunity[]>>;
+// }
+
+// const ServiceJournal: React.FC<ServiceJournalProps> = ({ currentUser, allOrgs, allTimeMyOpps, setAllTimeMyOpps }) => {
+//   const { userId } = useParams<{ userId: string }>();
+//   const navigate = useNavigate();
+//   const [opportunities, setOpportunities] = useState<ServiceJournalEntry[]>([]);
+//   const [loading, setLoading] = useState(true);
+//   const [error, setError] = useState<string | null>(null);
+//   const [token, setToken] = useState<string | null>(null);
+
+//   useEffect(() => {
+//     const fetchToken = async () => {
+//       const currentUser = auth.currentUser;
+//       if (currentUser) {
+//         const idToken = await currentUser.getIdToken();
+//         setToken(idToken);
+//       } else {
+//         console.error("No current user found in Firebase.");
+//       }
+//     };
+//     fetchToken();
+//   }, []);
+
+//   // Load allTimeMyOpps if not already populated (e.g. direct navigation to this page)
+//   useEffect(() => {
+//     if (allTimeMyOpps.length === 0) {
+//       getUserAllTimeOpps(currentUser.id)
+//         .then(setAllTimeMyOpps)
+//         .catch((err) => console.error('Error loading allTimeMyOpps:', err));
+//     }
+//   }, [currentUser.id]);
+
+//   useEffect(() => {
+//     const fetchData = async () => {
+//       setLoading(true);
+//       try {
+//         // Get Firebase token
+//         const currentUserAuth = auth.currentUser;
+//         if (!currentUserAuth) {
+//           setError("User not logged in");
+//           setLoading(false);
+//           return;
+//         }
+
+//         const token = await currentUserAuth.getIdToken();
+
+//         if (!userId) {
+//           setError("Missing user ID");
+//           setLoading(false);
+//           return;
+//         }
+
+//         // Fetch service journal data
+//         const serviceJournalData = await getServiceJournal(userId, token);
+
+//         setOpportunities(serviceJournalData);
+//       } catch (err: any) {
+//         console.error(err);
+//         setError(err.message || "Failed to load data");
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     fetchData();
+//   }, [userId]);
+
+//   // Derived statistics
+//   const totalHours = opportunities.reduce((sum, opp) => sum + opp.duration / 60, 0);
+//   const attendanceRate =
+//     opportunities.length > 0
+//       ? Math.round(
+//         (opportunities.filter((opp) => opp.attended).length /
+//           opportunities.length) *
+//         100
+//       )
+//       : 0;
+
+//   if (loading) return <div className="p-8 text-center">Loading...</div>;
+//   if (error) return <div className="p-8 text-red-500">{error}</div>;
+
+//   return (
+//     <div className="p-8 max-w-4xl mx-auto">
+//       <h1 className="text-3xl font-bold mb-6">Service Journal</h1>
+
+//       {/* Summary Stats */}
+//       <div className="flex justify-between mb-6">
+//         <div>Total Hours Served: <strong>{totalHours.toFixed(2)}</strong></div>
+//         <div>Attendance Rate: <strong>{attendanceRate}%</strong></div>
+//       </div>
+
+//       {/* Table */}
+//       {opportunities.length === 0 ? (
+//         <p>No volunteer records found.</p>
+//       ) : (
+//         <table className="w-full border-collapse border border-gray-300">
+//           <thead className="bg-gray-100">
+//             <tr>
+//               <th className="border p-2">Event ID</th>
+//               <th className="border p-2">Event Name</th>
+//               <th className="border p-2">Date</th>
+//               <th className="border p-2">Hours</th>
+//               <th className="border p-2">Attended</th>
+//             </tr>
+//           </thead>
+//           <tbody>
+//             {opportunities.map((opp) => (
+//               <tr key={opp.id}>
+//                 <td className="border p-2 text-center">{opp.id}</td>
+//                 <td className="border p-2">{opp.name}</td>
+//                 <td className="border p-2">
+//                   {new Date(opp.date).toLocaleDateString()}
+//                 </td>
+//                 <td className="border p-2 text-center">{(opp.duration / 60).toFixed(2)}</td>
+//                 <td className="border p-2 text-center">
+//                   {opp.attended ? "✅" : "❌"}
+//                 </td>
+//               </tr>
+//             ))}
+//           </tbody>
+//         </table>
+//       )}
+
+//       {/* Buttons */}
+//       <div className="mb-6 mt-8 flex gap-4">
+//         <button
+//           onClick={async () => {
+//             if (!userId || !token) {
+//               console.error("Cannot download CSV: missing userId or token");
+//               return;
+//             }
+//             try {
+//               await downloadServiceJournalCSV(userId, token);
+//             } catch (err) {
+//               console.error("CSV download failed:", err);
+//             }
+//           }}
+//           className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+//         >
+//           Download CSV
+//         </button>
+//       </div>
+
+//       {/* Opportunity Lookup */}
+//       <OppLookup allTimeMyOpps={allTimeMyOpps} />
+
+//       {/* Past Opportunities Component */}
+//       <PastAttendedOpportunities
+//         opportunities={allTimeMyOpps}
+//         currentUser={currentUser}
+//         allOrgs={allOrgs}
+//         loading={loading}
+//         userSpecific={true}
+//       />
+//     </div>
+
+//   );
+// };
+
+// export default ServiceJournal;
