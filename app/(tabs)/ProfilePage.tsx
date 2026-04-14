@@ -1,3 +1,16 @@
+/*************
+ * TODO:
+ *  Severe:
+ *    Fix org block padding
+ *  High:
+ *    Fix friend profile link when click on friend card
+ *    Fix terms and conditions link
+ *    Fix service journal link
+ *    Fix user sub/unsub function
+ *  Low
+ *    Make friends collapsible in Profile if too many friends
+ */
+
 import * as ImagePicker from 'expo-image-picker';
 import { signOut } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
