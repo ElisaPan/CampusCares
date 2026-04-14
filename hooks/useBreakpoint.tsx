@@ -1,9 +1,11 @@
-import { useMediaQuery } from './useMediaQuery';
+import { useWindowDimensions } from 'react-native';
 
 export const useBreakpoint = () => {
-    const isMobile = useMediaQuery('(max-width: 768px)');
-    const isTablet = useMediaQuery('(min-width: 769px) and (max-width: 1024px)');
-    const isDesktop = useMediaQuery('(min-width: 1025px)');
+    const { width } = useWindowDimensions();
+
+    const isMobile = width <= 768;
+    const isTablet = width > 768 && width <= 1024;
+    const isDesktop = width > 1024;
 
     return { isMobile, isTablet, isDesktop };
 };
