@@ -30,6 +30,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false
         }}
       />
 
@@ -44,6 +45,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false
         }}
       />
 
@@ -58,6 +60,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false
         }}
       />
 
@@ -72,6 +75,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false
         }}
       />
 
@@ -86,6 +90,7 @@ export default function TabLayout() {
               color={color}
             />
           ),
+          headerShown: false
         }}
       />
 
