@@ -1,4 +1,4 @@
-import { Badge, Member, Opportunity, Organization, SignUp, User } from '../types';
+import { Badge, Member, MultiOpp, Opportunity, Organization, SignUp, User } from '../types';
 
 const countSignupsForCause = (
   cause: string,
@@ -39,13 +39,13 @@ export const mockUsers: User[] = [
     name: "Mock User", // Single name property from backend
     email: "mockuser@example.com", // Must be @cornell.edu or @ithaca.edu
     password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
-    profile_image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Profile image URL from backend
-    photoURL: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Google/Firebase profile image
+    profile_image: require('../assets/images/user1pic.jpg'), // Profile image URL from backend
+    photoURL: "https://t3.ftcdn.net/jpg/03/67/46/48/360_F_367464887_f0w1JrL8PddfuH3P2jSPlIGjKU2BI0rn.jpg", // Google/Firebase profile image
     interests: [""],
     friendIds: [2,3],
     organizationIds: [1,2], // Changed from groupIds to organizationIds
     admin: false,
-    registered: false, // Whether user is registered for an opportunity
+    registered: true, // Whether user is registered for an opportunity
     attended: false, // Whether user attended an opportunity
     gender: "female", // Gender (nullable)
     graduationYear: "2028", // Graduation year
@@ -67,13 +67,13 @@ export const mockUsers: User[] = [
     name: "Fake Friend", // Single name property from backend
     email: "fakefriend@example.com", // Must be @cornell.edu or @ithaca.edu
     password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
-    profile_image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Profile image URL from backend
-    photoURL: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Google/Firebase profile image
+    profile_image: require('../assets/images/user2pic.jpg'), // Profile image URL from backend
+    photoURL: "https://t4.ftcdn.net/jpg/04/44/53/99/360_F_444539901_2GSnvmTX14LELJ6edPudUsarbcytOEgj.jpg", // Google/Firebase profile image
     interests: [""],
     friendIds: [1],
     organizationIds: [], // Changed from groupIds to organizationIds
     admin: false,
-    registered: false, // Whether user is registered for an opportunity
+    registered: true, // Whether user is registered for an opportunity
     attended: false, // Whether user attended an opportunity
     gender: "female", // Gender (nullable)
     graduationYear: "2028", // Graduation year
@@ -95,13 +95,13 @@ export const mockUsers: User[] = [
     name: "Fake Friend 2", // Single name property from backend
     email: "copypaste@example.com", // Must be @cornell.edu or @ithaca.edu
     password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
-    profile_image: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Profile image URL from backend
-    photoURL: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png", // Google/Firebase profile image
+    profile_image: require('../assets/images/user3pic.jpg'), // Profile image URL from backend
+    photoURL: "https://img.freepik.com/free-photo/closeup-young-female-professional-making-eye-contact-against-colored-background_662251-651.jpg", // Google/Firebase profile image
     interests: [""],
     friendIds: [1],
     organizationIds: [], // Changed from groupIds to organizationIds
     admin: false,
-    registered: false, // Whether user is registered for an opportunity
+    registered: true, // Whether user is registered for an opportunity
     attended: false, // Whether user attended an opportunity
     gender: "female", // Gender (nullable)
     graduationYear: "2028", // Graduation year
@@ -126,7 +126,57 @@ export const mockOrganizations: Organization[] = [
 ];
 
 export const mockOpportunities: Opportunity[] = [
-  { id: 1, name: "Fake", description: "idk", date: "someday", time: "sometime", duration: 10, total_slots: 1, imageUrl: "none", points: 100, causes: [""], tags: [""], address: "somewhere", comments: [""], qualifications: [""], visibility: [0], allow_carpool: false, carpool_id: "none" },
+  { id: 1,
+    name: "Fake",
+    description: "idk",
+    date: "2027-05-01",
+    time: "14:00",
+    duration: 10,
+    total_slots: 4,
+    imageUrl: "none",
+    points: 100,
+    causes: [],
+    tags: [],
+    address: "100 street, city, ST 11111",
+    comments: [],
+    qualifications: [],
+    visibility: [],
+    allow_carpool: false,
+    carpool_id: "none",
+    approved: true,
+    involved_users: mockUsers,
+  },
+  { id: 2,
+    name: "20th Birthday!",
+    description: "becoming an unc",
+    date: "2027-04-23",
+    time: "12:00",
+    duration: 100,
+    total_slots: 10,
+    imageUrl: "none",
+    points: 260,
+    causes: ["me-haha"],
+    tags: ["birthday", "cake", "fun"],
+    address: "600 Thurston Ave, Ithaca, NY 14853",
+    comments: ["fun"],
+    qualifications: ["friends"],
+    visibility: [],
+    allow_carpool: false,
+    carpool_id: "none",
+    approved: true
+  },
+];
+export const mockMultiOpps: MultiOpp[] = [
+  {
+    id: 3,
+    name: "Recurring Event",
+    date: "2027-04-30",
+    time: "8:00am",
+    address: "a recurring somewhere",
+    days_of_week: [{ Monday: [["09:00", 3],["10:00", 5],], Tuesday: [["14:00", 2]]}, { Wednesday: [["08:30", 4]]}],
+    week_recurrences: 2,
+    opportunities: [mockOpportunities[0], mockOpportunities[1]]
+  },
 ];
 
 export const mockSignups: SignUp[] = [

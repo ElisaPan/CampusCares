@@ -4,6 +4,7 @@ import { auth } from './firebase-config';
 
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
+import { ImageSourcePropType } from 'react-native';
 import type { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipsResponse, FriendshipStatus, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 
 import { canUnregisterFromOpportunity } from '@/utils/timeUtils';
@@ -11,15 +12,22 @@ import { canUnregisterFromOpportunity } from '@/utils/timeUtils';
 // Helper function to get profile picture URL
 // Returns a generic silhouette when no profile image is available
 export const getProfilePictureSource = (
-  profile_image?: string | null,
+  profile_image?: string | ImageSourcePropType | null,
   google_photo?: string | null
 ) => {
   if (profile_image) {
-    return { uri: profile_image };
+    // URL from Firebase
+    if (typeof profile_image === 'string') {
+      return { uri: profile_image };
+    }
+    // local mock (require)
+    return profile_image;
   }
   if (google_photo) {
     return { uri: google_photo };
   }
+
+  // return require('../assets/images/backup.jpg');
   return { uri: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Ccircle cx='12' cy='12' r='12' fill='white'/%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" };
 };
 

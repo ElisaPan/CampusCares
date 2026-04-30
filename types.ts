@@ -1,3 +1,5 @@
+import { ImageSourcePropType } from 'react-native';
+
 // Minimal user data returned by GET /api/users
 export interface MinimalUser {
   id: number;
@@ -9,7 +11,7 @@ export interface User {
   name: string; // Single name property from backend
   email: string; // Must be @cornell.edu or @ithaca.edu
   password?: string; // In a real app, this would be a hash. Storing for simulation.
-  profile_image?: string; // Profile image URL from backend
+  profile_image?: string | ImageSourcePropType | null;
   photoURL?: string | null; // Google/Firebase profile image
   interests: string[];
   friendIds: number[];
