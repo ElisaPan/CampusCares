@@ -73,8 +73,8 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   showPopup
 }) => {
 
-  console.log('address:', opportunity.address);
-  console.log('opportunity:', opportunity);
+  // console.log('address:', opportunity.address);
+  // console.log('opportunity:', opportunity);
 
 
   const queryClient = useQueryClient();
