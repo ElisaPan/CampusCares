@@ -37,30 +37,32 @@ export default function TabLayout() {
       <Tabs.Screen
         name="GroupsPage"
         options={{
-          title: 'Groups',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons
-              name="groups"
-              size={28}
-              color={color}
-            />
-          ),
-          headerShown: false
+          // title: 'Groups',
+          // tabBarIcon: ({ color }) => (
+          //   <MaterialIcons
+          //     name="groups"
+          //     size={28}
+          //     color={color}
+          //   />
+          // ),
+          // headerShown: false
+          href: null
         }}
       />
 
       <Tabs.Screen
         name="LeaderboardPage"
         options={{
-          title: 'Leaderboard',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons
-              name="leaderboard"
-              size={28}
-              color={color}
-            />
-          ),
-          headerShown: false
+          // title: 'Leaderboard',
+          // tabBarIcon: ({ color }) => (
+          //   <MaterialIcons
+          //     name="leaderboard"
+          //     size={28}
+          //     color={color}
+          //   />
+          // ),
+          // headerShown: false
+          href: null
         }}
       />
 
@@ -82,15 +84,16 @@ export default function TabLayout() {
       <Tabs.Screen
         name="AdminPage"
         options={{
-          title: 'Admin',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons
-              name="admin-panel-settings"
-              size={28}
-              color={color}
-            />
-          ),
-          headerShown: false
+          // title: 'Admin',
+          // tabBarIcon: ({ color }) => (
+          //   <MaterialIcons
+          //     name="admin-panel-settings"
+          //     size={28}
+          //     color={color}
+          //   />
+          // ),
+          // headerShown: false
+          href: null
         }}
       />
 
