@@ -153,7 +153,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   const [localUser, setLocalUser] = useState(profileUser); // Add local user state
 
   const { width } = useWindowDimensions();
-  const isSmallScreen = width < 375;
+  const isSmallScreen = width < 370;
 
   React.useEffect(() => {
   }, [localUser]);
@@ -285,6 +285,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.page}>
+        {/* User info */}
         <View style={styles.centerAlignCard}>
           <View style={styles.profilePicWrapper}>
             <Image
@@ -335,6 +336,8 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             </Text>
           </View>
         </View>
+
+        {/* Bio */}
         <View style={styles.leftAlignCard}>
           <Text style={styles.sectionHeader}>{profileUser.name}'s Bio</Text>
           <View style={styles.bioWrapper}>
@@ -405,9 +408,16 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             </>
           )}
         </View>
+
+        {/* Organizations */}
         <View style={styles.centerAlignCard}>
           <View style={styles.orgsHeaderWrapper}>
-            <Text style={styles.sectionHeader}>{profileUser.name}'s Organizations</Text>
+            <Text
+              style={styles.sectionHeader}
+              numberOfLines={1}
+            >
+              {profileUser.name}'s Organizations
+            </Text>
             {isCurrentUser && (
               <Pressable
                 onPress={() => router.push('/(tabs)/GroupsPage')}
@@ -435,6 +445,8 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             <Text style={styles.smallText}>{profileUser.name} hasn't joined any organizations yet.</Text>
           )}
         </View>
+
+        {/* Friends */}
         <View style={styles.leftAlignCard}>
           <Text style={styles.sectionHeader}>{profileUser.name}'s Friends ({profileUserFriends.length})</Text>
           {loadingFriends ? (
@@ -459,39 +471,12 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             ) : (
               <Text style={styles.smallText}>{profileUser.name} hasn't added any friends yet.</Text>
           )}
-        {/* {!isCurrentUser && (
-            <div className="mt-4">
-              {isFriend ? (
-                <div className="space-y-2">
-                  <span className="w-full inline-block bg-green-100 text-green-700 font-semibold py-2 px-4 rounded-lg">
-                    Friends ✓
-                  </span>
-                  <button
-                    onClick={() => handleRemoveFriend(profileUser.id)}
-                    className="w-full bg-red-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-red-700 transition-colors text-sm"
-                  >
-                    Remove Friend
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => handleFriendRequest(profileUser.id)}
-                  disabled={requestPending || isFriend}
-                  className={`w-full font-bold py-2 px-4 rounded-lg transition-colors ${isFriend
-                    ? 'bg-green-600 text-white cursor-default'
-                    : requestPending
-                      ? 'bg-red-300 text-white cursor-not-allowed'
-                      : 'bg-cornell-red text-white hover:bg-red-800'
-                    }`}
-                >
-                  {isFriend ? 'Friends!' : requestPending ? 'Request Sent' : 'Add Friend'}
-                </button>
-              )}
-            </div>
-          )} */}
         </View>
+
+        {/* Footer */}
         {(isCurrentUser || currentUser?.admin) && (
           <View style={styles.footerBlock}>
+            {/* Email Subscription */}
             <View style={styles.emailCard}>
               <View>
                 <View style={styles.leftEmailCard}>
@@ -522,12 +507,14 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
                 </Pressable>
               </View>
             </View>
+            {/* See Opportunities */}
             <Pressable
               onPress={() => router.push('../ServiceJournal${profileUser.id}')} //FIXXXXXX
               style={styles.footerBtn}
             >
               <Text style={styles.footerText}>See my opportunities</Text>
             </Pressable>
+            {/* Log Out */}
             <Pressable
               onPress={handleLogout}
               style={[styles.footerBtn, {backgroundColor: '#e5e7eb', paddingVertical: 8,}]} 
@@ -537,6 +524,8 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
           </View>
         )}
       </View>
+
+      {/* Terms */}
       <Text style={Theme.themes.termsFooter}>
         Click here to see our{" "}
         <Text
@@ -628,6 +617,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   sectionHeader: {
+    flex: 1,
+    flexWrap: 'wrap',
     fontWeight: '700',
     fontSize: 18,
     lineHeight: 26,
@@ -704,6 +695,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     width: 100,
+    marginLeft: 8,
   },
   friendGrid: {
     flexDirection: 'row',
@@ -770,5 +762,12 @@ const styles = StyleSheet.create({
   footerText: {
     fontWeight: '700',
     textAlign: 'center',
-  }
+  },
+  termsFooter: {
+    color: '#6b7280',
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+    marginTop: 24,
+  },
 })
