@@ -25,7 +25,7 @@ export const Header = () => {
     <View style={styles.container}>
         <View>
             <Pressable
-                onPress={() => router.push('/(tabs)/EventsPage')}
+                onPress={() => router.push('/(tabs)/OpportunitiesPage')}
             >
                 <Image
                     style={styles.logo}

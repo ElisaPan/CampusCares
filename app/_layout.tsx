@@ -1,4 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
@@ -15,30 +16,34 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+const queryClient = new QueryClient();
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [students, setStudents] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <View style={styles.container}>
-        <UserContext.Provider value={{ students, currentUser }}>
-          <View style={styles.header}>
-            <Header />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <View style={styles.container}>
+          <UserContext.Provider value={{ students, currentUser }}>
+            <View style={styles.header}>
+              <Header />
+            </View>
+          </UserContext.Provider>
+          <View style={styles.content}>
+            <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="AboutUs" />
+              <Stack.Screen name="MyOpportunitiesPage" />
+              <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
+            </Stack>
           </View>
-        </UserContext.Provider>
-        <View style={styles.content}>
-          <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="AboutUs" />
-            <Stack.Screen name="MyOpportunitiesPage" />
-            <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
-          </Stack>
         </View>
-      </View>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+        <StatusBar style="auto" />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 
@@ -50,10 +55,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: '#fff',
 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 4,
+    boxShadow: '0px 2px 4px rgba(0,0,0,0.12)',
     elevation: 4,
     zIndex: 1,
   },
