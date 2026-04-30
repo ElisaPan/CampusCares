@@ -1,7 +1,7 @@
 /*************
  * TODO:
  *  Severe:
- *    Fix org block padding
+ *    -
  *  High:
  *    Fix friend profile link when click on friend card
  *    Fix terms and conditions link
