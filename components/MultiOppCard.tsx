@@ -102,10 +102,10 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 
 	const handleCardPress = () => {
 		if (!currentUser) {
-				router.push('../sign-up');
+				router.push(`../sign-up`);
 				return;
 		}
-		router.push('../multiopp/${multiopp.id}');
+		router.push(`/multiopp/${multiopp.id}`);
 		};
 	
 	const [pressedStudentId, setPressedStudentId] = useState<number | null>(null);
@@ -201,7 +201,7 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 								const slotsFull = typeof totalSlots === 'number' ? availableSlots <= 0 : false;
 								const canSignUp = !isUserSignedUp && (typeof totalSlots !== 'number' || availableSlots > 0);
 								const eventStarted = oppDate ? new Date() >= oppDate : false;
-
+								
 								const derivedDateString =
 									oppDate || !rawDateString
 										? oppDate
@@ -318,12 +318,12 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 						</View>
 					</View>
 				)}
-				<View style={{ marginTop: 'auto' }}>
+				<View>
 					<Pressable
 						onPress={handleCardPress}
-						className="w-full text-gray-600 text-sm font-semibold py-2 px-4 rounded-lg border border-gray-300 hover:bg-gray-100 transition-colors"
+						style={styles.viewMore}
 					>
-						<Text>View More Dates</Text>
+						<Text style={styles.viewMoreTxt}>View More Dates</Text>
 					</Pressable>
 				</View>
 			</View>
@@ -380,17 +380,17 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
 	upcomingOpps: {
-		marginBottom: 16,
+		marginBottom: 8,
 	},
 	upcomingOppsHeader: {
 		color: '#1f2937',
 		fontWeight: '600',
 		fontSize: 14,
 		lineHeight: 20,
-		marginBottom: 8,
+		marginBottom: 4,
 	},
 	oppsList: {
-		rowGap: 12
+		rowGap: 8
 	},
 	oneOpp: {
 		flexDirection: 'row',
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
 		backgroundColor: '#f9fafb',
 		borderRadius: 8,
 		paddingHorizontal: 16,
-		paddingVertical: 12,
+		paddingVertical: 8,
 	},
 	left: {
 		flexDirection: 'column',
@@ -502,5 +502,18 @@ const styles = StyleSheet.create({
 		fontSize: 14,
 		lineHeight: 20,
 		fontStyle: 'italic',
-	}
+	},
+	viewMore: {
+		width: '100%',
+		paddingVertical: 6,
+		paddingHorizontal: 16,
+		borderRadius: 8,
+		borderWidth: 1,
+		borderColor: '#D1D5DB',
+	},
+	viewMoreTxt: {
+		color: '#4B5563',
+		fontSize: 12,
+		fontWeight: '600',
+	},
 })

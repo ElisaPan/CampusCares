@@ -78,7 +78,8 @@ export const themes = {
   termsFooter: {
     fontSize: 12,
     lineHeight: 16,
-    marginTop: 24,
+    marginTop: 12,
+    marginBottom: 14,
     color: 'rgb(107 114 128)',
   },
 

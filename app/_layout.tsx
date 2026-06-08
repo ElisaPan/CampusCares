@@ -38,6 +38,7 @@ export default function RootLayout() {
               <Stack.Screen name="AboutUs" />
               <Stack.Screen name="MyOpportunitiesPage" />
               <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
+              <Stack.Screen name="friends/[id]" options={{ animation: 'slide_from_right' }} />
             </Stack>
           </View>
         </View>

@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { getProfilePictureSource } from '@/api';
 import UserContext from '@/components/user-context';
 import { mockUsers } from '@/data/initialData';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -25,7 +24,7 @@ export const Header = () => {
     <View style={styles.container}>
         <View>
             <Pressable
-                onPress={() => router.push('/(tabs)/OpportunitiesPage')}
+                onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
             >
                 <Image
                     style={styles.logo}
@@ -34,32 +33,17 @@ export const Header = () => {
                 />
             </Pressable>
         </View>
-        <View style={styles.right}>
-            <View>
-                <Pressable
-                    onPress={() => router.push('/NotificationsPage')}
-                    style={styles.notifBtn}
-                >
-                    <Ionicons
-                        name="notifications-outline"
-                        size={28}
-                        color={'#4B5563'}
-                        />
-                </Pressable>
-            </View>
-            <View>
-                <Pressable
-                    onPress={() => router.push('/(tabs)/ProfilePage')}
-                    style={styles.profile}
-                >
-                    <Image 
-                        style={styles.profilePic}
-                        source={getProfilePictureSource(profileUser.profile_image, profileUser.photoURL)}
-                        alt={profileUser.name}
-                        resizeMode="cover"
+        <View>
+            <Pressable
+                onPress={() => router.push(`/NotificationsPage`)}
+                style={styles.notifBtn}
+            >
+                <Ionicons
+                    name="notifications-outline"
+                    size={28}
+                    color={'#4B5563'}
                     />
-                </Pressable>
-            </View>
+            </Pressable>
         </View>
     </View>
   )
@@ -79,21 +63,8 @@ const styles = StyleSheet.create({
     marginTop: 40,
     marginLeft: 5,
   },
-  right: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end'
-  },
   notifBtn: {
     marginTop: 65,
     marginRight: 25,
   },
-  profile: {
-    marginTop: 55,
-    marginRight: 10
-  },
-  profilePic: {
-    width: 45,
-    height: 45,
-    borderRadius: 9999,
-  }
 });

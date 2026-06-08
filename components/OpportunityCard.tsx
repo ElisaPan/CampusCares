@@ -97,7 +97,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   const isUserHost = currentUser ? opportunity.host_id === currentUser.id : false;
 
   const handleButtonPress = async () => {
-    if (!currentUser) router.push('../sign-up');
+    if (!currentUser) router.push(`../sign-up`);
 
     if (currentUser && isUserSignedUp) {
       if (opportunity.allow_carpool) {
@@ -137,11 +137,11 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   
   const handleCardPress = () => {
     if (!currentUser) {
-        router.push('../sign-up');
+        router.push(`../sign-up`);
         return;
     }
 
-    router.push('../opportunity/${opportunity.id}');
+    router.push(`/opportunity/${opportunity.id}`);
     };
 
   const topOrgs = useMemo(() => {
@@ -284,7 +284,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 <Pressable
                   key={org.id}
                   data-pressable-org="true"
-                  onPress={() => router.push('../group-detail/${org.id}')}
+                  onPress={() => router.push(`../group-detail/${org.id}`)}
                   style={styles.orgTag}
                 >
                   <Text>{org.name}</Text>
@@ -325,7 +325,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
             {buttonText}
           </Text>
         </Pressable>
-        {opportunity.tags?.length > 0 && (
+        {/* {opportunity.tags?.length > 0 && (
           <View style={styles.tags}>
             {opportunity.tags.map((tag, index) => (
               <View key={index} style={styles.oppTag}>
@@ -333,7 +333,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
               </View>
             ))}
           </View>
-        )}
+        )} */}
       </View>
     </Pressable>
   );
@@ -380,12 +380,14 @@ const styles = StyleSheet.create({
   hostBadge: {
     backgroundColor: '#dbeafe',
     color: '#1e40af',
+    textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 9999,
     flexShrink: 0,
+    width: '23%',
   },
   orgInfo: {
     gap: 8,

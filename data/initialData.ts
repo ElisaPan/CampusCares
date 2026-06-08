@@ -52,7 +52,7 @@ export const mockUsers: User[] = [
     academicLevel: "soph", // Academic level
     major: "cs", // Major/field of study
     birthday: "423", // Birthday (date)
-    points: 100000, // Points earned from attended opportunities
+    points: 12000, // Points earned from attended opportunities
     registration_date: "idk", // Date and time when user registered
     phone: "0000000000", // Phone number
     _lastUpdate: 3, // Internal timestamp for forcing re-renders
@@ -80,7 +80,7 @@ export const mockUsers: User[] = [
     academicLevel: "soph", // Academic level
     major: "cs", // Major/field of study
     birthday: "423", // Birthday (date)
-    points: 0, // Points earned from attended opportunities
+    points: 180, // Points earned from attended opportunities
     registration_date: "idk", // Date and time when user registered
     phone: "0000000000", // Phone number
     _lastUpdate: 3, // Internal timestamp for forcing re-renders
@@ -100,7 +100,7 @@ export const mockUsers: User[] = [
     interests: [""],
     friendIds: [1],
     organizationIds: [], // Changed from groupIds to organizationIds
-    admin: false,
+    admin: true,
     registered: true, // Whether user is registered for an opportunity
     attended: false, // Whether user attended an opportunity
     gender: "female", // Gender (nullable)
@@ -135,35 +135,38 @@ export const mockOpportunities: Opportunity[] = [
     total_slots: 4,
     imageUrl: "none",
     points: 100,
-    causes: [],
-    tags: [],
+    causes: ["cc"],
+    tags: ["tt"],
     address: "100 street, city, ST 11111",
     comments: [],
     qualifications: [],
     visibility: [],
-    allow_carpool: false,
+    allow_carpool: true,
     carpool_id: "none",
     approved: true,
     involved_users: mockUsers,
   },
   { id: 2,
     name: "20th Birthday!",
-    description: "becoming an unc",
+    description: "I am old and having a quarter life crisis. I feel so old and my joints ache and my brain is failing me. So sad.",
     date: "2027-04-23",
     time: "12:00",
     duration: 100,
-    total_slots: 10,
-    imageUrl: "none",
+    total_slots: 3,
+    imageUrl: "https://static.vecteezy.com/system/resources/previews/057/636/656/non_2x/festive-birthday-scene-featuring-a-layered-cake-sprinkles-and-a-blurred-balloon-filled-background-free-photo.jpg",
     points: 260,
+    nonprofit: "Fake Nonprofit",
     causes: ["me-haha"],
     tags: ["birthday", "cake", "fun"],
     address: "600 Thurston Ave, Ithaca, NY 14853",
-    comments: ["fun"],
+    comments: ["please come", "i don't have friends :(", "long announcement long announcement long announcement"],
     qualifications: ["friends"],
     visibility: [],
-    allow_carpool: false,
-    carpool_id: "none",
-    approved: true
+    allow_carpool: true,
+    carpool_id: "fakeID",
+    approved: true,
+    host_id: 1,
+    involved_users: [mockUsers[1], mockUsers[2]]
   },
 ];
 export const mockMultiOpps: MultiOpp[] = [
@@ -175,7 +178,12 @@ export const mockMultiOpps: MultiOpp[] = [
     address: "a recurring somewhere",
     days_of_week: [{ Monday: [["09:00", 3],["10:00", 5],], Tuesday: [["14:00", 2]]}, { Wednesday: [["08:30", 4]]}],
     week_recurrences: 2,
-    opportunities: [mockOpportunities[0], mockOpportunities[1]]
+    opportunities: [mockOpportunities[0], mockOpportunities[1]],
+    nonprofit: "Fake Nonprofit",
+    host_user_id: 2,
+    description: "description description description description description description description description description",
+    tags: ["tt"],
+    causes: ["cc"],
   },
 ];
 
