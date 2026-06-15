@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   editBtn: {
-    backgroundColor: 'rgb(140, 140, 140)',
+    backgroundColor: '#9CA3AF',
     paddingHorizontal: 16,
     borderRadius: 8,
     height: 34,

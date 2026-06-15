@@ -1,7 +1,7 @@
-import { Picker } from "@react-native-picker/picker";
 import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
+import { FlatList } from "react-native";
 import { addRider } from '../api';
 
 import {
@@ -35,10 +35,11 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
 }) => {
   const queryClient = useQueryClient();
 
-  const [loc, setLoc] = useState("RPCC");
+  const [loc, setLoc] = useState("");
   const [otherLoc, setOtherLoc] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
 
   const locationOptions = ["RPCC", "Baker Flagpole", "CTB", "Other"];
 
@@ -75,14 +76,14 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
   };
 
   return (
-    <Modal visible transparent animationType="fade">
+    <Modal visible transparent animationType='fade'>
       <View style={styles.modalBackdrop}>
         <View style={styles.modal}>
           <Pressable
             style={styles.closeButton}
             onPress={() => setShowPopup(false)}
           >
-            <MaterialDesignIcons name="close" size={24} color="#6B7280" />
+            <MaterialDesignIcons name='close' size={24} color='#6B7280' />
           </Pressable>
 
           <Text style={styles.title}>Enter Pickup Information</Text>
@@ -93,19 +94,48 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
                 Where would you like to be picked up from? *
               </Text>
 
-              <View style={styles.pickerWrapper}>
-                <Picker
-                  selectedValue={loc}
-                  onValueChange={(value) => setLoc(value)}
+              <View>
+                <Pressable
+                  style={styles.formField}
+                  onPress={() => setShowLocationPicker(true)}
                 >
-                  {locationOptions.map((choice) => (
-                    <Picker.Item
-                      key={choice}
-                      label={choice}
-                      value={choice}
-                    />
-                  ))}
-                </Picker>
+                  <Text>{loc || "Select location"}</Text>
+                </Pressable>
+
+                <Modal
+                  visible={showLocationPicker}
+                  transparent
+                  animationType='fade'
+                >
+                  <Pressable
+                    style={styles.locationPopupBackdrop}
+                    onPress={() => setShowLocationPicker(false)}
+                  >
+                    <Pressable
+                      style={styles.locationPopup}
+                      onPress={(e) => e.stopPropagation()}
+                    >
+                      <FlatList
+                        data={locationOptions}
+                        keyExtractor={(item) => item}
+                        renderItem={({ item }) => (
+                          <Pressable
+                            style={styles.optionRow}
+                            onPress={() => {
+                              setLoc(item);
+                              setShowLocationPicker(false);
+                            }}
+                          >
+                            <Text style={{ flex: 1 }}>{item}</Text>
+                            {loc === item && (
+                              <Text>✓</Text>
+                            )}
+                          </Pressable>
+                        )}
+                      />
+                    </Pressable>
+                  </Pressable>
+                </Modal>
               </View>
             </View>
 
@@ -148,70 +178,74 @@ export default CarpoolFormPopup;
 const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 16,
   },
-
   modal: {
-    width: "100%",
+    width: '100%',
     maxWidth: 448,
-    backgroundColor: "white",
+    backgroundColor: 'white',
     borderRadius: 16,
     padding: 24,
     gap: 20,
   },
-
   closeButton: {
-    alignSelf: "flex-end",
+    alignSelf: 'flex-end',
   },
-
   title: {
     fontSize: 24,
-    fontWeight: "700",
-    textAlign: "center",
+    fontWeight: '700',
+    textAlign: 'center',
   },
-
   formContent: {
     gap: 16,
   },
-
   formLabel: {
     fontSize: 14,
-    fontWeight: "600",
+    fontWeight: '600',
     marginBottom: 6,
   },
-
   formField: {
     borderWidth: 1,
-    borderColor: "#D1D5DB",
+    borderColor: '#D1D5DB',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-
-  pickerWrapper: {
-    borderWidth: 1,
-    borderColor: "#D1D5DB",
-    borderRadius: 8,
-    overflow: "hidden",
+  locationPopupBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-
+  locationPopup: {
+    width: '85%',
+    maxHeight: '60%',
+    backgroundColor: 'white',
+    borderRadius: 16,
+    padding: 16,
+  },
+  optionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
   errorText: {
-    color: "#DC2626",
-    textAlign: "center",
+    color: '#DC2626',
+    textAlign: 'center',
   },
-
   redButton: {
-    backgroundColor: "#B31B1B",
+    backgroundColor: '#B31B1B',
     borderRadius: 10,
     paddingVertical: 12,
-    alignItems: "center",
+    alignItems: 'center',
   },
-
   redButtonText: {
-    color: "white",
-    fontWeight: "700",
+    color: 'white',
+    fontWeight: '700',
   },
 });

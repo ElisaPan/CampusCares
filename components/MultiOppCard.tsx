@@ -7,6 +7,7 @@
 
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -143,7 +144,10 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 				</View>
 				<Text style={styles.oppName}>{multiopp.name}</Text>
 				{!!multiopp.address && (
-					<Text style={styles.oppAddress}>📍 {multiopp.address}</Text>
+					<View style={styles.locationWrapper}>
+            <MaterialIcons name="location-pin" size={20} color={Theme.cornellRed}/>
+            <Text style={styles.oppAddress}>{multiopp.address}</Text>
+          </View>
 				)}
 				<View style={styles.upcomingOpps}>
 					<Text style={styles.upcomingOppsHeader}>Upcoming Opportunities</Text>
@@ -374,10 +378,15 @@ const styles = StyleSheet.create({
 		lineHeight: 28,
 		marginBottom: 8,
 	},
-	oppAddress: {
+	locationWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
+  },
+  oppAddress: {
     color: '#4b5563',
     fontSize: 14,
-    marginBottom: 16,
   },
 	upcomingOpps: {
 		marginBottom: 8,

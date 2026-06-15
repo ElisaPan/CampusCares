@@ -1,3 +1,13 @@
+/*************
+ * TODO:
+ *  Severe:
+ *    On click outline with red
+ *  High:
+ *    -
+ *  Low
+ *    -
+ */
+
 import * as Theme from '@/constants/theme';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";

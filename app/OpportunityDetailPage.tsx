@@ -1,7 +1,7 @@
 /*************
  * TODO:
  *  Severe:
- *    -
+ *    On click outline with red
  *  High:
  *    Move edit buttons location
  *    Transfer host dropdown select menu
@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
+import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
 import {
   Opportunity,
@@ -33,7 +34,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  deleteOpportunity,
+  deleteOpporturnity,
   getCurrentOpportunities,
   getOpportunityAttendance,
   registerForOpp,
@@ -162,9 +163,9 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
         .map((s) => s.userId);
       return signupUserIds.includes(student.id);
     });
-  signedUpStudents.forEach(s => {
-      console.log(s.email);
-    });
+  // signedUpStudents.forEach(s => {
+  //     console.log(s.email);
+  //   });
 
   const isUserSignedUp = opportunity.involved_users
     ? opportunity.involved_users.some(
@@ -397,7 +398,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
     if (!confirmed) return;
 
     try {
-      await deleteOpportunity(opportunity.id);
+      await deleteOpporturnity(opportunity.id);
 
       // Remove the opportunity from the state
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
@@ -651,9 +652,10 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
     });
   };
 
-  const handleCloneOpportunity = () => {
-    // Prepare the opportunity data for cloning
-    const clonedOpportunityData = {
+  const { setClonedOpportunityData } = useCloneOpportunity();
+
+  const handleCloneEvent = () => {
+    setClonedOpportunityData({
       name: opportunity.name,
       description: opportunity.description,
       address: opportunity.address,
@@ -661,23 +663,18 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       time: opportunity.time,
       duration: opportunity.duration,
       total_slots: opportunity.total_slots,
-      nonprofit: opportunity.nonprofit || '',
-      host_org_id: opportunity.host_org_id || '',
+      nonprofit: opportunity.nonprofit || "",
+      host_org_id: opportunity.host_org_id,
       causes: opportunity.causes || [],
       tags: opportunity.tags || [],
-      redirect_url: opportunity.redirect_url || '',
-      imageUrl: opportunity.imageUrl || '',
+      redirect_url: opportunity.redirect_url || "",
+      imageUrl: opportunity.imageUrl || "",
       visibility: opportunity.visibility || [],
       isPrivate: opportunity.isPrivate || false,
-      allow_carpool: opportunity.allow_carpool
-    };
-
-    // Navigate to create opportunity page with cloned data
-    router.push(`/CreateOpportunityPage`, {
-      state: {
-        clonedOpportunityData: clonedOpportunityData,
-      },
+      allow_carpool: opportunity.allow_carpool || false,
     });
+
+    router.push("/CreateOpportunityPage");
   };
 
   const img = opportunity.imageUrl;
@@ -856,7 +853,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                         <Text style={[styles.boldWhite, { textAlign: 'center' }]}>Edit</Text>
                       </Pressable>
                       <Pressable
-                        onPress={handleCloneOpportunity}
+                        onPress={handleCloneEvent}
                         style={styles.cloneOppBtn}
                       >
                         <Text style={[styles.boldWhite, { textAlign: 'center' }]}>Clone</Text>
@@ -2039,6 +2036,7 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 24,
     fontWeight: '700',
+    marginBottom: 4,
   },
   newAnnounce: {
     backgroundColor: '#EFF6FF',
@@ -2139,7 +2137,7 @@ const styles = StyleSheet.create({
   },
   section: {
     backgroundColor: 'rgb(255, 255, 255)',
-    padding: 24,
+    padding: 16,
     borderRadius: 16,
 
     shadowColor: '#000',
@@ -2295,7 +2293,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     width: '100%',
     marginTop: 8,
-    paddingVertical: 16,
+    paddingVertical: 10,
     paddingHorizontal: 16,
   },
   signupBtnText: {

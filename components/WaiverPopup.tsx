@@ -1,7 +1,7 @@
 /*************
  * TODO:
  *  Severe:
- *    router.push('/sign-waiver'
+ *    router.push(`/sign-waiver`)
  *  High:
  *    -
  *  Low
@@ -36,7 +36,7 @@ const WaiverPopup: React.FC<WaiverPopupProps> = ({
       <View style={styles.modalBackdrop}>
         <View style={styles.modal}>
           <View style={styles.icon}>
-            <MaterialIcons name="directions-car-filled" size={18} color={Theme.cornellRed}/>
+            <MaterialIcons name="directions-car-filled" size={32} color={Theme.cornellRed}/>
           </View>
           <Text style={styles.header}>Carpool Liability Waiver</Text>
           <Text style={styles.msg}>
@@ -60,7 +60,7 @@ const WaiverPopup: React.FC<WaiverPopupProps> = ({
             <Pressable
               onPress={() => {
                 setShowWaiverPopup(false);
-                router.push("../opportunities");
+                router.push(`/(tabs)/OpportunitiesPage`);
               }}
             >
               <Text style={styles.note}>
@@ -82,17 +82,18 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "center",
     alignItems: "center",
-    padding: 4,
+    paddingHorizontal: 24,
     zIndex: 50,
   },
   modal: {
     width: "100%",
     maxWidth: 448,
     borderRadius: 12,
-    padding: 24,
+    paddingHorizontal: 25,
+    paddingVertical: 18,
     backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    // borderWidth: 1,
+    // borderColor: "#E5E7EB",
     alignItems: "center",
 
     shadowColor: "#000",
@@ -104,7 +105,6 @@ const styles = StyleSheet.create({
   icon: {
     width: "100%",
     alignItems: "center",
-    paddingTop: 10,
   },
   header: {
     fontSize: 18,
@@ -113,10 +113,11 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   msg: {
-    marginTop: 8,
     fontSize: 14,
+    lineHeight: 20,
     color: 'rgb(0,0,0)',
     textAlign: 'center',
+    marginTop: 8,
   },
   actions: {
     marginTop: 4,
@@ -129,14 +130,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
+    marginVertical: 6,
+    borderRadius: 8,
     backgroundColor: Theme.cornellRed,
   },
   btnTxt: {
     color: 'white',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '700',
   },
   note: {
     color: "#6B7280",
