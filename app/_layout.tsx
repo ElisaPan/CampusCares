@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 
 import Header from '@/components/header';
 import UserContext from '@/components/user-context';
+import { CloneOpportunityProvider } from "@/context/CloneOpportunityContext";
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { User } from '@/types';
 
@@ -24,27 +25,29 @@ export default function RootLayout() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <View style={styles.container}>
-          <UserContext.Provider value={{ students, currentUser }}>
-            <View style={styles.header}>
-              <Header />
+    <CloneOpportunityProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <View style={styles.container}>
+            <UserContext.Provider value={{ students, currentUser }}>
+              <View style={styles.header}>
+                <Header />
+              </View>
+            </UserContext.Provider>
+            <View style={styles.content}>
+              <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="AboutUs" />
+                <Stack.Screen name="MyOpportunitiesPage" />
+                <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="friends/[id]" options={{ animation: 'slide_from_right' }} />
+              </Stack>
             </View>
-          </UserContext.Provider>
-          <View style={styles.content}>
-            <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="AboutUs" />
-              <Stack.Screen name="MyOpportunitiesPage" />
-              <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
-              <Stack.Screen name="friends/[id]" options={{ animation: 'slide_from_right' }} />
-            </Stack>
           </View>
-        </View>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </QueryClientProvider>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </CloneOpportunityProvider>
   );
 }
 

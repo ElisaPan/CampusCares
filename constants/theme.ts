@@ -13,7 +13,7 @@ const darkRed = '#B31B1B';
 const azure = '#4B5563';
 const darkYellow = '#FAA018';
 
-export const cornellRed = 'rgb(179, 27, 27)'
+export const cornellRed = '#B31B1B'
 
 export const themes = {
   attention: {

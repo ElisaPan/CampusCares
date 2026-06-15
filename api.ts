@@ -279,6 +279,7 @@ export interface UploadFile {
   uri: string;
   name: string;
   type: string;
+  size?: number;
 }
 
 export const uploadProfilePicture = async (file: UploadFile): Promise<string> => {
@@ -1005,7 +1006,7 @@ export const updateOpportunity = (id: number, data: object): Promise<Opportunity
     body: JSON.stringify(data),
   });
 
-export const deleteOpportunity = (id: number): Promise<void> =>
+export const deleteOpporturnity = (id: number): Promise<void> =>
   authenticatedRequest(`/opps/${id}`, {
     method: 'DELETE',
   });

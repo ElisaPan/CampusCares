@@ -1,4 +1,4 @@
-import { Badge, Member, MultiOpp, Opportunity, Organization, SignUp, User } from '../types';
+import { Badge, Member, MultiOpp, Opportunity, Organization, Ride, SignUp, User } from '../types';
 
 const countSignupsForCause = (
   cause: string,
@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
     interests: [""],
     friendIds: [2,3],
     organizationIds: [1,2], // Changed from groupIds to organizationIds
-    admin: false,
+    admin: true,
     registered: true, // Whether user is registered for an opportunity
     attended: false, // Whether user attended an opportunity
     gender: "female", // Gender (nullable)
@@ -58,7 +58,7 @@ export const mockUsers: User[] = [
     _lastUpdate: 3, // Internal timestamp for forcing re-renders
     car_seats: 0, // Number of car seats available
     bio: "none boringgg", // bio
-    carpool_waiver_signed: false,
+    carpool_waiver_signed: true,
     subscribed: false,
     heard_about: "sigh",
   },
@@ -166,7 +166,7 @@ export const mockOpportunities: Opportunity[] = [
     carpool_id: "fakeID",
     approved: true,
     host_id: 1,
-    involved_users: [mockUsers[1], mockUsers[2]]
+    involved_users: [mockUsers[1], mockUsers[2]],
   },
 ];
 export const mockMultiOpps: MultiOpp[] = [
@@ -190,6 +190,58 @@ export const mockMultiOpps: MultiOpp[] = [
 export const mockSignups: SignUp[] = [
   { userId: 0, opportunityId: 10 },
 ];
+
+export const mockRides: Ride[] = [
+  // {
+  //   id: "1",
+  //   carpool_id: "1",
+  //   driver_id: "1",
+  //   driver_name: "Mock User",
+  //   driver_seats: 4,
+  //   riders: [
+  //     {
+  //       id: "2",
+  //       ride_id: "1",
+  //       user_id: "2",
+  //       pickup_location: "North RPCC",
+  //       profile_image: require('../assets/images/user2pic.jpg'),
+  //       photoURL: "https://t4.ftcdn.net/jpg/04/44/53/99/360_F_444539901_2GSnvmTX14LELJ6edPudUsarbcytOEgj.jpg",
+  //       name: "Fake Friend",
+  //       notes: "talks non-stop",
+  //     },
+  //     {
+  //       id: "3",
+  //       ride_id: "2",
+  //       user_id: "3",
+  //       pickup_location: "West Baker Flagpole",
+  //       profile_image: require('../assets/images/user3pic.jpg'),
+  //       photoURL: "https://img.freepik.com/free-photo/closeup-young-female-professional-making-eye-contact-against-colored-background_662251-651.jpg",
+  //       name: "Fake Friend 2",
+  //       notes: "doesn't like yappers",
+  //     },
+  //   ],
+  // },
+  {
+    id: "2",
+    carpool_id: "2",
+    driver_id: "2",
+    driver_name: "Second Driver",
+    driver_seats: 6,
+    riders: [
+      // {
+      //   id: "1",
+      //   ride_id: "1",
+      //   user_id: "1",
+      //   pickup_location: "North RPCC",
+      //   profile_image: require('../assets/images/user1pic.jpg'),
+      //   photoURL: "https://t3.ftcdn.net/jpg/03/67/46/48/360_F_367464887_f0w1JrL8PddfuH3P2jSPlIGjKU2BI0rn.jpg",
+      //   name: "Fake Friend 2",
+      //   notes: "doesn't like yappers",
+      // },
+    ],
+  },
+]
+
 
 export const initialBadges: Badge[] = [
   {

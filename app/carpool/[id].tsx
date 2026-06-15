@@ -1,9 +1,5 @@
-import { Text, View } from "react-native";
+import CarpoolPage from "../CarpoolPage";
 
-export default function OpportunityRoute() {
-  return (
-    <View>
-      <Text>Carpool Redirect</Text>
-    </View>
-  );
+export default function CarpoolRoute() {
+  return <CarpoolPage />;
 }

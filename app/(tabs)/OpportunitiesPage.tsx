@@ -16,6 +16,7 @@ import React, { useMemo, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import * as Theme from '@/constants/theme';
+import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
 import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, Organization, SignUp, User } from '@/types';
 
@@ -45,40 +46,6 @@ interface OpportunitiesPageProps {
   oppsLoading: boolean
 }
 
-const Header = ({ user }: { user: User }) => (
-  <View style={styles.header}>
-    <Text style={styles.headerText}>Upcoming Opportunities</Text>
-    <View style={styles.subheader}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.headerSubtext}>Find the perfect way to make an impact in the Ithaca community.</Text>
-      </View>
-      {user && (
-        <View style={{ marginLeft: 4 }}>
-          <Pressable
-            onPress={() => router.push('../create-opportunity')}
-            style={styles.createOppBtn}
-          >
-            <Text style={styles.createOppBtnText}>Create Opportunity</Text>
-          </Pressable>
-        </View>
-      )}
-    </View>
-  </View>
-);
-
-const Footer = () => (
-  <Text style={styles.termsFooter}>
-    Click here to see our{" "}
-    <Text
-      style={{ textDecorationLine: 'underline', color: '#374151' }}
-      onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
-    >
-      Terms of Service and Privacy Policy
-    </Text>
-    .
-  </Text>
-);
-
 const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   opportunities,
   students,
@@ -104,14 +71,13 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   const parsedId = rawId ? parseInt(rawId, 10) : null;
 
   const baseUser =
-      parsedId !== null
-        ? students?.find((s) => s.id === parsedId)
-        : currentUser;
+    parsedId !== null
+      ? students?.find((s) => s.id === parsedId)
+      : currentUser;
   
   const user = USE_MOCKS ? mockUsers[0] : baseUser;
   const userOpportunities = USE_MOCKS ? mockOpportunities : opportunities;
   const userMultiOpps = USE_MOCKS ? mockMultiOpps : multiopps;
-
 
   if (!user) return <Text>User not found</Text>;
 
@@ -234,7 +200,45 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     setSelectedOpportunity(null);
   };
 
-  // console.log('user:', user);
+  const { setClonedOpportunityData } = useCloneOpportunity();
+  const handleCreateNew = () => {
+    setClonedOpportunityData(null);
+    router.push(`/CreateOpportunityPage`);
+  };
+
+  const Header = ({ user }: { user: User }) => (
+    <View style={styles.header}>
+      <Text style={styles.headerText}>Upcoming Opportunities</Text>
+      <View style={styles.subheader}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.headerSubtext}>Find the perfect way to impact the Ithaca community.</Text>
+        </View>
+        {user && (
+          <View style={{ marginLeft: 4 }}>
+            <Pressable
+              onPress={handleCreateNew}
+              style={styles.createOppBtn}
+            >
+              <Text style={styles.createOppBtnText}>Create Opportunity</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </View>
+  );
+
+  const Footer = () => (
+    <Text style={styles.termsFooter}>
+      Click here to see our{" "}
+      <Text
+        style={{ textDecorationLine: 'underline', color: '#374151' }}
+        onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
+      >
+        Terms of Service and Privacy Policy
+      </Text>
+      .
+    </Text>
+  );
 
   return (
     <View style={styles.container}>
@@ -349,7 +353,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
 
       {/* External Signup Modal */}
       {showExternalSignupModal && selectedOpportunity && (
-        <View style={styles.signupModalContainer}>
+        <View style={styles.signupModalBackdrop}>
           <View style={styles.signupModalBox}>
             <Text style={styles.signupModalHeader}>External Registration Required</Text>
             <Text style={{ marginBottom: 16, color: '#757575' }}>
@@ -378,7 +382,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
 
       {/* External Unsignup Modal */}
       {showExternalUnsignupModal && selectedOpportunity && (
-        <View style={styles.signupModalContainer}>
+        <View style={styles.signupModalBackdrop}>
           <View style={styles.signupModalBox}>
             <Text style={styles.signupModalHeader}>External Application Notice</Text>
             <Text style={{ marginBottom: 16, color: '#757575' }}>
@@ -452,7 +456,7 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.cornellRed,
     width: 120,
     paddingHorizontal: 2,
-    paddingVertical: 14,
+    paddingVertical: 12,
     marginLeft: 0,
     borderRadius: 8,
     alignItems: 'center',
@@ -495,7 +499,7 @@ const styles = StyleSheet.create({
     color: '#9E9E9E',
     lineHeight: 20
   },
-  signupModalContainer: {
+  signupModalBackdrop: {
     position: 'absolute',
     top: 0,
     left: 0,

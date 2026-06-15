@@ -229,7 +229,10 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
         <Text style={styles.oppName}>{opportunity.name}</Text>
         <Text style={styles.oppDate}>{displayDate} &bull; {displayTime} - {displayEndTime}</Text>
         {!!opportunity.address && (
-          <Text style={styles.oppAddress}>📍 {opportunity.address}</Text>
+          <View style={styles.locationWrapper}>
+            <MaterialIcons name="location-pin" size={20} color={Theme.cornellRed}/>
+            <Text style={styles.oppAddress}>{opportunity.address}</Text>
+          </View>
         )}
         <View style={styles.slotsArea}>
           <View style={styles.slotsLabel}>
@@ -424,12 +427,17 @@ const styles = StyleSheet.create({
   oppDate: {
     color: '#6b7280',
     fontSize: 14,
-    marginBottom: 16,
+    marginBottom: 12,
+  },
+  locationWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 8,
   },
   oppAddress: {
     color: '#4b5563',
     fontSize: 14,
-    marginBottom: 16,
   },
   slotsArea: {
     flexDirection: 'row',

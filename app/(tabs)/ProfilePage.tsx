@@ -1,7 +1,7 @@
 /*************
  * TODO:
  *  Severe:
- *    -
+ *    Do GroupsPage via `Manage Orgs` button
  *  High:
  *    Fix friend profile link when click on friend card
  *    Fix terms and conditions link
@@ -317,11 +317,13 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
           <Text style={styles.name} >{profileUser.name}</Text>
           <Text style={styles.email} >{profileUser.email}</Text>
           <View style={styles.info}>
-            <Text style={styles.infoText}>
-              {isSmallScreen
-              ? `${loadingFriends ? '...' : profileUserFriends.length}\nFriends`
-              : `${loadingFriends ? '...' : profileUserFriends.length} Points`}
-            </Text>
+            <Pressable onPress={() => router.push(`../friends/${profileUser.id}`)}>
+              <Text style={styles.infoText}>
+                {isSmallScreen
+                ? `${loadingFriends ? '...' : profileUserFriends.length}\nFriend${profileUserFriends.length == 1 ? '' : 's'}`
+                : `${loadingFriends ? '...' : profileUserFriends.length} Friend${profileUserFriends.length == 1 ? '' : 's'}`}
+              </Text>
+            </Pressable>
             <Text style={styles.infoText}>&bull;</Text>
             <Text style={styles.infoText}>
               {isSmallScreen
@@ -447,7 +449,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
         </View>
 
         {/* Friends */}
-        <View style={styles.leftAlignCard}>
+        {/* <View style={styles.leftAlignCard}>
           <Text style={styles.sectionHeader}>{profileUser.name}'s Friends ({profileUserFriends.length})</Text>
           {loadingFriends ? (
             <Text style={styles.smallText}>Loading friends...</Text>
@@ -471,7 +473,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             ) : (
               <Text style={styles.smallText}>{profileUser.name} hasn't added any friends yet.</Text>
           )}
-        </View>
+        </View> */}
 
         {/* Footer */}
         {(isCurrentUser || currentUser?.admin) && (
@@ -509,7 +511,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             </View>
             {/* See Opportunities */}
             <Pressable
-              onPress={() => router.push('../ServiceJournal${profileUser.id}')} //FIXXXXXX
+              onPress={() => router.push(`../ServiceJournal${profileUser.id}`)} //FIXXXXXX
               style={styles.footerBtn}
             >
               <Text style={styles.footerText}>See my opportunities</Text>
@@ -665,7 +667,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   cancelEditBioBtn: {
-    backgroundColor: '#4b5563',
+    backgroundColor: '#9CA3AF',
     paddingVertical: 6,
     borderRadius: 8,
     width: 70,
