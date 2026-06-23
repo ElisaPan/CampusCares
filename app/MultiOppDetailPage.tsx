@@ -44,7 +44,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   onSignUp,
   onUnsignUp,
 }) => {
-  const USE_MOCKS = true;
+  const USE_MOCKS = false;
 
   const router = useRouter();
   const queryClient = useQueryClient();

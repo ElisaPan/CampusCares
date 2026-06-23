@@ -2,18 +2,21 @@
  * TODO:
  *  Severe:
  *    Fix links / router push
+ *    PeopleIcon
  */
 
 import { getProfilePictureSource, removeCarpoolUser } from '@/api';
 import * as Theme from '@/constants/theme';
 import { Opportunity, Organization, User } from '@/types';
 import { calculateEndTime } from '@/utils/timeUtils';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Octicons from '@expo/vector-icons/Octicons';
 import { useQueryClient } from '@tanstack/react-query';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { Calendar1, Clock } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -184,7 +187,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   dateObj.setDate(dateObj.getDate() + 1);
 
   const displayDate = dateObj.toLocaleDateString('en-US', {
-    weekday: 'long',
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -209,35 +212,84 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
       onPress={handleCardPress}
       style={styles.card}
     >
-      <Image
-        style={styles.oppPic}
-        source={oppPicSource}
-        alt={opportunity.name}
-      />
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <View style={styles.orgInfo}>
-            <Text style={styles.orgName}>
-              {opportunity.nonprofit || 'Community Organization'}
-            </Text>
-            {isUserHost && (
-              <Text style={styles.hostBadge}>Host</Text>
-            )}
+      <View style={styles.oppPicWrapper}>
+        <Image
+          style={styles.oppPic}
+          source={oppPicSource}
+          alt={opportunity.name}
+        />
+        <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}>
+          <LinearGradient
+            colors={[ "rgba(0,0,0,0.6)", "transparent" ]}
+            start={{ x: 0.5, y: 1 }}
+            end={{ x: 0.5, y: 0 }}
+            style={StyleSheet.absoluteFillObject}
+          />
+        </View>
+        <View style={styles.headerTextWrapper}>
+          <View style={styles.leftHeader}>
+            <Text style={styles.orgName}>{opportunity.nonprofit || 'Community Organization'}</Text>
+            <Text style={styles.oppName}>{opportunity.name}</Text>
           </View>
+          <View style={styles.rightHeader}>
+            <Text style={styles.oppPoints}>{opportunity.points} PTS</Text>
+          </View>
+        </View>
+      </View>
+      <View style={styles.content}>
+        {/* <View style={styles.header}>
+          <Text style={styles.orgName}>
+            {opportunity.nonprofit || 'Community Organization'}
+          </Text>
           <Text style={styles.oppPoints}>{opportunity.points} PTS</Text>
         </View>
-        <Text style={styles.oppName}>{opportunity.name}</Text>
-        <Text style={styles.oppDate}>{displayDate} &bull; {displayTime} - {displayEndTime}</Text>
-        {!!opportunity.address && (
+        <View style={styles.oppNameWrapper}>
+          <Text style={styles.oppName}>{opportunity.name}</Text>
+          {isUserHost && (
+            <Text style={styles.hostBadge}>Host</Text>
+          )}
+        </View> */}
+        {/* <Text style={styles.oppDate}>{displayDate} &bull; {displayTime} - {displayEndTime}</Text> */}
+        <View style={styles.dateTimeWrapper}>
+          <Calendar1 size={14} color="#374151" style={{ marginTop: 1 }} />
+          <Text style={styles.oppDate}>{displayDate}</Text>
+          <Text style={[styles.oppDate, {color: '#b7b7b7' }]}> • </Text>
+          <Clock size={14} color="#374151" style={{ marginTop: 1 }} />
+          <Text style={styles.oppDate}>{displayTime} – {displayEndTime}</Text>
+        </View>
+        {/* {!!opportunity.address && (
           <View style={styles.locationWrapper}>
             <MaterialIcons name="location-pin" size={20} color={Theme.cornellRed}/>
             <Text style={styles.oppAddress}>{opportunity.address}</Text>
           </View>
-        )}
+        )} */}
         <View style={styles.slotsArea}>
           <View style={styles.slotsLabel}>
-            <MaterialIcons name="person" size={20} color={Theme.cornellRed} />
-            <Text>Signed Up ({signedUpStudents.length}/{opportunity.total_slots})</Text>
+            {signedUpStudents.length > 0 ? (
+              <View style={styles.participants}>
+                {signedUpStudents.slice(0, 10).map((student, index) => {
+                  return (
+                    <View
+                      key={student.id}
+                      style={[
+                        styles.avatarContainer,
+                        { zIndex: 100 - index, marginLeft: index === 0 ? 0 : -10 },
+                      ]}
+                    >
+                      <Pressable onPress={() => handleProfilePress(student.id)}>
+                        <Avatar user={student} />
+                      </Pressable>
+                    </View>
+                  );
+                })}
+                {signedUpStudents.length > 10 && (
+                  <View style={styles.moreParticipants}>+{signedUpStudents.length - 10}</View>
+                )}
+                <Text style={{ color: '#374151', marginLeft: 8 }}>{signedUpStudents.length} / {opportunity.total_slots} signed up</Text>
+              </View>
+            ) : (
+              <Text style={styles.firstSignup}>Be the first to sign up! +5 bonus points</Text>
+            )}
           </View>
           <View style={ styles.slots }>
             <Text
@@ -247,35 +299,10 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
                   ? { color: '#16a34a' }
                   : { color: Theme.cornellRed },
                 ]}>
-              {availableSlots} slots left
+              {availableSlots} slot{availableSlots === 1 ? '' : 's'} left
             </Text>
           </View>
         </View>
-        {signedUpStudents.length > 0 ? (
-          <View style={styles.participants}>
-            {signedUpStudents.slice(0, 10).map((student, index) => {
-              return (
-                <View
-                  key={student.id}
-                  style={[
-                    styles.avatarContainer,
-                    // index !== 0 && { marginLeft: -10 },
-                    { zIndex: signedUpStudents.length - index },
-                  ]}
-                >
-                  <Pressable onPress={() => handleProfilePress(student.id)}>
-                    <Avatar user={student} />
-                  </Pressable>
-                </View>
-              );
-            })}
-            {signedUpStudents.length > 10 && (
-              <View style={styles.moreParticipants}>+{signedUpStudents.length - 10}</View>
-            )}
-          </View>
-        ) : (
-          <Text style={styles.firstSignup}>Be the first to sign up! +5 bonus points</Text>
-        )}
         {topOrgs.length > 0 && (
           <View style={styles.topOrgs}>
             <View style={styles.topOrgsHeader}>
@@ -350,47 +377,76 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     overflow: 'hidden',
     flexDirection: 'column',
-    boxShadow: '0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    elevation: 5,
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
 },
+  oppPicWrapper: {
+    height: 100,
+    overflow: "hidden",
+  },
   oppPic: {
-    objectFit: 'cover',
-		height: 192,
-		width: '100%',
+    width: "100%",
+    height: 130,
+    resizeMode: "cover",
+    marginTop: -15,
   },
   content: {
-    padding: 24,
+    padding: 16,
+    paddingBottom: 14,
 		flexDirection: 'column',
 		flexGrow: 1,
+    gap: 2,
   },
-  header: {
-    justifyContent: 'space-between',
-		alignItems: 'flex-start',
-		marginBottom: 8,
+  dateTimeWrapper: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignContent: 'center',
+    gap: 7,
+    marginBottom: 6,
+  },
+  // header: {
+  //   justifyContent: 'space-between',
+	// 	alignItems: 'flex-start',
+	// 	marginBottom: 4,
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap',
+  // },
+  headerTextWrapper: {
+    position: 'absolute',
+    padding: 32,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: "100%",
+  },
+  leftHeader: {
+    flexDirection: 'column',
+    gap: 4,
+    alignSelf: 'center',
+  },
+  rightHeader: {
+    alignSelf: 'center',
   },
   headerText: {
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     fontWeight: '600',
     fontSize: 14,
-    lineHeight: 20,
     overflow: 'hidden',
     textOverflow: '...',
     color: Theme.cornellRed
   },
   hostBadge: {
     backgroundColor: '#dbeafe',
+    width: 50,
     color: '#1e40af',
     textAlign: 'center',
     fontSize: 12,
     fontWeight: '600',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 6,
     borderRadius: 9999,
-    flexShrink: 0,
-    width: '23%',
   },
   orgInfo: {
     gap: 8,
@@ -400,34 +456,38 @@ const styles = StyleSheet.create({
   orgName: {
     fontSize: 14,
     fontWeight: '600',
-    color: Theme.cornellRed,
+    color: 'rgb(255, 255, 255, 0.9)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     overflow: 'hidden',
     textOverflow: '...',
   },
   oppPoints: {
-    color: '#000',
+    color: 'white',
     fontSize: 12,
     fontWeight: '700',
     padding: 4,
-    borderRadius: 9999,
-    width: 80,
+    borderRadius: 8,
+    width: 70,
     textAlign: 'center',
     flexShrink: 0,
     marginLeft: 8,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: 'rgb(255, 255, 255, 0.3)',
   },
-  oppName: {
-    color: '#111827',
-    fontSize: 20,
-    fontWeight: '700',
+  oppNameWrapper: {
+    flexDirection: 'row',
+    alignItems: "center",
+    gap: 12,
     marginBottom: 8,
   },
+  oppName: {
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+  },
   oppDate: {
-    color: '#6b7280',
+    color: '#374151',
     fontSize: 14,
-    marginBottom: 12,
   },
   locationWrapper: {
     flexDirection: 'row',
@@ -446,7 +506,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     color: '#4b5563',
-    marginBottom: 8,
+    marginBottom: 2,
   },
   slotsLabel: {
     alignItems: 'center',
@@ -454,19 +514,18 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   slots: {
+    backgroundColor: 'rgb(54, 188, 103, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
+    borderRadius: 16,
   },
   slotsText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
   },
   participants: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
   },
   moreParticipants: {
     height: 32,
@@ -528,10 +587,10 @@ const styles = StyleSheet.create({
   },
   signUpBtn: {
     width: '100%',
-    marginTop: 'auto',
+    marginTop: 4,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: 'center',
   },
   signUpText: {
@@ -591,7 +650,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   oppTagText: {
-    
     fontSize: 12,
     color: '#1e40af',
     fontWeight: '500',

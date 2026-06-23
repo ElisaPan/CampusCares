@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
     interests: [""],
     friendIds: [2,3],
     organizationIds: [1,2], // Changed from groupIds to organizationIds
-    admin: true,
+    admin: false,
     registered: true, // Whether user is registered for an opportunity
     attended: false, // Whether user attended an opportunity
     gender: "female", // Gender (nullable)

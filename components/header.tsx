@@ -8,8 +8,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useContext } from 'react';
 
 export const Header = () => {
+    const USE_MOCKS = false;
+
     const { students, currentUser } = useContext(UserContext);
-    const USE_MOCKS = true;
     const { id } = useLocalSearchParams<{ id?: string }>();
     const parsedId = id ? Number(id) : null;
 

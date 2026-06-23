@@ -62,6 +62,8 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
   const { headers, ...restOptions } = options;
   const url = `${ENDPOINT_URL}/api${endpoint}`;
 
+  console.log("FETCHING:", url);
+
   const res = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',

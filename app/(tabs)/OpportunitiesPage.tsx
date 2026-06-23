@@ -64,7 +64,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   oppsLoading
 }) => {
 
-  const USE_MOCKS = true;
+  const USE_MOCKS = false;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -207,19 +207,19 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   };
 
   const Header = ({ user }: { user: User }) => (
-    <View style={styles.header}>
-      <Text style={styles.headerText}>Upcoming Opportunities</Text>
-      <View style={styles.subheader}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.headerSubtext}>Find the perfect way to impact the Ithaca community.</Text>
-        </View>
+    <View style={styles.headerWrapper}>
+      <View style={styles.headerLeft}>
+        <Text style={styles.headerText}>Opportunities</Text>
+        <Text style={styles.headerSubtext}>Impact the Ithaca community</Text>
+      </View>
+      <View style={styles.headerRight}>
         {user && (
           <View style={{ marginLeft: 4 }}>
             <Pressable
               onPress={handleCreateNew}
               style={styles.createOppBtn}
             >
-              <Text style={styles.createOppBtnText}>Create Opportunity</Text>
+              <Text style={styles.createOppBtnText}>+  Create</Text>
             </Pressable>
           </View>
         )}
@@ -242,26 +242,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      {/* <View style={styles.header}>
-        <Text style={styles.headerText}>Upcoming Opportunities</Text>
-        <View style={styles.subheader}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.headerSubtext}>Find the perfect way to make an impact in the Ithaca community.</Text>
-          </View>
-          {user && (
-            <View style={{ marginLeft: 4 }}>
-              <Pressable
-                onPress={() => router.push('../create-opportunity')}
-                style={styles.createOppBtn}
-              >
-                <Text style={styles.createOppBtnText}>Create Opportunity</Text>
-              </Pressable>
-            </View>
-          )}
-        </View>
-      </View> */}
-
       {/* Opportunities Grid */}
       <FlatList
         style={styles.oppsGrid}
@@ -321,7 +301,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
               : currentUserSignupsSet?.has(opp.id) ?? false);
 
           return (
-            <View style={{ marginBottom: 32 }}>
+            <View style={{ marginBottom: 20 }}>
               <OpportunityCard
                 key={`opp-${opp.id}`}
                 opportunity={opp}
@@ -359,7 +339,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
             <Text style={{ marginBottom: 16, color: '#757575' }}>
               Please register externally on this link by clicking the button below.
             </Text>
-            <Text style={{ fontSize: 14, lineHeight: 20, marginBottom: 24, color: '#757575' }}>
+            <Text style={{ fontSize: 14, marginBottom: 24, color: '#757575' }}>
               After registering externally, you'll still be registered locally in our system.
             </Text>
             <View style={{ gap: 12 }}>
@@ -389,7 +369,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
               This opportunity required an external application. Please notify the host non-profit
               that you no longer are able to participate in this opportunity.
             </Text>
-            <Text style={{ fontSize: 14, lineHeight: 20, marginBottom: 24, color: '#757575' }}>
+            <Text style={{ fontSize: 14, marginBottom: 24, color: '#757575' }}>
               You will still be unregistered from our local system.
             </Text>
             <View style={{ gap: 12 }}>
@@ -409,18 +389,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           </View>
         </View>
       )}
-
-      {/* Terms */}
-      {/* <Text style={styles.termsFooter}>
-        Click here to see our{" "}
-        <Text
-          style={{ textDecorationLine: 'underline', color: '#374151' }}
-          onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
-        >
-          Terms of Service and Privacy Policy
-        </Text>
-        .
-      </Text> */}
     </View>
   );
 };
@@ -430,18 +398,21 @@ export default OpportunitiesPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // padding: 24,
   },
-  header: {
-    // marginBottom: 24,
-    paddingBottom: 24,
+  headerWrapper: {
+    paddingBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerLeft: {
+    marginLeft: 10,
   },
   headerText: {
     fontSize: 30,
-    lineHeight: 36,
     fontWeight: '700',
     letterSpacing: -0.4,
-    marginBottom: 12,
+    marginBottom: 4,
   },
   subheader: {
     flexDirection: 'row',
@@ -452,14 +423,14 @@ const styles = StyleSheet.create({
     color: '#4b5563',
     fontSize: 16,
   },
+  headerRight: {
+    marginRight: 10,
+  },
   createOppBtn: {
     backgroundColor: Theme.cornellRed,
-    width: 120,
-    paddingHorizontal: 2,
-    paddingVertical: 12,
-    marginLeft: 0,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 8,
-    alignItems: 'center',
   },
   createOppBtnText: {
     color: 'white',
@@ -482,7 +453,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     backgroundColor: 'white',
     borderRadius: 16,
-    boxShadow: '0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   oppsGrid: {
     width: '100%',
@@ -490,14 +466,12 @@ const styles = StyleSheet.create({
   },
   noOpps: {
     fontSize: 20,
-    lineHeight: 28,
     fontWeight: '600',
     color: '#1f2937',
   },
   noOppsDesc: {
     marginTop: 12,
     color: '#9E9E9E',
-    lineHeight: 20
   },
   signupModalBackdrop: {
     position: 'absolute',
@@ -520,7 +494,6 @@ const styles = StyleSheet.create({
   signupModalHeader: {
     color: '#212121',
     fontSize: 18,
-    lineHeight: 28,
     fontWeight: '700',
     marginBottom: 16,
   },
@@ -542,11 +515,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-
   termsFooter: {
     color: '#6b7280',
     fontSize: 12,
-    lineHeight: 16,
     textAlign: 'center',
   },
 })

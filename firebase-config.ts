@@ -9,12 +9,10 @@ import {
   GoogleAuthProvider,
   onAuthStateChanged as fbOnAuthStateChanged,
   signOut as firebaseSignOut,
-  getAuth,
+  getReactNativePersistence,
   initializeAuth,
-  signInWithCredential,
-  type Auth
+  signInWithCredential
 } from 'firebase/auth';
-import { Platform } from 'react-native';
 
 export interface FirebaseUser {
   email: string;
@@ -37,20 +35,9 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-let auth: Auth;
-
-if (Platform.OS === 'web') {
-  auth = getAuth(app);
-} else {
-  const { getReactNativePersistence } = require('firebase/auth');
-  auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(AsyncStorage),
-  });
-}
-
-// export const auth = initializeAuth(app, {
-//   persistence: getReactNativePersistence(AsyncStorage),
-// });
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
 
 const provider = new GoogleAuthProvider();
 provider.setCustomParameters({ prompt: 'select_account' });
