@@ -76,7 +76,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   allTimeMyOpps,
 }) => {
 
-  const USE_MOCKS = true;
+  const USE_MOCKS = false;
 
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();

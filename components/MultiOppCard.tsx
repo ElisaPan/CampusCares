@@ -7,7 +7,7 @@
 
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -131,24 +131,32 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 		onPress={handleCardPress}
 		style={styles.card}
     >
-			<Image 
-				style={styles.oppPic}
-				source={oppPicSource}
-				alt={multiopp.name}
-			/>
-			<View style={styles.content}>
-				<View style={styles.header}>
-					<Text style={styles.headerText}>
-						{multiopp.nonprofit || 'Community Organization'}
-					</Text>
+			<View style={styles.oppPicWrapper}>
+				<Image 
+					style={styles.oppPic}
+					source={oppPicSource}
+					alt={multiopp.name}
+				/>
+				<View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}>
+					<LinearGradient
+						colors={[ "rgba(0,0,0,0.6)", "transparent" ]}
+						start={{ x: 0.5, y: 1 }}
+						end={{ x: 0.5, y: 0 }}
+						style={StyleSheet.absoluteFillObject}
+					/>
 				</View>
-				<Text style={styles.oppName}>{multiopp.name}</Text>
-				{!!multiopp.address && (
+				<View style={styles.headerTextWrapper}>
+					<Text style={styles.orgName}>{multiopp.nonprofit || 'Community Organization'}</Text>
+					<Text style={styles.oppName}>{multiopp.name}</Text>					
+				</View>
+			</View>
+			<View style={styles.content}>
+				{/* {!!multiopp.address && (
 					<View style={styles.locationWrapper}>
             <MaterialIcons name="location-pin" size={20} color={Theme.cornellRed}/>
             <Text style={styles.oppAddress}>{multiopp.address}</Text>
           </View>
-				)}
+				)} */}
 				<View style={styles.upcomingOpps}>
 					<Text style={styles.upcomingOppsHeader}>Upcoming Opportunities</Text>
 					{displayOpportunities.length > 0 ? (
@@ -343,41 +351,51 @@ const styles = StyleSheet.create({
 		borderRadius: 16,
 		overflow: 'hidden',
 		flexDirection: 'column',
-		boxShadow: '0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-		elevation: 5,
+		
+		shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
 	},
-	oppPic: {
-		objectFit: 'cover',
-		height: 192,
-		width: '100%',
-	},
-	content: {
-		padding: 24,
+	oppPicWrapper: {
+    height: 100,
+    overflow: "hidden",
+  },
+  oppPic: {
+    width: "100%",
+    height: 130,
+    resizeMode: "cover",
+    marginTop: -15,
+  },
+  content: {
+    padding: 16,
+		paddingTop: 10,
+    paddingBottom: 14,
 		flexDirection: 'column',
 		flexGrow: 1,
-	},
-	header: {
-		justifyContent: 'space-between',
-		alignItems: 'flex-start',
-		marginBottom: 8,
-	},
-	headerText: {
-		letterSpacing: 0.8,
-		textTransform: 'uppercase',
-		fontWeight: '600',
-		fontSize: 14,
-		lineHeight: 20,
-		overflow: 'hidden',
-		textOverflow: '...',
-		color: Theme.cornellRed
-	},
+    gap: 2,
+  },
+	headerTextWrapper: {
+    position: 'absolute',
+    padding: 32,
+    flexDirection: 'column',
+    justifyContent: 'space-between',
+  },
+	orgName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: 'rgb(255, 255, 255, 0.9)',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+    overflow: 'hidden',
+    textOverflow: '...',
+  },
 	oppName: {
-		color: '#111827',
-		fontWeight: '700',
-		fontSize: 20,
-		lineHeight: 28,
-		marginBottom: 8,
-	},
+    color: 'white',
+    fontSize: 20,
+    fontWeight: '700',
+  },
 	locationWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -514,7 +532,7 @@ const styles = StyleSheet.create({
 	},
 	viewMore: {
 		width: '100%',
-		paddingVertical: 6,
+		paddingVertical: 8,
 		paddingHorizontal: 16,
 		borderRadius: 8,
 		borderWidth: 1,
@@ -522,7 +540,8 @@ const styles = StyleSheet.create({
 	},
 	viewMoreTxt: {
 		color: '#4B5563',
-		fontSize: 12,
+		fontSize: 14,
 		fontWeight: '600',
+		textAlign: 'center',
 	},
 })

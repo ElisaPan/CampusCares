@@ -8,7 +8,7 @@
  *    Fix service journal link
  *    Fix user sub/unsub function
  *  Low
- *    Make friends collapsible in Profile if too many friends
+ *    -
  */
 
 import * as ImagePicker from 'expo-image-picker';
@@ -73,7 +73,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     setAllTimeMyOpps,
   } = props;
 
-  const USE_MOCKS = true;
+  const USE_MOCKS = false;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -559,16 +559,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     borderRadius: 16,
-    boxShadow: '0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    elevation: 5,
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   leftAlignCard: {
     width: '100%',
     backgroundColor: 'white',
     padding: 24,
     borderRadius: 16,
-    boxShadow: '0 10px 15px -3px rgb(0, 0, 0, 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-    elevation: 5,
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   profilePicWrapper: {
     alignItems: 'center',

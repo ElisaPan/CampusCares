@@ -41,6 +41,10 @@ export default function RootLayout() {
                 <Stack.Screen name="MyOpportunitiesPage" />
                 <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="friends/[id]" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="LoginPage" options={{ headerShown: false }} />
+                <Stack.Screen name="SignUpPage" options={{ headerShown: false }} />
+                <Stack.Screen name="RegisterPage" options={{ headerShown: false }} />
+                <Stack.Screen name="Home" options={{ headerShown: false }} />
               </Stack>
             </View>
           </View>
@@ -58,10 +62,13 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 16,
     backgroundColor: '#fff',
-
-    boxShadow: '0px 2px 4px rgba(0,0,0,0.12)',
-    elevation: 4,
     zIndex: 1,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   content: {
     flex: 1,

@@ -117,7 +117,10 @@ export const themes = {
     justifyContent: 'center',
     alignItems: 'center',
 
-    boxShadow: '0px 4px 8px rgba(0,0,0,0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     elevation: 4,
   },
 
@@ -194,10 +197,12 @@ export const themes = {
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
-
     backgroundColor: '#c41e1e',
 
-    boxShadow: '0px 4px 12px rgba(196, 30, 30, 0.2)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
     elevation: 4,
   },
 
