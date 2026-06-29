@@ -1,4 +1,5 @@
 import { FriendshipStatus, FriendshipsResponse, User } from '@/types';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -28,7 +29,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
     setCurrentUser,
   } = props;
 
-  const USE_MOCKS = false;
+  const USE_MOCKS = true;
   
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -107,6 +108,13 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
   
   return (
     <View style={styles.container}>
+      <Pressable
+        style={styles.backWrapper}
+        onPress={() => router.back()}
+      >
+        <MaterialIcons name='chevron-left' size={18} color='#374151' />
+        <Text style={styles.backTxt}>Back to Profile</Text>
+      </Pressable>
       <View style={styles.pageTop}>
         <Text style={styles.pageTitle}>Friends</Text>
         { !isEditing ? (
@@ -148,6 +156,19 @@ export default FriendsPage;
 const styles = StyleSheet.create({
   container: {
     padding: 24,
+  },
+  backWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 12,
+    gap: 4,
+  },
+  backTxt: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '400',
   },
   pageTop: {
     flexDirection: 'row',

@@ -19,6 +19,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
+import { Header as MainHeader } from '@/components/HeaderComponent';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
 import {
@@ -30,7 +31,7 @@ import {
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from "expo-clipboard";
 import * as MailComposer from "expo-mail-composer";
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -76,9 +77,8 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   allTimeMyOpps,
 }) => {
 
-  const USE_MOCKS = false;
+  const USE_MOCKS = true;
 
-  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
 
@@ -681,10 +681,17 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 	const oppPicSource =
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
-			: require('@/assets/images/backup.jpg');
+			: require('@/assets/images/backup.jpeg');
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      // StickyHeaderComponent={MainHeader}
+      stickyHeaderIndices={[0]}
+    >
+      <View style={styles.mainHeader}>
+        <MainHeader />
+      </View>
       <View style={styles.page}>
         <View style={styles.headerShadow}>
           <View style={styles.header}>
@@ -898,7 +905,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                             ? { uri: imagePreview }
                             : opportunity.imageUrl
                               ? { uri: opportunity.imageUrl }
-                              : require("@/assets/images/backup.jpg")
+                              : require("@/assets/images/backup.jpeg")
                         }
                         alt="Event preview"
                         style={[styles.imgPreviewImg, { height: imageHeight }]}
@@ -1569,12 +1576,12 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       </View>
 
       {/* Terms */}
-      <View style={{ alignItems: 'center' }}>
+      <View style={{ alignItems: 'center', marginBottom: 6 }}>
         <Text style={Theme.themes.termsFooter}>
           Click here to see our{" "}
           <Text
             style={{ textDecorationLine: 'underline', color: '#374151' }}
-            onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
+            onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
           >
             Terms of Service and Privacy Policy
           </Text>
@@ -1588,10 +1595,21 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 12,
+  },
+  mainHeader: {
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    zIndex: 1,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   page: { 
     gap: 16,
+    padding: 12,
   },
   header: {
     borderRadius: 16,

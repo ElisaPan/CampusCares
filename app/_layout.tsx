@@ -6,8 +6,6 @@ import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
-import Header from '@/components/header';
-import UserContext from '@/components/user-context';
 import { CloneOpportunityProvider } from "@/context/CloneOpportunityContext";
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { User } from '@/types';
@@ -29,22 +27,17 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
           <View style={styles.container}>
-            <UserContext.Provider value={{ students, currentUser }}>
-              <View style={styles.header}>
-                <Header />
-              </View>
-            </UserContext.Provider>
             <View style={styles.content}>
               <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="AboutUs" />
-                <Stack.Screen name="MyOpportunitiesPage" />
+                <Stack.Screen name="AboutUs" options={{ headerShown: false }} />
+                <Stack.Screen name="MyOpportunitiesPage" options={{ headerShown: false }} />
                 <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="friends/[id]" options={{ animation: 'slide_from_right' }} />
                 <Stack.Screen name="LoginPage" options={{ headerShown: false }} />
                 <Stack.Screen name="SignUpPage" options={{ headerShown: false }} />
                 <Stack.Screen name="RegisterPage" options={{ headerShown: false }} />
-                <Stack.Screen name="Home" options={{ headerShown: false }} />
+                <Stack.Screen name="HomePage" options={{ headerShown: false }} />
               </Stack>
             </View>
           </View>
@@ -59,17 +52,17 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  header: {
-    paddingHorizontal: 16,
-    backgroundColor: '#fff',
-    zIndex: 1,
+  // header: {
+  //   paddingHorizontal: 16,
+  //   backgroundColor: '#fff',
+  //   zIndex: 1,
 
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
+  //   shadowColor: '#000',
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.2,
+  //   shadowRadius: 4,
+  //   elevation: 4,
+  // },
   content: {
     flex: 1,
   },

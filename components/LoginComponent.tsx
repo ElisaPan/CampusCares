@@ -12,7 +12,7 @@
  *    -
  */
 import * as Google from 'expo-auth-session/providers/google';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useRef, useState } from 'react';
 import * as api from '../api';
@@ -20,7 +20,7 @@ import { loginTest } from '../api';
 import { signInWithGoogleIdToken, signOut } from '../firebase-config';
 import { User } from '../types';
 
-import { ActivityIndicator, Animated, Image, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -40,7 +40,6 @@ const env = process.env.EXPO_PUBLIC_ENV;
 
 const Login: React.FC<LoginProps> = ({ mode }) => {
 
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -106,7 +105,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               const existingUser = await api.getUserByEmail(email, token);
               // TODO: store existingUser in your RN global state
               // (Zustand store, Context, etc.) — same role as setCurrentUser on web
-              router.push(`/HomePage`);
+              router.replace(`/(tabs)/OpportunitiesPage`);
             } else {
               // New user — send to registration, same as web's navigate('/register')
               router.push(`/RegisterPage`);
@@ -137,7 +136,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
     try {
       const res = await loginTest(id);
       const data: User = await res.json();
-      router.push(`/HomePage`);
+      router.replace(`/(tabs)/OpportunitiesPage`);
     } catch {
     }
   };
@@ -145,7 +144,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
   const ver = mode === 'login' ? 'in' : 'up';
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Animated.View
         style={[
           styles.page,
@@ -228,7 +227,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
           </View>
         </View>
       </Animated.View>
-    </View>
+    </ScrollView>
   );
 };
 
@@ -237,14 +236,15 @@ export default Login;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     padding: 20,
+    backgroundColor: 'white',
   },
   page: {
     width: '100%',
     maxWidth: 400,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 40,
   },
   loginLogo: {
     width: 80,
@@ -326,6 +326,7 @@ const styles = StyleSheet.create({
   },
   bottomInfo: {
     marginTop: 8,
+    marginBottom: 20,
   },
   loginContact: {
     fontSize: 12,

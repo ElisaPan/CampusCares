@@ -4,7 +4,6 @@
  *    Do GroupsPage via `Manage Orgs` button
  *  High:
  *    Fix friend profile link when click on friend card
- *    Fix terms and conditions link
  *    Fix service journal link
  *    Fix user sub/unsub function
  *  Low
@@ -29,6 +28,7 @@ import {
 } from '@/types';
 import { router, useLocalSearchParams } from 'expo-router';
 
+import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
@@ -73,7 +73,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     setAllTimeMyOpps,
   } = props;
 
-  const USE_MOCKS = false;
+  const USE_MOCKS = true;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -283,270 +283,289 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   const requestPending = friendshipStatus === 'sent' || friendshipStatus === 'received';
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <View style={styles.page}>
-        {/* User info */}
-        <View style={styles.centerAlignCard}>
-          <View style={styles.profilePicWrapper}>
-            <Image
-              style={styles.profilePic}
-              source={getProfilePictureSource(profileUser.profile_image, profileUser.photoURL)}
-              alt={profileUser.name}
-              resizeMode="cover"
-              />
-            {isCurrentUser && (
-              <Pressable
-                onPress={handlePickProfilePhoto}
-                disabled={uploadingProfilePic}
-                style={[
-                  styles.editButton,
-                  uploadingProfilePic && styles.editButtonDisabled,
-                ]}
-              >
-                {uploadingProfilePic ? (
-                  <ActivityIndicator size="small" color="white" />
-                ) : (
-                  <MaterialDesignIcons
-                    name="square-edit-outline"
-                    size={20}
-                    color="white"/>
-                )}
-              </Pressable>
-            )}
-          </View>
-          <Text style={styles.name} >{profileUser.name}</Text>
-          <Text style={styles.email} >{profileUser.email}</Text>
-          <View style={styles.info}>
-            <Pressable onPress={() => router.push(`../friends/${profileUser.id}`)}>
-              <Text style={styles.infoText}>
-                {isSmallScreen
-                ? `${loadingFriends ? '...' : profileUserFriends.length}\nFriend${profileUserFriends.length == 1 ? '' : 's'}`
-                : `${loadingFriends ? '...' : profileUserFriends.length} Friend${profileUserFriends.length == 1 ? '' : 's'}`}
-              </Text>
-            </Pressable>
-            <Text style={styles.infoText}>&bull;</Text>
-            <Text style={styles.infoText}>
-              {isSmallScreen
-              ? `${profileUserPoints || 0}\nPoints`
-              : `${profileUserPoints || 0} Points`}
-            </Text>
-            <Text style={styles.infoText}>&bull;</Text>
-            <Text style={styles.infoText}>
-              {isSmallScreen
-              ? `${((profileUserPoints || 0) / 60).toFixed(1)}\nHours`
-              : `${((profileUserPoints || 0) / 60).toFixed(1)} Hours`}
-            </Text>
-          </View>
-        </View>
-
-        {/* Bio */}
-        <View style={styles.leftAlignCard}>
-          <Text style={styles.sectionHeader}>{profileUser.name}'s Bio</Text>
-          <View style={styles.bioWrapper}>
-            {isEditing ? (
-              <TextInput
-                value={editingBio}
-                onChangeText={setEditingBio}
-                onFocus={() => setFocusedBio(true)}
-                onBlur={() => setFocusedBio(false)}
-                placeholder="Tell us about yourself..."
-                multiline
-                numberOfLines={4}
-                selectionColor={Theme.cornellRed}
-                underlineColorAndroid="transparent"
-                style={[
-                  styles.bioTextEditing,
-                  { borderColor: focusedBio ? Theme.cornellRed : '#D1D5DB' },
-                ]}
-              />
-            ) : (
-              <Text style={styles.smallText}>{localUser.bio || 'No bio added yet.'}</Text>
-            )}
-          </View>
-          {isCurrentUser && (
-            <>
-              {!isEditing ? (
+    <View style={{ flex: 1 }}>
+      <View style={styles.header}>
+        <MainHeader />
+      </View>
+      <ScrollView contentContainerStyle={styles.container}>
+        <View style={styles.page}>
+          {/* User info */}
+          <View style={styles.centerAlignCard}>
+            <View style={styles.profilePicWrapper}>
+              <Image
+                style={styles.profilePic}
+                source={getProfilePictureSource(profileUser.profile_image, profileUser.photoURL)}
+                alt={profileUser.name}
+                resizeMode="cover"
+                />
+              {isCurrentUser && (
                 <Pressable
-                  style={styles.editBioBtn}
-                  onPress={() => setIsEditing(true)}
-                >
-                  <Text style={styles.redBtnText}>{profileUser.bio ? 'Edit Bio' : 'Add Bio'}</Text>
-                </Pressable>
-              ) : (
-                <View style={styles.bioBtns}>
-                  <Pressable
-                    onPress={async () => {
-                      setSavingBio(true);
-                      try {
-                        const updatedprofileUser = await updateUser(profileUser.id, { bio: editingBio });
-                        // Update local profileUser state
-                        setLocalUser({ ...localUser, bio: editingBio });
-                        setCurrentUser((prev) => ({ ...prev!, bio: editingBio }));
-                        setIsEditing(false);
-                      } catch (error) {
-                        console.error('Error saving bio:', error);
-                        alert('Failed to save bio. Please try again.');
-                      } finally {
-                        setSavingBio(false);
-                      }
-                    }}
-                    disabled={savingBio}
-                    style={styles.editBioBtn}
-                  >
-                    <Text style={styles.redBtnText}>{savingBio ? 'Saving...' : 'Save Bio'}</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      setIsEditing(false);
-                      setEditingBio(localUser.bio || '');
-                    }}
-                    disabled={savingBio}
-                    style={styles.cancelEditBioBtn}
-                  >
-                    <Text style={styles.redBtnText}>Cancel</Text>
-                  </Pressable>
-                </View>
-              )}
-            </>
-          )}
-        </View>
-
-        {/* Organizations */}
-        <View style={styles.centerAlignCard}>
-          <View style={styles.orgsHeaderWrapper}>
-            <Text
-              style={styles.sectionHeader}
-              numberOfLines={1}
-            >
-              {profileUser.name}'s Organizations
-            </Text>
-            {isCurrentUser && (
-              <Pressable
-                onPress={() => router.push('/(tabs)/GroupsPage')}
-                style={styles.manageOrgsBtn}
-              >
-                <Text style={styles.redBtnText}>Manage Orgs</Text>
-              </Pressable>
-            )}
-          </View>
-          {userOrgs.length > 0 ? (
-          <View style={styles.orgList}>
-            {userOrgs.map((org, i) => (
-              <View
-                key={org.id}
-                style={[
-                  styles.orgBlock,
-                  i !== userOrgs.length - 1 && { marginBottom: 4 } // space-y-3 equivalent
-                ]}
-              >
-                <Text style={styles.orgBlockText}>{org.name}</Text>
-              </View>
-            ))}
-          </View>
-          ) : (
-            <Text style={styles.smallText}>{profileUser.name} hasn't joined any organizations yet.</Text>
-          )}
-        </View>
-
-        {/* Friends */}
-        {/* <View style={styles.leftAlignCard}>
-          <Text style={styles.sectionHeader}>{profileUser.name}'s Friends ({profileUserFriends.length})</Text>
-          {loadingFriends ? (
-            <Text style={styles.smallText}>Loading friends...</Text>
-            ) : profileUserFriends.length > 0 ? (
-              <View style={styles.friendGrid}>
-                {profileUserFriends.map((friend) => (
-                  <Pressable
-                    key={friend.id}
-                    onPress={() => router.push('../(tabs)/ProfilePage/${friend.id}')}
-                    style={styles.friendBlock}
-                  >
-                    <Image
-                      source={getProfilePictureSource(friend.profile_image, friend.photoURL)}
-                      alt={friend.name}
-                      style={styles.friendProfilePic}
-                    />
-                    <Text style={styles.friendName}>{friend.name}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            ) : (
-              <Text style={styles.smallText}>{profileUser.name} hasn't added any friends yet.</Text>
-          )}
-        </View> */}
-
-        {/* Footer */}
-        {(isCurrentUser || currentUser?.admin) && (
-          <View style={styles.footerBlock}>
-            {/* Email Subscription */}
-            <View style={styles.emailCard}>
-              <View>
-                <View style={styles.leftEmailCard}>
-                  <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>Email newsletter</Text>
-                  <Text style={{ fontSize: 14, color: "#767676", marginTop: 6 }}>Get notified about upcoming opportunities</Text>
-                </View>
-              </View>
-              <View>
-                <Pressable
-                  onPress={handleSubscriptionUpdate}
+                  onPress={handlePickProfilePhoto}
+                  disabled={uploadingProfilePic}
                   style={[
-                    styles.switchContainer,
-                    {
-                      backgroundColor: localUser.subscribed ? Theme.cornellRed : '#d9d9d9',
-                      borderColor: localUser.subscribed ? Theme.cornellRed : '#757575',
-                    },
+                    styles.editButton,
+                    uploadingProfilePic && styles.editButtonDisabled,
                   ]}
                 >
-                  <View
+                  {uploadingProfilePic ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <MaterialDesignIcons
+                      name="square-edit-outline"
+                      size={20}
+                      color="white"/>
+                  )}
+                </Pressable>
+              )}
+            </View>
+            <Text style={styles.name} >{profileUser.name}</Text>
+            <Text style={styles.email} >{profileUser.email}</Text>
+            <View style={styles.info}>
+              <Pressable onPress={() => router.push(`../friends/${profileUser.id}`)}>
+                <Text style={styles.infoText}>
+                  {isSmallScreen
+                  ? `${loadingFriends ? '...' : profileUserFriends.length}\nFriend${profileUserFriends.length == 1 ? '' : 's'}`
+                  : `${loadingFriends ? '...' : profileUserFriends.length} Friend${profileUserFriends.length == 1 ? '' : 's'}`}
+                </Text>
+              </Pressable>
+              <Text style={styles.infoText}>&bull;</Text>
+              <Text style={styles.infoText}>
+                {isSmallScreen
+                ? `${profileUserPoints || 0}\nPoints`
+                : `${profileUserPoints || 0} Points`}
+              </Text>
+              <Text style={styles.infoText}>&bull;</Text>
+              <Text style={styles.infoText}>
+                {isSmallScreen
+                ? `${((profileUserPoints || 0) / 60).toFixed(1)}\nHours`
+                : `${((profileUserPoints || 0) / 60).toFixed(1)} Hours`}
+              </Text>
+            </View>
+          </View>
+
+          {/* Bio */}
+          <View style={styles.leftAlignCard}>
+            <Text style={styles.sectionHeader}>{profileUser.name}'s Bio</Text>
+            <View style={styles.bioWrapper}>
+              {isEditing ? (
+                <TextInput
+                  value={editingBio}
+                  onChangeText={setEditingBio}
+                  onFocus={() => setFocusedBio(true)}
+                  onBlur={() => setFocusedBio(false)}
+                  placeholder="Tell us about yourself..."
+                  multiline
+                  numberOfLines={4}
+                  selectionColor={Theme.cornellRed}
+                  underlineColorAndroid="transparent"
+                  style={[
+                    styles.bioTextEditing,
+                    { borderColor: focusedBio ? Theme.cornellRed : '#D1D5DB' },
+                  ]}
+                />
+              ) : (
+                <Text style={styles.smallText}>{localUser.bio || 'No bio added yet.'}</Text>
+              )}
+            </View>
+            {isCurrentUser && (
+              <>
+                {!isEditing ? (
+                  <Pressable
+                    style={styles.editBioBtn}
+                    onPress={() => setIsEditing(true)}
+                  >
+                    <Text style={styles.redBtnText}>{profileUser.bio ? 'Edit Bio' : 'Add Bio'}</Text>
+                  </Pressable>
+                ) : (
+                  <View style={styles.bioBtns}>
+                    <Pressable
+                      onPress={async () => {
+                        setSavingBio(true);
+                        try {
+                          const updatedprofileUser = await updateUser(profileUser.id, { bio: editingBio });
+                          // Update local profileUser state
+                          setLocalUser({ ...localUser, bio: editingBio });
+                          setCurrentUser((prev) => ({ ...prev!, bio: editingBio }));
+                          setIsEditing(false);
+                        } catch (error) {
+                          console.error('Error saving bio:', error);
+                          alert('Failed to save bio. Please try again.');
+                        } finally {
+                          setSavingBio(false);
+                        }
+                      }}
+                      disabled={savingBio}
+                      style={styles.editBioBtn}
+                    >
+                      <Text style={styles.redBtnText}>{savingBio ? 'Saving...' : 'Save Bio'}</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => {
+                        setIsEditing(false);
+                        setEditingBio(localUser.bio || '');
+                      }}
+                      disabled={savingBio}
+                      style={styles.cancelEditBioBtn}
+                    >
+                      <Text style={styles.redBtnText}>Cancel</Text>
+                    </Pressable>
+                  </View>
+                )}
+              </>
+            )}
+          </View>
+
+          {/* Organizations */}
+          <View style={styles.centerAlignCard}>
+            <View style={styles.orgsHeaderWrapper}>
+              <Text
+                style={styles.sectionHeader}
+                numberOfLines={1}
+              >
+                {profileUser.name}'s Organizations
+              </Text>
+              {isCurrentUser && (
+                <Pressable
+                  onPress={() => router.push('/(tabs)/GroupsPage')}
+                  style={styles.manageOrgsBtn}
+                >
+                  <Text style={styles.redBtnText}>Manage Orgs</Text>
+                </Pressable>
+              )}
+            </View>
+            {userOrgs.length > 0 ? (
+            <View style={styles.orgList}>
+              {userOrgs.map((org, i) => (
+                <View
+                  key={org.id}
+                  style={[
+                    styles.orgBlock,
+                    i !== userOrgs.length - 1 && { marginBottom: 4 } // space-y-3 equivalent
+                  ]}
+                >
+                  <Text style={styles.orgBlockText}>{org.name}</Text>
+                </View>
+              ))}
+            </View>
+            ) : (
+              <Text style={styles.smallText}>{profileUser.name} hasn't joined any organizations yet.</Text>
+            )}
+          </View>
+
+          {/* Friends */}
+          {/* <View style={styles.leftAlignCard}>
+            <Text style={styles.sectionHeader}>{profileUser.name}'s Friends ({profileUserFriends.length})</Text>
+            {loadingFriends ? (
+              <Text style={styles.smallText}>Loading friends...</Text>
+              ) : profileUserFriends.length > 0 ? (
+                <View style={styles.friendGrid}>
+                  {profileUserFriends.map((friend) => (
+                    <Pressable
+                      key={friend.id}
+                      onPress={() => router.push('../(tabs)/ProfilePage/${friend.id}')}
+                      style={styles.friendBlock}
+                    >
+                      <Image
+                        source={getProfilePictureSource(friend.profile_image, friend.photoURL)}
+                        alt={friend.name}
+                        style={styles.friendProfilePic}
+                      />
+                      <Text style={styles.friendName}>{friend.name}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : (
+                <Text style={styles.smallText}>{profileUser.name} hasn't added any friends yet.</Text>
+            )}
+          </View> */}
+
+          {/* Footer */}
+          {(isCurrentUser || currentUser?.admin) && (
+            <View style={styles.footerBlock}>
+              {/* Email Subscription */}
+              <View style={styles.emailCard}>
+                <View>
+                  <View style={styles.leftEmailCard}>
+                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>Email newsletter</Text>
+                    <Text style={{ fontSize: 14, color: "#767676", marginTop: 6 }}>Get notified about upcoming opportunities</Text>
+                  </View>
+                </View>
+                <View>
+                  <Pressable
+                    onPress={handleSubscriptionUpdate}
                     style={[
-                      styles.knob,
+                      styles.switchContainer,
                       {
-                        transform: [{ translateX: localUser.subscribed ? 16 : 0 }],
-                        backgroundColor: localUser.subscribed ? '#ffffff' : '#757575',
+                        backgroundColor: localUser.subscribed ? Theme.cornellRed : '#d9d9d9',
+                        borderColor: localUser.subscribed ? Theme.cornellRed : '#757575',
                       },
                     ]}
-                  />
-                </Pressable>
+                  >
+                    <View
+                      style={[
+                        styles.knob,
+                        {
+                          transform: [{ translateX: localUser.subscribed ? 16 : 0 }],
+                          backgroundColor: localUser.subscribed ? '#ffffff' : '#757575',
+                        },
+                      ]}
+                    />
+                  </Pressable>
+                </View>
               </View>
+              {/* See Opportunities */}
+              <Pressable
+                onPress={() => router.push(`../ServiceJournal${profileUser.id}`)} //FIXXXXXX
+                style={styles.footerBtn}
+              >
+                <Text style={styles.footerText}>See my opportunities</Text>
+              </Pressable>
+              {/* Log Out */}
+              <Pressable
+                onPress={handleLogout}
+                style={[styles.footerBtn, {backgroundColor: '#e5e7eb', paddingVertical: 8,}]} 
+              >
+                <Text style={styles.footerText}>Log out</Text>
+              </Pressable>
             </View>
-            {/* See Opportunities */}
-            <Pressable
-              onPress={() => router.push(`../ServiceJournal${profileUser.id}`)} //FIXXXXXX
-              style={styles.footerBtn}
-            >
-              <Text style={styles.footerText}>See my opportunities</Text>
-            </Pressable>
-            {/* Log Out */}
-            <Pressable
-              onPress={handleLogout}
-              style={[styles.footerBtn, {backgroundColor: '#e5e7eb', paddingVertical: 8,}]} 
-            >
-              <Text style={styles.footerText}>Log out</Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
+          )}
+        </View>
 
-      {/* Terms */}
-      <Text style={Theme.themes.termsFooter}>
-        Click here to see our{" "}
-        <Text
-          style={{ textDecorationLine: 'underline', color: '#374151' }}
-          onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
-        >
-          Terms of Service and Privacy Policy
-        </Text>
-        .
-      </Text>
-    </ScrollView>
+        {/* Terms */}
+        <View style={{ alignItems: 'center', marginTop: 12, marginBottom: 8 }}>
+          <Text style={Theme.themes.termsFooter}>
+            Click here to see our{" "}
+            <Text
+              style={{ textDecorationLine: 'underline', color: '#374151' }}
+              onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
+            >
+              Terms of Service and Privacy Policy
+            </Text>
+            .
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 
 export default ProfilePage;
 
 const styles = StyleSheet.create({
+  header: {
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    zIndex: 1,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
   container: {
     padding: 24,
+    paddingBottom: 0,
   },
   page: { 
     flex: 1,
@@ -772,12 +791,5 @@ const styles = StyleSheet.create({
   footerText: {
     fontWeight: '700',
     textAlign: 'center',
-  },
-  termsFooter: {
-    color: '#6b7280',
-    fontSize: 12,
-    lineHeight: 16,
-    textAlign: 'center',
-    marginTop: 24,
   },
 })

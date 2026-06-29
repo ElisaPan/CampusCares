@@ -79,7 +79,7 @@ export const themes = {
     fontSize: 12,
     lineHeight: 16,
     marginTop: 12,
-    marginBottom: 14,
+    marginBottom: 8,
     color: 'rgb(107 114 128)',
   },
 
