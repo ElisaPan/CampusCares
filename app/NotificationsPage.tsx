@@ -1,3 +1,5 @@
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { router } from "expo-router";
 import React from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { FriendshipsResponse, User } from '../types';
@@ -19,9 +21,15 @@ const NotificationsPage: React.FC<NotificationsPageProps> = ({
     friendshipsData?.users.filter((user) => user.friendship_status === 'received') ?? [];
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView style={styles.container}>
+      <Pressable
+        style={styles.backWrapper}
+        onPress={() => router.back()}
+      >
+        <MaterialIcons name='chevron-left' size={18} color='#374151' />
+        <Text style={styles.backTxt}>Back</Text>
+      </Pressable>
       <Text style={styles.pageTitle}>Notifications</Text>
-
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>Friend Requests</Text>
 
@@ -90,7 +98,21 @@ export default NotificationsPage;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 24,
+  },
+  backWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 12,
+    gap: 4,
+  },
+  backTxt: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '400',
   },
   pageTitle: {
     fontSize: 30,

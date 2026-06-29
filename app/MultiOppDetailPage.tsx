@@ -8,20 +8,20 @@
  *    -
  */
 
+import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
+import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
+import { UploadFile, deleteMultiOpp, getOpportunity, getProfilePictureSource, updateMultiOpp, uploadProfilePicture } from '../api';
+import { MultiOpp, Opportunity as OppType, Opportunity, Organization, User } from '../types';
+import { formatMiniOppTime } from '../utils/timeUtils';
+
+import { MaterialIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import { UploadFile, deleteMultiOpp, getOpportunity, getProfilePictureSource, updateMultiOpp, uploadProfilePicture } from '../api';
-import { MultiOpp, Opportunity as OppType, Opportunity, Organization, User } from '../types';
-
-import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
-import { MaterialIcons } from '@expo/vector-icons';
-import { formatMiniOppTime } from '../utils/timeUtils';
-
 
 interface MultiOppDetailPageProps {
   multiopps: MultiOpp[];
@@ -44,9 +44,8 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   onSignUp,
   onUnsignUp,
 }) => {
-  const USE_MOCKS = false;
+  const USE_MOCKS = true;
 
-  const router = useRouter();
   const queryClient = useQueryClient();
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
@@ -386,10 +385,16 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
 	const oppPicSource =
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
-			: require('@/assets/images/backup.jpg');
+			: require('@/assets/images/backup.jpeg');
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      stickyHeaderIndices={[0]}
+    >
+      <View style={styles.mainHeader}>
+        <MainHeader />
+      </View>
       {/* Header */}
       <View style={styles.page}>
         <View style={styles.headerShadow}>
@@ -492,7 +497,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
                             ? { uri: imagePreview }
                             : multiopp.image
                               ? { uri: multiopp.image }
-                              : require("@/assets/images/backup.jpg")
+                              : require("@/assets/images/backup.jpeg")
                         }
                         alt="Event preview"
                         style={[styles.imgPreviewImg, { height: imageHeight }]}
@@ -704,16 +709,18 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         )}
       </View>
       {/* Terms */}
-      <Text style={Theme.themes.termsFooter}>
-        Click here to see our{" "}
-        <Text
-          style={{ textDecorationLine: 'underline', color: '#374151' }}
-          onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
-        >
-          Terms of Service and Privacy Policy
+      <View style={{ alignItems: 'center', marginBottom: 6 }}>
+        <Text style={Theme.themes.termsFooter}>
+          Click here to see our{" "}
+          <Text
+            style={{ textDecorationLine: 'underline', color: '#374151' }}
+            onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
+          >
+            Terms of Service and Privacy Policy
+          </Text>
+          .
         </Text>
-        .
-      </Text>
+      </View>
     </ScrollView>
   );
 };
@@ -723,10 +730,21 @@ export default MultiOppDetailPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 12,
+  },
+  mainHeader: {
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    zIndex: 1,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   page: { 
     gap: 16,
+    padding: 12,
   },
   header: {
     borderRadius: 16,

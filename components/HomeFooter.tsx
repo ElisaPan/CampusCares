@@ -1,33 +1,34 @@
 /*************
  * TODO:
  *  Severe:
- *    Terms & Services -- upload to backend
+ *    
  *  High:
  *    Update numbers
  *  Low
  *    -
  */
-import linkedinLogo from '@/assets/icons/linkedin.svg';
 import logoBanner from '@/assets/images/logo-banner.png';
+import { FontAwesome } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const HomeFooter = () => {
   return (
-    <View style={styles.container}>
-      <View style={styles.socialsWrapper}>
+    <View style={styles.footer}>
+      <View style={styles.socials}>
+        <Pressable onPress={() => Linking.openURL("https://www.instagram.com/campuscares.us/")}>
+           <FontAwesome name="instagram" size={32} color="white" />
+        </Pressable>
         <Pressable onPress={() => Linking.openURL("https://www.linkedin.com/company/campus-cares")}>
-          <Image source={linkedinLogo}/>
+          <FontAwesome name="linkedin-square" size={32} color="white" />
         </Pressable>
       </View>
-      <View style={styles.logoWrapper}>
-        <Image source={logoBanner} />
-        <View style={styles.sublinks}>
-          <Pressable onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}>
-            <Text style={styles.termsServices}>Terms of Service</Text>
-          </Pressable>
-        </View>
-        <Text style={styles.trademark}>© 2026 CampusCares. All rights reserved.</Text>
+      <View style={styles.logos}>
+        <Image source={logoBanner} style={styles.logoBanner}/>
+        <Pressable onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}>
+          <Text style={styles.termsServices}>Terms of Service</Text>
+        </Pressable>
+        <Text style={styles.copyright}>© 2026 CampusCares. All rights reserved.</Text>
       </View>
     </View>
   )
@@ -36,37 +37,41 @@ const HomeFooter = () => {
 export default HomeFooter;
 
 const styles = StyleSheet.create({
-  container: {
+  footer: {
     backgroundColor: '#B31B1B',
-    flexDirection: 'row',
-    paddingVertical: 40,
-    paddingHorizontal: 100,
-    justifyContent: 'space-between',
+    paddingVertical: 30,
     alignItems: 'center',
-    width: 100,
-    textAlign: 'center',
+    width: '100%',
   },
-  socialsWrapper: {
+  socials: {
     flexDirection: 'row',
     gap: 12,
   },
-  logoWrapper: {
-    flexDirection: 'column',
+  socialIcon: {
+    width: 32,
+    height: 32,
+  },
+  logos: {
+    alignItems: "center",
     gap: 8,
     color: 'white',
-    fontSize: 14,
-    fontWeight: '600',
   },
-  sublinks: {
-    
+  logoBanner: {
+    width: 273,
+    height: 50,
+    marginTop: 4,
+    marginBottom: 2,
+    resizeMode: 'contain',
   },
   termsServices: {
     color: '#F4CCCA',
     fontSize: 14,
     textDecorationLine: 'underline',
   },
-  trademark: {
+  copyright: {
     color: '#F4CCCA',
     fontSize: 14,
+    fontWeight: "600",
+    textAlign: "center",
   }
 })

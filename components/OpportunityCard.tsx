@@ -205,7 +205,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
 	const oppPicSource =
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
-			: require('@/assets/images/backup.jpg');
+			: require('@/assets/images/backup.jpeg');
 
   return (
     <Pressable
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   orgName: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgb(255, 255, 255, 0.9)',
+    color: 'rgb(255, 255, 255, 0.95)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     overflow: 'hidden',
@@ -467,11 +467,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     padding: 4,
-    borderRadius: 8,
-    width: 70,
+    paddingHorizontal: 8,
+    borderRadius: 999,
     textAlign: 'center',
     flexShrink: 0,
-    marginLeft: 8,
     backgroundColor: 'rgb(255, 255, 255, 0.3)',
   },
   oppNameWrapper: {

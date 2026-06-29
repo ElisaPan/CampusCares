@@ -124,7 +124,7 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 	const oppPicSource =
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
-			: require('@/assets/images/backup.jpg');
+			: require('@/assets/images/backup.jpeg');
 
   return (
     <Pressable
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
 	orgName: {
     fontSize: 14,
     fontWeight: '600',
-    color: 'rgb(255, 255, 255, 0.9)',
+    color: 'rgb(255, 255, 255, 0.95)',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     overflow: 'hidden',

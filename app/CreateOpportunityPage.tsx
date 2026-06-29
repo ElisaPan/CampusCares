@@ -169,7 +169,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
   opportunities,
 }) => {
   
-  const USE_MOCKS = false;
+  const USE_MOCKS = true;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -1020,7 +1020,6 @@ export default CreateOpportunityPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginHorizontal: 'auto',
     padding: 12,
   },
   wrapper: {
@@ -1036,6 +1035,7 @@ const styles = StyleSheet.create({
   },
   backWrapper: {
     alignSelf: 'flex-end',
+    marginTop: 34,
     marginVertical: 8,
     paddingBottom: 4
   },

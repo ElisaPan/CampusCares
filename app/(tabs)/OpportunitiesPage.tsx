@@ -8,13 +8,13 @@
  *  Low
  *    Redesign page title formatting
  */
-
-import MultiOppCard from '@/components/MultiOppCard';
-import OpportunityCard from '@/components/OpportunityCard';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { Header as MainHeader } from '@/components/HeaderComponent';
+import MultiOppCard from '@/components/MultiOppCard';
+import OpportunityCard from '@/components/OpportunityCard';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
@@ -64,7 +64,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   oppsLoading
 }) => {
 
-  const USE_MOCKS = false;
+  const USE_MOCKS = true;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -209,8 +209,8 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   const Header = ({ user }: { user: User }) => (
     <View style={styles.headerWrapper}>
       <View style={styles.headerLeft}>
-        <Text style={styles.headerText}>Opportunities</Text>
-        <Text style={styles.headerSubtext}>Impact the Ithaca community</Text>
+        <Text style={styles.headerTxt}>Opportunities</Text>
+        <Text style={styles.headerSubtxt}>Impact the Ithaca community</Text>
       </View>
       <View style={styles.headerRight}>
         {user && (
@@ -219,7 +219,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
               onPress={handleCreateNew}
               style={styles.createOppBtn}
             >
-              <Text style={styles.createOppBtnText}>+  Create</Text>
+              <Text style={styles.createOppBtnTxt}>+  Create</Text>
             </Pressable>
           </View>
         )}
@@ -232,7 +232,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       Click here to see our{" "}
       <Text
         style={{ textDecorationLine: 'underline', color: '#374151' }}
-        onPress={() => Linking.openURL('/terms_of_service.pdf')} //FIXXXXXXX
+        onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
       >
         Terms of Service and Privacy Policy
       </Text>
@@ -242,6 +242,9 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
 
   return (
     <View style={styles.container}>
+      <View style={styles.mainHeader}>
+        <MainHeader />
+      </View>
       {/* Opportunities Grid */}
       <FlatList
         style={styles.oppsGrid}
@@ -259,7 +262,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         renderItem={({ item }) => {
           if (item.kind === 'multiopp') {
             return (
-              <View style={{ marginBottom: 32 }}>
+              <View style={{ marginBottom: 20 }}>
                 <MultiOppCard
                   key={`multiopp-${item.data.id}`}
                   multiopp={item.data}
@@ -321,7 +324,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         />
 
       {oppsLoading ? (
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingTxt}>Loading...</Text>
       ) : feedItems.length === 0 ? (
         <View style={styles.loadedView}>
           <Text style={styles.noOpps}>There are currently no opportunities.</Text>
@@ -399,7 +402,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  mainHeader: {
+    paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    zIndex: 1,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+  },
   headerWrapper: {
+    marginVertical: 6,
     paddingBottom: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -408,8 +423,8 @@ const styles = StyleSheet.create({
   headerLeft: {
     marginLeft: 10,
   },
-  headerText: {
-    fontSize: 30,
+  headerTxt: {
+    fontSize: 32,
     fontWeight: '700',
     letterSpacing: -0.4,
     marginBottom: 4,
@@ -419,7 +434,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
   },
-  headerSubtext: {
+  headerSubtxt: {
     color: '#4b5563',
     fontSize: 16,
   },
@@ -432,13 +447,13 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
   },
-  createOppBtnText: {
+  createOppBtnTxt: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
     textAlign: 'center'
   },
-  loadingText: {
+  loadingTxt: {
     padding: 32,
     textAlign: 'center',
     fontSize: 19,
