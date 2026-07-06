@@ -153,7 +153,7 @@ export const mockOpportunities: Opportunity[] = [
     time: "12:00",
     duration: 100,
     total_slots: 3,
-    imageUrl: "https://static.vecteezy.com/system/resources/previews/057/636/656/non_2x/festive-birthday-scene-featuring-a-layered-cake-sprinkles-and-a-blurred-balloon-filled-background-free-photo.jpg",
+    imageUrl: "https://static.vecteezy.com/system/resources/thumbnails/072/324/383/small/grand-birthday-celebration-setup-with-a-large-cake-many-gifts-balloons-and-festive-lights-photo.jpg",
     points: 260,
     nonprofit: "Fake Nonprofit",
     causes: ["me-haha"],

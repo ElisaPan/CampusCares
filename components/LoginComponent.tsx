@@ -11,6 +11,7 @@
  *  Low
  *    -
  */
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Google from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -145,6 +146,13 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
 
   return (
     <ScrollView style={styles.container}>
+      <Pressable
+        style={styles.backWrapper}
+        onPress={() => router.back()}
+      >
+        <MaterialIcons name='chevron-left' size={18} color='#374151' />
+        <Text style={styles.backTxt}>Back</Text>
+      </Pressable>
       <Animated.View
         style={[
           styles.page,
@@ -239,12 +247,23 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: 'white',
   },
+  backWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 30,
+    gap: 4,
+  },
+  backTxt: {
+    color: '#374151',
+    fontSize: 16,
+    fontWeight: '400',
+  },
   page: {
     width: '100%',
     maxWidth: 400,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 40,
   },
   loginLogo: {
     width: 80,

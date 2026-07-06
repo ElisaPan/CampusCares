@@ -3,8 +3,7 @@
  *  Severe:
  *    Do GroupsPage via `Manage Orgs` button
  *  High:
- *    Fix friend profile link when click on friend card
- *    Fix service journal link
+ *    Fix service journal link (See my opportunities)
  *    Fix user sub/unsub function
  *  Low
  *    -
@@ -73,7 +72,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     setAllTimeMyOpps,
   } = props;
 
-  const USE_MOCKS = true;
+  const USE_MOCKS = false;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -82,11 +81,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   const isLoading = !USE_MOCKS && !currentUser;
 
   if (isLoading) {
-    return (
-      <View>
-        <Text>Loading profile...</Text>
-      </View>
-    );
+    return <Text>Loading...</Text>;
   }
 
   const baseUser =
@@ -96,7 +91,9 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
 
   const profileUser = USE_MOCKS ? mockUsers[0] : baseUser;
 
-  if (!profileUser) return <Text>User not found</Text>;
+  if (!profileUser) {
+    return <Text>User not found</Text>;
+  }
 
   const safeSignups = USE_MOCKS ? mockSignups : signups ?? [];
   const safeOrganizations = USE_MOCKS ? mockOrganizations : organizations ?? [];
@@ -294,8 +291,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
             <View style={styles.profilePicWrapper}>
               <Image
                 style={styles.profilePic}
-                source={getProfilePictureSource(profileUser.profile_image, profileUser.photoURL)}
-                alt={profileUser.name}
+                source={getProfilePictureSource(profileUser.profile_image, profileUser.photoURL)}                alt={profileUser.name}
                 resizeMode="cover"
                 />
               {isCurrentUser && (
@@ -514,12 +510,12 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
                 </View>
               </View>
               {/* See Opportunities */}
-              <Pressable
+              {/* <Pressable
                 onPress={() => router.push(`../ServiceJournal${profileUser.id}`)} //FIXXXXXX
                 style={styles.footerBtn}
               >
                 <Text style={styles.footerText}>See my opportunities</Text>
-              </Pressable>
+              </Pressable> */}
               {/* Log Out */}
               <Pressable
                 onPress={handleLogout}
