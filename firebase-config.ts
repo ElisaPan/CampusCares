@@ -1,17 +1,17 @@
 // Firebase configuration for Google authentication
 // Real Firebase project configuration for CampusCares
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getApp, getApps, initializeApp } from 'firebase/app';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { initializeApp } from 'firebase/app';
 import {
+  onAuthStateChanged as fbOnAuthStateChanged,
   User as FirebaseAuthUser,
   GoogleAuthProvider as FirebaseGoogleAuthProvider,
-  GoogleAuthProvider,
-  onAuthStateChanged as fbOnAuthStateChanged,
   signOut as firebaseSignOut,
   getReactNativePersistence,
+  GoogleAuthProvider,
   initializeAuth,
-  signInWithCredential
+  signInWithCredential,
 } from 'firebase/auth';
 
 export interface FirebaseUser {
@@ -33,14 +33,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
-const auth = initializeAuth(app, {
+export const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(AsyncStorage),
 });
 
-const provider = new GoogleAuthProvider();
-provider.setCustomParameters({ prompt: 'select_account' });
+export const provider = new GoogleAuthProvider();
+// provider.setCustomParameters({ prompt: 'select_account' });
 
 
 // Configure Google provider
@@ -59,7 +59,7 @@ const mapFirebaseUser = (user: FirebaseAuthUser | null): FirebaseUser | null => 
   };
 };
 
-export { auth, fbOnAuthStateChanged, firebaseSignOut, provider, signInWithCredential };
+export { fbOnAuthStateChanged, firebaseSignOut, signInWithCredential };
 
 export const initializeFirebase = async () => {
   return;

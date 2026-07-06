@@ -1,45 +1,8 @@
+import { ImageSourcePropType } from "react-native";
 import { auth } from './firebase-config';
-// import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
-// import { canUnregisterFromOpportunity } from './utils/timeUtils';
-
-import { File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
-import { ImageSourcePropType } from 'react-native';
-import type { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipsResponse, FriendshipStatus, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
-
-import { canUnregisterFromOpportunity } from '@/utils/timeUtils';
-
-// Helper function to get profile picture URL
-// Returns a generic silhouette when no profile image is available
-export const getProfilePictureSource = (
-  profile_image?: string | ImageSourcePropType | null,
-  google_photo?: string | null
-) => {
-  if (profile_image) {
-    // URL from Firebase
-    if (typeof profile_image === 'string') {
-      return { uri: profile_image };
-    }
-    // local mock (require)
-    return profile_image;
-  }
-  if (google_photo) {
-    return { uri: google_photo };
-  }
-
-  // return require('../assets/images/backup.jpeg');
-  return { uri: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Ccircle cx='12' cy='12' r='12' fill='white'/%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" };
-};
-
-// Helper function to format registration date for backend API
-// Returns format: YYYY-MM-DDTHH:MM:SS (without timezone and milliseconds)
-export const formatRegistrationDate = (date: Date = new Date()): string => {
-  return date.toISOString().slice(0, 19);
-};
+import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 
 // A helper for making Acucaresbackend.onrender.comPI requests.
-// const ENDPOINT_URL = 'https://cucaresbackend.onrender.com'
-
 const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
 
 // Helper to get Firebase token
@@ -58,40 +21,94 @@ const getFirebaseToken = async (): Promise<string | null> => {
   return null;
 };
 
+export interface UploadFile {
+  uri: string;
+  name: string;
+  type: string;
+  size?: number;
+}
+
+// Helper function to get profile picture URL
+// Returns a generic silhouette when no profile image is available
+export const getProfilePictureUrl = (profile_image?: string | null, google_photo?: string | null): string => {
+  if (profile_image) {
+    return profile_image;
+  }
+  if (google_photo) {
+    return google_photo;
+  }
+  // Return a generic silhouette SVG
+  return "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Ccircle cx='12' cy='12' r='12' fill='white'/%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+};
+
+export const uploadProfilePicture = async (file: UploadFile): Promise<string> => {
+  const formData = new FormData();
+  
+  formData.append('file', {
+    uri: file.uri,
+    name: file.name,
+    type: file.type,
+  } as unknown as Blob);
+
+  const token = await getFirebaseToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${ENDPOINT_URL}/upload`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to upload profile picture: ${response.status} ${response.statusText}`);
+  }
+
+  const result = await response.json();
+  return result.url; // Return the S3 URL
+};
+
+// Helper function to format registration date for backend API
+// Returns format: YYYY-MM-DDTHH:MM:SS (without timezone and milliseconds)
+export const formatRegistrationDate = (date: Date = new Date()): string => {
+  return date.toISOString().slice(0, 19);
+};
+
 const request = async (endpoint: string, options: RequestInit = {}) => {
+  if (!ENDPOINT_URL) {
+    throw new Error("Missing EXPO_PUBLIC_ENDPOINT_URL");
+  }
+
   const { headers, ...restOptions } = options;
   const url = `${ENDPOINT_URL}/api${endpoint}`;
 
-  console.log("FETCHING:", url);
+  console.log("FETCH:", url);
 
   const res = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      ...headers,
-    },
-    mode: 'cors',
-    credentials: 'omit',
     ...restOptions,
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...(headers as Record<string, string>),
+    },
   });
 
   if (!res.ok) {
-    const errorInfo = await res.json().catch(() => ({ message: res.statusText }));
-    console.error('API error:', errorInfo);
-    throw new Error(errorInfo.message || 'An API error occurred');
+    const errorInfo = await res.json().catch(() => ({
+      message: res.statusText,
+    }));
+    throw new Error(errorInfo.message || "An API error occurred");
   }
 
-  // For DELETE requests or other methods that might not return a body
-  const contentType = res.headers.get('content-type');
-  if (contentType && contentType.indexOf('application/json') !== -1) {
-    try {
-      return await res.json();
-    } catch (e) {
-      console.error('Error parsing JSON response:', e);
-      return {};
-    }
+  const contentType = res.headers.get("content-type");
+
+  if (contentType?.includes("application/json")) {
+    return res.json();
   }
-  return {}; // Return empty object if no JSON body
+
+  return {};
 };
 
 // Authenticated request helper that includes Firebase token
@@ -115,6 +132,7 @@ const authenticatedRequest = async (endpoint: string, options: RequestInit = {})
     },
   });
 };
+
 
 // TEST LOGIN ENDPOINT
 export const loginTest = async (userId: number) => {
@@ -259,8 +277,8 @@ export const getUser = async (id: number): Promise<User> => {
     heard_about: response.heard_about || ''
   };
 };
-
 export const updateUser = (id: number, data: object): Promise<User> => {
+
   return authenticatedRequest(`/users/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
@@ -277,40 +295,20 @@ export const updateSubscription = async (
   });
 };
 
-export interface UploadFile {
-  uri: string;
-  name: string;
-  type: string;
-  size?: number;
-}
-
-export const uploadProfilePicture = async (file: UploadFile): Promise<string> => {
-  const formData = new FormData();
-  
-  formData.append('file', {
-    uri: file.uri,
-    name: file.name,
-    type: file.type,
-  } as unknown as Blob);
-
-  const token = await getFirebaseToken();
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers.Authorization = `Bearer ${token}`;
+export const getProfilePictureSource = (
+  profile_image?: string | ImageSourcePropType | null,
+  google_photo?: string | null
+) => {
+  if (profile_image) {
+    if (typeof profile_image === 'string') {
+      return { uri: profile_image };
+    }
+    return profile_image;
   }
-
-  const response = await fetch(`${ENDPOINT_URL}/upload`, {
-    method: 'POST',
-    headers,
-    body: formData,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Failed to upload profile picture: ${response.status} ${response.statusText}`);
+  if (google_photo) {
+    return { uri: google_photo };
   }
-
-  const result = await response.json();
-  return result.url; // Return the S3 URL
+  return { uri: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%236B7280'%3E%3Ccircle cx='12' cy='12' r='12' fill='white'/%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E" };
 };
 
 export const registerUser = async (
@@ -468,15 +466,6 @@ export const getFriendshipId = async (
   } catch (error) {
     console.error(`API: Error getting friendship ID:`, error);
     return null;
-  }
-};
-
-export const getFriendsForUser = async (userId: number) => {
-  try {
-    return await getAcceptedFriendships(userId);
-  } catch (error) {
-    console.error(error);
-    return [];
   }
 };
 
@@ -1008,7 +997,7 @@ export const updateOpportunity = (id: number, data: object): Promise<Opportunity
     body: JSON.stringify(data),
   });
 
-export const deleteOpporturnity = (id: number): Promise<void> =>
+export const deleteOpportunity = (id: number): Promise<void> =>
   authenticatedRequest(`/opps/${id}`, {
     method: 'DELETE',
   });
@@ -1039,19 +1028,8 @@ export const unregisterForOpp = async (data: {
   opportunity_id: number;
   opportunityDate?: string;
   opportunityTime?: string;
-  isAdminOrHost?: boolean; // New parameter to bypass 7-hour rule
+  isAdminOrHost?: boolean;
 }) => {
-  // Validate 7-hour window only if user is not admin or host
-  if (data.opportunityDate && data.opportunityTime && !data.isAdminOrHost) {
-    const { canUnregister } = canUnregisterFromOpportunity(
-      data.opportunityDate,
-      data.opportunityTime
-    );
-    if (!canUnregister) {
-      throw new Error('Cannot unregister within 7 hours of the event');
-    }
-  }
-
   return authenticatedRequest('/unregister-opp', {
     method: 'POST',
     body: JSON.stringify({
@@ -1156,7 +1134,7 @@ export const checkUserExists = async (email: string, token?: string) => {
   if (data && data.exists) {
     return { success: true, exists: true }; // User exists
   }
-  return { success: true, data: false };
+  return { success: true, exists: false };
 };
 
 // Add approved email - POST /api/approved-emails
@@ -1230,8 +1208,7 @@ export const createWaiver = async (data: {
 
   return response.json();
 };
-// api.ts
-const BASE_URL = 'https://cucaresbackend.onrender.com'; // adjust if you store it elsewhere
+
 
 /**
  * Fetches user CSV data from the backend.
@@ -1243,7 +1220,7 @@ export const getUserCsv = async (): Promise<string> => {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  const response = await fetch(`${BASE_URL}/api/users/csv`, {
+  const response = await fetch(`${ENDPOINT_URL}/api/users/csv`, {
     method: 'GET',
     headers,
   });
@@ -1266,7 +1243,7 @@ export const getOpportunityCsv = async (): Promise<string> => {
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  const response = await fetch(`${BASE_URL}/api/opps/csv`, {
+  const response = await fetch(`${ENDPOINT_URL}/api/opps/csv`, {
     method: 'GET',
     headers,
   });
@@ -1292,7 +1269,7 @@ export const getServiceDataCsv = async (
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${BASE_URL}/api/service-data/org/`, {
+  const response = await fetch(`${ENDPOINT_URL}/api/service-data/org/`, {
     method: "POST",
     headers,
     body: JSON.stringify({
@@ -1623,40 +1600,44 @@ export async function getServiceJournal(userId: string, token: string) {
   }
 }
 
-// Download the user's service journal CSV
-export const downloadServiceJournalCSV = async (userId: string, token: string) => {
-  try {
-    const response = await fetch(`${ENDPOINT_URL}/api/service-journal/opps/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+// // Download the user's service journal CSV
+// export const downloadServiceJournalCSV = async (userId: string, token: string) => {
+//   try {
+//     const response = await fetch(`${ENDPOINT_URL}/api/service-journal/opps/${userId}`, {
+//       headers: {
+//         Authorization: `Bearer ${token}`,
+//       },
+//     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch service journal: ${response.statusText}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`Failed to fetch service journal: ${response.statusText}`);
+//     }
 
-    const data = await response.json();
+//     const data = await response.json();
 
-    const csvRows = [
-      ['Event Name', 'Date', 'Hours', 'Attended'],
-      ...data.map((opp: any) => [
-        opp.name,
-        new Date(opp.date).toLocaleDateString(),
-        opp.duration / 60,
-        opp.attended ? 'Yes' : 'No',
-      ]),
-    ];
+//     // Convert data to CSV
+//     const csvRows = [
+//       ["Event Name", "Date", "Hours", "Attended"], // header
+//       ...data.map((opp: any) => [
+//         opp.name,
+//         new Date(opp.date).toLocaleDateString(),
+//         opp.duration / 60, // convert minutes to hours
+//         opp.attended ? "Yes" : "No",
+//       ]),
+//     ];
 
-    const csvContent = csvRows.map((row) => row.join(',')).join('\n');
+//     const csvContent = csvRows.map((row) => row.join(",")).join("\n");
+//     const blob = new Blob([csvContent], { type: "text/csv" });
+//     const url = window.URL.createObjectURL(blob);
 
-    const file = new File(Paths.cache, `service-journal_${userId}.csv`);
-    file.create({ overwrite: true });
-    file.write(csvContent);
-
-    await Sharing.shareAsync(file.uri);
-  } catch (err) {
-    console.error('Error downloading CSV:', err);
-    throw err;
-  }
-};
+//     const a = document.createElement("a");
+//     a.href = url;
+//     a.download = `service-journal_${userId}.csv`;
+//     document.body.appendChild(a);
+//     a.click();
+//     a.remove();
+//     window.URL.revokeObjectURL(url);
+//   } catch (err) {
+//     console.error("Error downloading CSV:", err);
+//   }
+// };

@@ -38,21 +38,26 @@ import scott from '@/public/team_pic/scott.png';
 import AosView from '@/components/AOSView';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
+import { Asset } from "expo-asset";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Dimensions, FlatList, Image, Pressable, Animated as RNAnimated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Pressable, Animated as RNAnimated, StyleSheet, Text, View } from 'react-native';
+
 
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [active, setActive] = useState(0);
+  const [assetsReady, setAssetsReady] = useState(false);
 
   const fadeAnim = useRef(new RNAnimated.Value(0)).current;
   const translateY = useRef(new RNAnimated.Value(-20)).current;
   
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  const homeImages = [helpIcon, locationIcon, profileCheckIcon, searchIcon, childrensGarden, cover1, cover2, cover3, cover4, cover5, cover6, heartImg, mobilePack, salvationArmy, secondWind, tmBlockMB1, tmBlockMB2, tmBlock1, tmBlock3, grace, lee, scott]
   const icons = [searchIcon, profileCheckIcon, locationIcon, helpIcon];
+
 
   // Scroll Appear
   const scrollY = useRef(new RNAnimated.Value(0)).current;
@@ -295,6 +300,21 @@ const HomePage = () => {
       img: tmBlock3,
     },
   ];
+
+  useEffect(() => {
+    async function loadAssets() {
+      await Asset.loadAsync(homeImages);
+      setAssetsReady(true);
+    }
+    loadAssets();
+  }, []);
+  if (!assetsReady) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center" }}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>

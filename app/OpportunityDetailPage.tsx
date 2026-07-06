@@ -77,7 +77,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   allTimeMyOpps,
 }) => {
 
-  const USE_MOCKS = true;
+  const USE_MOCKS = false;
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
