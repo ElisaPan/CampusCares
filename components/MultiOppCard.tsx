@@ -7,16 +7,15 @@
 
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
+import { useUserStore } from '@/hooks/useUserStore';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MultiOpp, Opportunity, Organization, User } from '../types';
 
-
 interface MultiOppCardProps {
   multiopp: MultiOpp;
-  currentUser: User | null;
   allOrgs: Organization[];
   opportunitiesData?: Opportunity[];
   onSignUp?: (opportunityId: number) => void;
@@ -73,7 +72,6 @@ const Avatar = ({ user }: { user: User }) => {
 
 const MultiOppCard: React.FC<MultiOppCardProps> = ({
   multiopp,
-  currentUser,
   allOrgs,
   opportunitiesData,
   onSignUp,
@@ -81,6 +79,8 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
   onExternalSignup,
   onExternalUnsignup,
 }) => {
+	const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+
   // Combined memo for both map and display opportunities
   const { displayOpportunities, opportunityMap } = useMemo(() => {
     const map = new Map<number, Opportunity>();

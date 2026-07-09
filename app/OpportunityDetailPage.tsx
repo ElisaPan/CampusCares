@@ -12,7 +12,6 @@
  *    Show participants with two columns, filling out columnn first
  */
 
-import * as Theme from '@/constants/theme';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -20,8 +19,10 @@ import React, { useEffect, useState } from 'react';
 import { Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import { Header as MainHeader } from '@/components/HeaderComponent';
+import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 import {
   Opportunity,
   Organization,
@@ -53,7 +54,6 @@ interface OpportunityDetailPageProps {
   opportunities: Opportunity[];
   students: User[];
   signups: SignUp[];
-  currentUser: User;
   handleSignUp: (opportunityId: number) => void;
   handleUnSignUp: (
     opportunityId: number,
@@ -69,13 +69,13 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   opportunities,
   students,
   signups,
-  currentUser,
   handleSignUp,
   handleUnSignUp,
   allOrgs,
   currentUserSignupsSet,
   allTimeMyOpps,
 }) => {
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
 
   const USE_MOCKS = false;
 

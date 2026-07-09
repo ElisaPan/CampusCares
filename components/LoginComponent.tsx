@@ -19,7 +19,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as api from '../api';
 import { loginTest } from '../api';
 import { signInWithGoogleIdToken, signOut } from '../firebase-config';
+import { useUserStore } from '../hooks/useUserStore';
 import { User } from '../types';
+import { registerForPushNotifications } from '../utils/registerForPushNotifications';
 
 import { ActivityIndicator, Animated, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -36,13 +38,15 @@ interface LoginProps {
   mode: 'login' | 'sign-up';
 }
 
-// Bare RN CLI: swap this line for `import Config from 'react-native-config'; const env = Config.ENV;`
+// TODO: Bare RN CLI swap this line for `import Config from 'react-native-config'; const env = Config.ENV;`
 const env = process.env.EXPO_PUBLIC_ENV;
 
 const Login: React.FC<LoginProps> = ({ mode }) => {
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  const { setCurrentUser } = useUserStore();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
@@ -104,11 +108,13 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
 
             if (exists) {
               const existingUser = await api.getUserByEmail(email, token);
-              // TODO: store existingUser in your RN global state
-              // (Zustand store, Context, etc.) — same role as setCurrentUser on web
+              setCurrentUser(existingUser);
+              const pushToken = await registerForPushNotifications();
+              if (pushToken) {
+                await api.savePushToken(pushToken); // add this endpoint to your backend
+              }
               router.replace(`/(tabs)/OpportunitiesPage`);
             } else {
-              // New user — send to registration, same as web's navigate('/register')
               router.push(`/RegisterPage`);
             }
           }
@@ -137,8 +143,11 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
     try {
       const res = await loginTest(id);
       const data: User = await res.json();
+      console.log('Setting user:', data);
+      setCurrentUser(data);
       router.replace(`/(tabs)/OpportunitiesPage`);
-    } catch {
+    } catch (err) {
+      console.error(err);
     }
   };
 

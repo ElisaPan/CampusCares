@@ -18,13 +18,13 @@ import OpportunityCard from '@/components/OpportunityCard';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, Organization, SignUp, User } from '@/types';
 
 interface OpportunitiesPageProps {
   opportunities: Opportunity[];
   students: User[];
   signups: SignUp[];
-  currentUser: User | null;
   handleSignUp?: (opportunityId: number) => void;
   handleUnSignUp?: (
     opportunityId: number,
@@ -50,7 +50,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   opportunities,
   students,
   signups,
-  currentUser,
   handleSignUp,
   handleUnSignUp,
   allOrgs,
@@ -63,6 +62,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   showPopup,
   oppsLoading
 }) => {
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
 
   const USE_MOCKS = false;
 
@@ -227,17 +227,20 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     </View>
   );
 
-  const Footer = () => (
-    <Text style={styles.termsFooter}>
-      Click here to see our{" "}
-      <Text
-        style={{ textDecorationLine: 'underline', color: '#374151' }}
-        onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
-      >
-        Terms of Service and Privacy Policy
+  const Footer = ({ oppsLoading }: { oppsLoading: boolean }) => (
+    <>
+      
+      <Text style={styles.termsFooter}>
+        Click here to see our{" "}
+        <Text
+          style={{ textDecorationLine: 'underline', color: '#374151' }}
+          onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
+        >
+          Terms of Service and Privacy Policy
+        </Text>
+        .
       </Text>
-      .
-    </Text>
+    </>
   );
 
   return (
@@ -258,7 +261,19 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           : `opp-${item.data.id}`
         }
         ListHeaderComponent={<Header user={user}/>}
-        ListFooterComponent={<Footer />}
+        ListFooterComponent={<Footer oppsLoading={oppsLoading}/>}
+        ListEmptyComponent={
+          oppsLoading ? (
+            <Text style={styles.loadingTxt}>Loading...</Text>
+          ) : feedItems.length === 0 ? (
+            <View style={styles.loadedView}>
+              <Text style={styles.noOpps}>There are currently no opportunities.</Text>
+              {user && 
+                <Text style={styles.noOppsDesc}>Please click 'Create Opportunity' if you would like to propose an opportunity.</Text>
+              }
+            </View>
+          ) : null
+        }
         renderItem={({ item }) => {
           if (item.kind === 'multiopp') {
             return (
@@ -266,7 +281,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
                 <MultiOppCard
                   key={`multiopp-${item.data.id}`}
                   multiopp={item.data}
-                  currentUser={user}
                   allOrgs={allOrgs}
                   opportunitiesData={userOpportunities}
                   onSignUp={handleSignUp}
@@ -322,17 +336,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           );
         }}
         />
-
-      {oppsLoading ? (
-        <Text style={styles.loadingTxt}>Loading...</Text>
-      ) : feedItems.length === 0 ? (
-        <View style={styles.loadedView}>
-          <Text style={styles.noOpps}>There are currently no opportunities.</Text>
-          {user && 
-            <Text style={styles.noOppsDesc}>Please click 'Create Opportunity' if you would like to propose an opportunity.</Text>
-          }
-        </View>
-      ) : null}
 
       {/* External Signup Modal */}
       {showExternalSignupModal && selectedOpportunity && (
@@ -461,11 +464,9 @@ const styles = StyleSheet.create({
   },
   loadedView: {
     width: '100%',
-    alignSelf: 'stretch',
     flexDirection: 'column',
-    textAlign: 'center',
-    paddingVertical: 28,
-    paddingHorizontal: 24,
+    paddingVertical: 24,
+    marginBottom: 400,
     backgroundColor: 'white',
     borderRadius: 16,
     
@@ -480,13 +481,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   noOpps: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
+    textAlign: 'center',
     color: '#1f2937',
   },
   noOppsDesc: {
+    fontSize: 14,
     marginTop: 12,
-    color: '#9E9E9E',
+    marginHorizontal: 24,
+    textAlign: 'center',
+    color: '#999999',
   },
   signupModalBackdrop: {
     position: 'absolute',

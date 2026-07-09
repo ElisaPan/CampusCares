@@ -1,3 +1,4 @@
+import { useUserStore } from '@/hooks/useUserStore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from "expo-router";
 import React from 'react';
@@ -8,15 +9,15 @@ interface NotificationsPageProps {
   friendshipsData: FriendshipsResponse | null;
   allUsers: User[];
   handleRequestResponse: (requestId: number, response: 'accepted' | 'declined') => void;
-  currentUser: User;
 }
 
 const NotificationsPage: React.FC<NotificationsPageProps> = ({
   friendshipsData,
   allUsers,
   handleRequestResponse,
-  currentUser,
 }) => {
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+
   const receivedRequests =
     friendshipsData?.users.filter((user) => user.friendship_status === 'received') ?? [];
 

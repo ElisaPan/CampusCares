@@ -11,6 +11,7 @@
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 import { UploadFile, deleteMultiOpp, getOpportunity, getProfilePictureSource, updateMultiOpp, uploadProfilePicture } from '../api';
 import { MultiOpp, Opportunity as OppType, Opportunity, Organization, User } from '../types';
 import { formatMiniOppTime } from '../utils/timeUtils';
@@ -26,7 +27,6 @@ import { Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, 
 interface MultiOppDetailPageProps {
   multiopps: MultiOpp[];
   opportunities: Opportunity[];
-  currentUser: User;
   allOrgs: Organization[];
   users: User[];
   staticId?: number;
@@ -36,7 +36,6 @@ interface MultiOppDetailPageProps {
 
 const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   multiopps,
-  currentUser,
   allOrgs,
   opportunities,
   users,
@@ -44,6 +43,8 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   onSignUp,
   onUnsignUp,
 }) => {
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+
   const USE_MOCKS = false;
 
   const queryClient = useQueryClient();
