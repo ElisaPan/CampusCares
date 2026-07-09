@@ -4,13 +4,16 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import UserContext from '@/components/user-context';
 import { mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useContext } from 'react';
 
 export const Header = () => {
+	const { currentUser, setCurrentUser } = useUserStore();
+
 	const USE_MOCKS = false;
 
-	const { students, currentUser } = useContext(UserContext);
+	const { students } = useContext(UserContext);
 	const { id } = useLocalSearchParams<{ id?: string }>();
 	const parsedId = id ? Number(id) : null;
 

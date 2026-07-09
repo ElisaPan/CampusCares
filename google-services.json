@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "640519159185",
+    "project_id": "campuscares-94b93",
+    "storage_bucket": "campuscares-94b93.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:640519159185:android:1fb5215603b5e041aaee30",
+        "android_client_info": {
+          "package_name": "com.campuscares.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "640519159185-t28f2u42ff6k5evb1arotfkko8vom20m.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAVZD_E8KYsOgDmgRQmsTGRXx3Z9i2EeO4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "640519159185-t28f2u42ff6k5evb1arotfkko8vom20m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "640519159185-9vdanfuurum7r8j1u1f4sd5nj6djsamv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.campuscares.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

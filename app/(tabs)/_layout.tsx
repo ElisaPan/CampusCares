@@ -17,6 +17,10 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.tabIconSelected,
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarButton: HapticTab,
+        tabBarStyle: {
+          paddingTop: 12,
+          // height: 0,
+        },
       }}
     >
       <Tabs.Screen

@@ -2,6 +2,7 @@ import { ImageSourcePropType } from "react-native";
 import { auth } from './firebase-config';
 import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 
+
 // A helper for making Acucaresbackend.onrender.comPI requests.
 const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
 
@@ -95,6 +96,8 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
     },
   });
 
+  console.log('Response status:', res.status, 'for', url);
+
   if (!res.ok) {
     const errorInfo = await res.json().catch(() => ({
       message: res.statusText,
@@ -119,7 +122,6 @@ const authenticatedRequest = async (endpoint: string, options: RequestInit = {})
   const authHeaders: Record<string, string> = {};
   if (token) {
     authHeaders['Authorization'] = `Bearer ${token}`;
-    //console.log('Adding Authorization header to request:', endpoint);
   } else {
     console.warn('No Firebase token available for authenticated request:', endpoint);
   }
@@ -138,14 +140,13 @@ const authenticatedRequest = async (endpoint: string, options: RequestInit = {})
 export const loginTest = async (userId: number) => {
   const response = await fetch(`${ENDPOINT_URL}/api/login-test/${userId}`, {
     method: "GET",
-    credentials: "include"
+    // credentials: "include"
   });
 
   if (!response.ok) {
     throw new Error("Failed to log in test user")
   }
 
-  // console.log("Logged in test user!")
   return response;
 }
 
@@ -340,15 +341,26 @@ export const registerUser = async (
   })) as User;
 };
 
+// for push notifications
+export const savePushToken = async (pushToken: string) => {
+  const user = auth.currentUser;
+  if (!user) return;
+  const token = await user.getIdToken();
+
+  return fetch(`${ENDPOINT_URL}/save-push-token`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ pushToken }),
+  });
+};
+
 // Get all user emails - returns array of email strings
 export const getUserEmails = async (): Promise<string[]> => {
   const response = await authenticatedRequest('/users/emails');
-  // console.log('getUserEmails response:', response);
-  // If the response is the array directly:
   return response || [];
-
-  // OR if it's wrapped differently:
-  // return response.emails || response || [];
 };
 
 // Get all subscribed user emails - returns array of email strings
@@ -427,9 +439,7 @@ export const deleteOrganization = (id: number): Promise<void> =>
 export const getAllFriendships = (): Promise<Friendship[]> => authenticatedRequest('/friendships');
 
 export const getUserFriends = async (userId: number): Promise<any> => {
-  //console.log(`API: Fetching friends for user ${userId}`);
   const result = await authenticatedRequest(`/users/${userId}/friends`);
-  //console.log(`API: Friends response:`, result);
 
   // The backend returns { count: number, friendships: [...] }
   if (result && Array.isArray(result.friendships)) {
@@ -441,9 +451,7 @@ export const getUserFriends = async (userId: number): Promise<any> => {
 };
 
 export const getUserFriendships = async (userId: number): Promise<FriendshipsResponse> => {
-  //console.log(`API: Fetching friendships for user ${userId}`);
   const result = await authenticatedRequest(`/users/${userId}/friendships/all`);
-  //console.log(`API: Friendships response:`, result);
   return result;
 };
 
@@ -453,13 +461,11 @@ export const getFriendshipId = async (
   otherUserId: number
 ): Promise<number | null> => {
   try {
-    //console.log(`API: Getting friendship ID between user ${userId} and ${otherUserId}`);
     const result = await authenticatedRequest(`/users/${userId}/friendships/all`);
 
     // Find the friendship for the other user
     const userData = result.users?.find((user: any) => user.user_id === otherUserId);
     if (userData && userData.friendship_id) {
-      // The friendship_id is now provided directly in the response
       return userData.friendship_id;
     }
     return null;
@@ -494,19 +500,14 @@ export const checkFriendshipStatus = async (
   userId: number,
   friendId: number
 ): Promise<FriendshipStatus> => {
-  //console.log(`API: Checking friendship status between user ${userId} and friend ${friendId}`);
   const result = await authenticatedRequest(`/users/${userId}/friends/check/${friendId}`);
-  //console.log(`API: Friendship status response:`, result);
   return result;
 };
 
 // Get accepted friendships for a user
 export const getAcceptedFriendships = async (userId: number): Promise<User[]> => {
-  //console.log(`API: Fetching accepted friendships for user ${userId}`);
   try {
     const result = await authenticatedRequest(`/users/${userId}/friends`);
-    //console.log(`API: Friends response:`, result);
-
     let friendsArray: any[] = [];
     if (Array.isArray(result)) {
       friendsArray = result;
@@ -548,9 +549,6 @@ export const getAcceptedFriendships = async (userId: number): Promise<User[]> =>
       }));
     }
     console.warn('Unexpected friends response structure:', result);
-    //console.log('Response type:', typeof result);
-    //console.log('Response keys:', result ? Object.keys(result) : 'null/undefined');
-    //console.log('Response structure:', JSON.stringify(result, null, 2));
     return [];
   } catch (error) {
     console.warn(`API: Friends endpoint not available yet: ${error}`);
@@ -619,9 +617,6 @@ export const getOpportunities = async (): Promise<Opportunity[]> => {
 
     // Transform backend data to match frontend expectations
     const transformedOpportunities = (response.opportunities || []).map((opp: any) => {
-      //console.log(`Processing opportunity ${opp.id} - ${opp.name}:`, opp);
-
-      // Parse the UTC date string from backend
       const dateObj = new Date(opp.date);
 
       // Convert UTC to Eastern Time
@@ -645,7 +640,6 @@ export const getOpportunities = async (): Promise<Opportunity[]> => {
 
       // Transform involved_users from backend format to frontend User format
       const transformedInvolvedUsers = (opp.involved_users || []).map((involvedUser: any) => {
-        //console.log('Transforming involved user:', involvedUser);
 
         const transformedUser = {
           id: involvedUser.id,
@@ -714,12 +708,9 @@ export const getOpportunities = async (): Promise<Opportunity[]> => {
 export const getCurrentOpportunities = async (): Promise<Opportunity[]> => {
   try {
     const response = await authenticatedRequest('/opps/current');
-    //console.log('getOpportunities raw response:', response);
 
     // Transform backend data to match frontend expectations
     const transformedOpportunities = (response.opportunities || []).map((opp: any) => {
-      //console.log(`Processing opportunity ${opp.id} - ${opp.name}:`, opp);
-
       // Parse the UTC date string from backend
       const dateObj = new Date(opp.date);
 
@@ -744,8 +735,6 @@ export const getCurrentOpportunities = async (): Promise<Opportunity[]> => {
 
       // Transform involved_users from backend format to frontend User format
       const transformedInvolvedUsers = (opp.involved_users || []).map((involvedUser: any) => {
-        //console.log('Transforming involved user:', involvedUser);
-
         const transformedUser = {
           id: involvedUser.id,
           name: involvedUser.user || 'Unknown User', // Use full name from backend
@@ -1006,20 +995,16 @@ export const deleteOpportunity = (id: number): Promise<void> =>
 export const checkOpportunityAvailability = async (
   opportunityId: number
 ): Promise<{ is_full: boolean }> => {
-  //console.log('Checking availability for opportunity:', opportunityId);
   const result = await authenticatedRequest(`/opps/${opportunityId}/full`);
-  //console.log('Opportunity availability response:', result);
   return result;
 };
 
 // POST /register-opp for signing up.
 export const registerForOpp = async (data: { user_id: number; opportunity_id: number }) => {
-  //console.log('Making registerForOpp API call with data:', data);
   const result = await authenticatedRequest('/register-opp', {
     method: 'POST',
     body: JSON.stringify(data),
   });
-  //console.log('registerForOpp API response:', result);
   return result;
 };
 // POST /unregister-opp for un-registering.

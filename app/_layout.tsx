@@ -2,14 +2,13 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
 import { CloneOpportunityProvider } from "@/context/CloneOpportunityContext";
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { User } from '@/types';
-
+import * as Notifications from 'expo-notifications';
+import { useNotificationObserver } from '../hooks/useNotificationObserver';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -17,11 +16,22 @@ export const unstable_settings = {
 
 const queryClient = new QueryClient();
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [students, setStudents] = useState<User[]>([]);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+// controls how notifications appear while app is open
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
+export default function RootLayout() {
+  useNotificationObserver(); 
+
+  const colorScheme = useColorScheme();
+  
   return (
     <CloneOpportunityProvider>
       <QueryClientProvider client={queryClient}>

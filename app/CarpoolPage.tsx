@@ -18,15 +18,15 @@ import { useMemo, useState } from "react";
 import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { mockOpportunities, mockRides, mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 import { getOpportunity, getProfilePictureSource, getRides, removeRider } from '../api';
 import CarpoolFormPopup from '../components/CarpoolFormPopup';
 import DriverFormPopup from '../components/DriverFormPopup';
 import WaiverPopup from '../components/WaiverPopup';
-import { Opportunity, Ride, User } from '../types';
+import { Opportunity, Ride } from '../types';
 import { calculateEndTime, canUnregisterFromOpportunity } from '../utils/timeUtils';
 
 interface CarpoolPageProps {
-  currentUser: User;
   showPopup: (
     title: string,
     message: string,
@@ -34,7 +34,8 @@ interface CarpoolPageProps {
 ) => void,
 }
 
-const CarpoolPage: React.FC<CarpoolPageProps> = ({ currentUser, showPopup }) => {
+const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
 
   const USE_MOCKS = false;
   

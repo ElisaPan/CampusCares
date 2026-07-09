@@ -9,13 +9,12 @@
  *    -
  */
 
+import { signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
-import { signOut } from 'firebase/auth';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { getProfilePictureSource, updateUser } from '@/api';
-import { auth } from '@/firebase-config';
 import {
   Badge,
   FriendshipStatus,
@@ -30,6 +29,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 
 interface ProfilePageProps {
@@ -38,7 +38,6 @@ interface ProfilePageProps {
   organizations: Organization[];
   opportunities: Opportunity[];
   initialBadges: Badge[];
-  currentUser: User;
   updateInterests: (interests: string[]) => void;
   updateProfilePicture: (file: File) => void;
   handleFriendRequest: (toUserId: number) => void;
@@ -46,20 +45,18 @@ interface ProfilePageProps {
   friendshipsData: FriendshipsResponse | null;
   checkFriendshipStatus: (otherUserId: number) => Promise<FriendshipStatus>;
   getFriendsForUser: (userId: number) => Promise<User[]>;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
   allTimeMyOpps: Opportunity[];
   setAllTimeMyOpps: React.Dispatch<React.SetStateAction<Opportunity[]>>;
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = (props) => {
-  //const { id } = useLocalSearchParams<{ id: string }>();
+  const { currentUser, setCurrentUser } = useUserStore();
   const {
     students,
     signups,
     organizations,
     opportunities,
     initialBadges,
-    currentUser,
     updateInterests,
     updateProfilePicture,
     handleFriendRequest,
@@ -67,7 +64,6 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     friendshipsData,
     checkFriendshipStatus,
     getFriendsForUser,
-    setCurrentUser,
     allTimeMyOpps,
     setAllTimeMyOpps,
   } = props;
@@ -89,7 +85,15 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
       ? students?.find((s) => s.id === parsedId)
       : currentUser;
 
+  // console.log('parsedId:', parsedId, 'currentUser:', currentUser);
+
   const profileUser = USE_MOCKS ? mockUsers[0] : baseUser;
+  // console.log('{\n}baseUser:', baseUser);
+  // console.log('students:', students?.length);
+  // console.log('parsedId:', parsedId);
+  // console.log('currentUser:', currentUser?.id);
+  // console.log('baseUser:', baseUser?.id);
+  // console.log('profileUser:', profileUser?.id);
 
   if (!profileUser) {
     return <Text>User not found</Text>;
@@ -104,20 +108,6 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   const userOrgs = safeOrganizations.filter((g) => profileUser.organizationIds?.includes(g.id));
 
   const key = `${profileUser.id}-${profileUser._lastUpdate ?? 'no-update'}`;
-  
-  // const user = id ? students.find((s) => s.id === parseInt(id!)) : currentUser;
-  // const profileUser = USE_MOCKS ? mockUsers[0] : user;
-  // if (!profileUser) return <Text>User not found</Text>;
-
-  // const safeSignups = USE_MOCKS ? mockSignups : signups ?? [];
-  // const safeOrganizations = USE_MOCKS ? organizations : mockOrganizations;
-  
-  // const key = `${profileUser.id}-${profileUser._lastUpdate || 'no-update'}`;
-  // const isCurrentUser = !!currentUser && profileUser.id === currentUser.id;
-  // const userSignups = safeSignups.filter((s) => s.userId === profileUser.id);
-  // const userOrgs = safeOrganizations.filter((g) =>
-  //   profileUser.organizationIds?.includes(g.id)
-  // );
 
   const profileUserPoints = profileUser?.points || 0;
   const hoursVolunteered = userSignups.reduce((total, signup) => {
@@ -242,9 +232,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
         ...prev,
         subscribed: newValue
       }));
-      setCurrentUser((prev) =>
-        prev ? { ...prev, subscribed: newValue } : prev
-      );
+      if (currentUser) setCurrentUser({ ...currentUser, subscribed: newValue });
     } catch (error) {
       console.error("Error updating subscription:", error);
     }
@@ -264,16 +252,16 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     }
   };
 
+  const { clearCurrentUser } = useUserStore();
+
   const handleLogout = async () => {
     try {
-      await signOut(auth);
-      setCurrentUser(null);
-      sessionStorage.clear();
-      localStorage.clear();
-      router.push('../components/login');
-    } catch (error) {
-      console.error('Logout failed:', error);
-    }
+    await signOut();
+    clearCurrentUser();
+    router.replace(`/LoginPage`);
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
   };
 
   const isFriend = friendshipStatus === 'friends';
@@ -381,7 +369,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
                           const updatedprofileUser = await updateUser(profileUser.id, { bio: editingBio });
                           // Update local profileUser state
                           setLocalUser({ ...localUser, bio: editingBio });
-                          setCurrentUser((prev) => ({ ...prev!, bio: editingBio }));
+                          if (currentUser) setCurrentUser({ ...currentUser, bio: editingBio });
                           setIsEditing(false);
                         } catch (error) {
                           console.error('Error saving bio:', error);

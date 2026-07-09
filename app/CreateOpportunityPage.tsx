@@ -18,6 +18,7 @@ import { FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text
 
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
+import { useUserStore } from '@/hooks/useUserStore';
 import * as api from '../api';
 import { MultiOpp, Opportunity, Organization } from '../types';
 import { formatDateTimeForBackend } from '../utils/timeUtils';
@@ -151,24 +152,21 @@ const transformOpportunityFromBackend = (opp: any): Opportunity | MultiOpp => {
 
 
 interface CreateOpportunityPageProps {
-  currentUser: any;
   organizations: Organization[];
   opportunities: Opportunity[];
   allOpps: (Opportunity | MultiOpp)[];
   setAllOpps: (allOpps: (Opportunity | MultiOpp)[] | ((prev: (Opportunity | MultiOpp)[]) => (Opportunity | MultiOpp)[])) => void;
-  // setOpportunities: (
-  //   opportunities: Opportunity[] | ((prev: Opportunity[]) => Opportunity[])
-  // ) => void;
+
 }
 
 const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
-  currentUser,
   organizations,
   setAllOpps,
   allOpps,
   opportunities,
 }) => {
-  
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+
   const USE_MOCKS = false;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();

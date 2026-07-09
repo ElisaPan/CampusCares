@@ -6,9 +6,9 @@ import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native
 
 import { getProfilePictureSource } from '@/api';
 import { mockUsers } from '@/data/initialData';
+import { useUserStore } from '@/hooks/useUserStore';
 interface FriendsPageProps {
   students: User[];
-  currentUser: User;
   handleFriendRequest: (toUserId: number) => void;
   handleRemoveFriend: (friendId: number) => void;
   friendshipsData: FriendshipsResponse | null;
@@ -18,15 +18,15 @@ interface FriendsPageProps {
 }
 
 const FriendsPage: React.FC<FriendsPageProps> = (props) => {
+  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+
   const {
     students,
-    currentUser,
     handleFriendRequest,
     handleRemoveFriend,
     friendshipsData,
     checkFriendshipStatus,
     getFriendsForUser,
-    setCurrentUser,
   } = props;
 
   const USE_MOCKS = false;
