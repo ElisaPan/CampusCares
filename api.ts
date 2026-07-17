@@ -11,7 +11,9 @@ const getFirebaseToken = async (): Promise<string | null> => {
   try {
     const currentUser = auth.currentUser;
     if (currentUser) {
+      const start = Date.now();
       const token = await currentUser.getIdToken();
+      console.log('Token fetch took', Date.now() - start, 'ms');
       return token;
     } else {
       console.warn('No Firebase user found');
@@ -86,6 +88,7 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${ENDPOINT_URL}/api${endpoint}`;
 
   console.log("FETCH:", url);
+  const fetchStart = Date.now();
 
   const res = await fetch(url, {
     ...restOptions,
@@ -96,6 +99,7 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
     },
   });
 
+  console.log('Fetch itself took', Date.now() - fetchStart, 'ms for', url);
   console.log('Response status:', res.status, 'for', url);
 
   if (!res.ok) {
@@ -106,9 +110,12 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
   }
 
   const contentType = res.headers.get("content-type");
+  const parseStart = Date.now();
 
   if (contentType?.includes("application/json")) {
-    return res.json();
+    const data = await res.json();
+    console.log('JSON parse took', Date.now() - parseStart, 'ms for', url);
+    return data;
   }
 
   return {};

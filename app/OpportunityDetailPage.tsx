@@ -21,12 +21,11 @@ import { Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
-import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
+import { mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
 import {
+  MultiOpp,
   Opportunity,
-  Organization,
-  SignUp,
   User
 } from '@/types';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -36,46 +35,42 @@ import { router, useLocalSearchParams } from 'expo-router';
 
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  deleteOpporturnity,
+  deleteOpportunity,
   getCurrentOpportunities,
   getOpportunityAttendance,
   registerForOpp,
   unregisterForOpp,
   updateOpportunity,
   UploadFile,
-  uploadProfilePicture,
+  uploadProfilePicture
 } from '../api';
 // import AttendanceManager from '../components/AttendanceManager';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { calculateEndTime, formatDateTimeForBackend } from '../utils/timeUtils';
 
+function isOpportunity(opp: Opportunity | MultiOpp): opp is Opportunity {
+  return 'allow_carpool' in opp;
+}
+
 interface OpportunityDetailPageProps {
-  opportunities: Opportunity[];
-  students: User[];
-  signups: SignUp[];
   handleSignUp: (opportunityId: number) => void;
   handleUnSignUp: (
     opportunityId: number,
     opportunityDate?: string,
     opportunityTime?: string
   ) => Promise<boolean>;
-  allOrgs: Organization[];
   currentUserSignupsSet: Set<number>;
   allTimeMyOpps: Opportunity[];
 }
 
 const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
-  opportunities,
-  students,
-  signups,
   handleSignUp,
   handleUnSignUp,
-  allOrgs,
   currentUserSignupsSet,
   allTimeMyOpps,
 }) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+  const { signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
 
   const USE_MOCKS = false;
 
@@ -84,7 +79,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
   const sourceStudents = USE_MOCKS ? mockUsers : students ?? [];
   const sourceSignups = USE_MOCKS ? mockSignups : signups ?? [];
-  const sourceOrganizations = USE_MOCKS ? mockOrganizations : allOrgs ?? [];
+  const sourceOrganizations = USE_MOCKS ? mockOrganizations : organizations ?? [];
   const activeCurrentUser = USE_MOCKS ? mockUsers[0] : currentUser;
   const activeCurrentUserSignupsSet = USE_MOCKS
     ? new Set( mockSignups
@@ -97,16 +92,8 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
     return <Text>Loading...</Text>;
   }
 
-  const sourceOpportunities =
-    USE_MOCKS
-    ? mockOpportunities
-    : allTimeMyOpps && allTimeMyOpps.length > 0
-      ? allTimeMyOpps
-      : opportunities ?? [];
-
-  const opportunity = sourceOpportunities.find(
-    (o) => o.id === parseInt(id, 10)
-  );
+  const singleOpportunities = allOpps.filter(isOpportunity);
+  const opportunity = singleOpportunities.find((o) => o.id === parseInt(id!));
 
   if (!opportunity || !activeCurrentUser) {
     return <Text>Loading...</Text>;
@@ -398,7 +385,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
     if (!confirmed) return;
 
     try {
-      await deleteOpporturnity(opportunity.id);
+      await deleteOpportunity(opportunity.id);
 
       // Remove the opportunity from the state
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });

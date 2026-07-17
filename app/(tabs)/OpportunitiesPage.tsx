@@ -9,9 +9,10 @@
  *    Redesign page title formatting
  */
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
-import { FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { getCurrentOpportunities, getMultiOpps, getOrgs, getUsers } from '@/api';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import MultiOppCard from '@/components/MultiOppCard';
 import OpportunityCard from '@/components/OpportunityCard';
@@ -19,21 +20,26 @@ import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
-import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, Organization, SignUp, User } from '@/types';
+import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, User } from '@/types';
+
+function isOpportunity(opp: Opportunity | MultiOpp): opp is Opportunity {
+  return 'allow_carpool' in opp;
+}
+
+function isMultiOpp(opp: Opportunity | MultiOpp): opp is MultiOpp {
+  return !('allow_carpool' in opp);
+}
 
 interface OpportunitiesPageProps {
-  opportunities: Opportunity[];
-  students: User[];
-  signups: SignUp[];
+  // students: User[];
+  // signups: SignUp[];
   handleSignUp?: (opportunityId: number) => void;
   handleUnSignUp?: (
     opportunityId: number,
     opportunityDate?: string,
     opportunityTime?: string
   ) => Promise<boolean>;
-  allOrgs: Organization[];
-  currentUserSignupsSet?: Set<number>;
-  multiopps: MultiOpp[];
+  // currentUserSignupsSet?: Set<number>;
   feedOrder: FeedOrderItem[];
   invisibleMultioppIds: number[];
   showCarpoolPopup?: number | null;
@@ -43,26 +49,55 @@ interface OpportunitiesPageProps {
     message: string,
     type: 'success' | 'info' | 'warning' | 'error'
   ) => void;
-  oppsLoading: boolean
 }
 
 const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
-  opportunities,
-  students,
-  signups,
+  // students,
+  // signups,
   handleSignUp,
   handleUnSignUp,
-  allOrgs,
-  currentUserSignupsSet,
-  multiopps,
+  // currentUserSignupsSet,
   feedOrder,
   invisibleMultioppIds,
   showCarpoolPopup,
   setShowCarpoolPopup,
   showPopup,
-  oppsLoading
 }) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+  const { students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
+  const [oppsLoading, setOppsLoading] = useState(true);
+
+  useEffect(() => {
+    const start = Date.now();
+    setOppsLoading(true);
+    Promise.all([
+      getOrgs(),
+      getCurrentOpportunities(),
+      getMultiOpps(),
+      getUsers(),
+    ])
+      .then(([orgs, opps, multiopps, students]) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
+        const upcomingMultiopps = multiopps.filter((m) =>
+          m.opportunities?.some((o) => new Date(o.date) >= today)
+        );
+        console.log('Fetch took', Date.now() - start, 'ms');
+        console.log('opps count:', opps.length, 'multiopps count:', multiopps.length);
+        setOrganizations(orgs);
+        setAllOpps([...upcomingOpps, ...upcomingMultiopps]);
+        setStudents(students);
+      })
+      .catch(console.error)
+      .finally(() => setOppsLoading(false));
+  }, []);
+  
+  const opportunities = allOpps.filter(isOpportunity);
+  const multiopps = allOpps.filter(isMultiOpp);
+
+  console.log('opps: ' + opportunities)
+  console.log('multiopps: ' + multiopps)
 
   const USE_MOCKS = false;
 
@@ -79,12 +114,28 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   const userOpportunities = USE_MOCKS ? mockOpportunities : opportunities;
   const userMultiOpps = USE_MOCKS ? mockMultiOpps : multiopps;
 
-  if (!user) return <Text>User not found</Text>;
+  const [showExternalSignupModal, setShowExternalSignupModal] = useState(false);
+  const [showExternalUnsignupModal, setShowExternalUnsignupModal] = useState(false);
+  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
+
+  const currentUserSignupsSet = useMemo(() => {
+    if (!currentUser) return new Set<number>();
+    const userSignups = new Set<number>();
+    signups.forEach((signup) => {
+      if (signup.userId === currentUser.id) userSignups.add(signup.opportunityId);
+    });
+    opportunities.forEach((opp) => {
+      const isRegistered = opp.involved_users?.some(
+        (user) => user.id === currentUser.id && user.registered === true
+      );
+      if (isRegistered) userSignups.add(opp.id);
+    });
+    return userSignups;
+  }, [currentUser, opportunities, signups]);
 
   const feedItems = useMemo((): FeedItem[] => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-
 
     // Filter standalone opps (approved, upcoming, visible, not part of a multiopp)
     const standaloneOpps = (userOpportunities ?? []).map((opp) => {
@@ -140,11 +191,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       return dateA - dateB;
     });
   }, [userOpportunities, userMultiOpps, user, feedOrder, invisibleMultioppIds]);
-
-  const [showExternalSignupModal, setShowExternalSignupModal] = useState(false);
-  const [showExternalUnsignupModal, setShowExternalUnsignupModal] = useState(false);
-  const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
-
+  
   const handleExternalSignup = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
     setShowExternalSignupModal(true);
@@ -161,17 +208,10 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         router.push('../login');
         return;
       }
-      // Open the external URL in a new tab
       window.open(selectedOpportunity.redirect_url!, '_blank');
-
       if (handleSignUp) {
-        // Still register the user locally
         handleSignUp(selectedOpportunity.id);
-        // if (selectedOpportunity.allow_carpool) {
-        //   setShowCarpoolPopup(true)
-        // }
       }
-      // Close the modal
       setShowExternalSignupModal(false);
       setSelectedOpportunity(null);
     }
@@ -179,12 +219,9 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
 
   const handleExternalUnsignupConfirm = () => {
     if (selectedOpportunity) {
-      // Proceed with local unregistration
       if (handleUnSignUp) {
         handleUnSignUp(selectedOpportunity.id, selectedOpportunity.date, selectedOpportunity.time);
       }
-
-      // Close the modal
       setShowExternalUnsignupModal(false);
       setSelectedOpportunity(null);
     }
@@ -205,6 +242,8 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     setClonedOpportunityData(null);
     router.push(`/CreateOpportunityPage`);
   };
+
+  if (!user) return <Text>User not found</Text>;
 
   const Header = ({ user }: { user: User }) => (
     <View style={styles.headerWrapper}>
@@ -264,7 +303,9 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         ListFooterComponent={<Footer oppsLoading={oppsLoading}/>}
         ListEmptyComponent={
           oppsLoading ? (
-            <Text style={styles.loadingTxt}>Loading...</Text>
+            <View style={styles.loadingView}>
+              <ActivityIndicator size='large' color={Theme.cornellRed} />
+            </View>
           ) : feedItems.length === 0 ? (
             <View style={styles.loadedView}>
               <Text style={styles.noOpps}>There are currently no opportunities.</Text>
@@ -456,17 +497,19 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center'
   },
-  loadingTxt: {
-    padding: 32,
-    textAlign: 'center',
-    fontSize: 19,
-    fontWeight: '600',
+  loadingView: {
+    width: '100%',
+    flexDirection: 'column',
+    paddingVertical: 24,
+    marginTop: 130,
+    marginBottom: 280,
   },
   loadedView: {
     width: '100%',
     flexDirection: 'column',
     paddingVertical: 24,
-    marginBottom: 400,
+    marginTop: 10,
+    marginBottom: 380,
     backgroundColor: 'white',
     borderRadius: 16,
     
