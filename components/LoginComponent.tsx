@@ -142,6 +142,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
   const handleLoginTest = async (id: number) => {
     try {
       const res = await loginTest(id);
+      console.log('Response status:', res.status, res.ok);
       const data: User = await res.json();
       console.log('Setting user:', data);
       setCurrentUser(data);

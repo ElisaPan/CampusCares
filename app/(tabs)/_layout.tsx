@@ -1,15 +1,23 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect } from 'react';
 
+import { getOrgs } from '@/api';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useUserStore } from '@/hooks/useUserStore';
 
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
+
+  const { setOrganizations } = useUserStore();
+  useEffect(() => {
+    getOrgs().then(setOrganizations).catch(console.error);
+  }, []);
 
   return (
     <Tabs

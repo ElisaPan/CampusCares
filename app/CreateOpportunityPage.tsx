@@ -1,8 +1,9 @@
 /*************
  * TODO:
  *  Severe:
- *    On click outline with red
  *    Replace ALL time and date pickers with formatted text input (https://chatgpt.com/s/t_6a2f185e3ca0819189ba65044f91957f)
+ *    Multiopp choose time is BADDD
+ *    On click outline with red
  *  High:
  *    -
  *  Low
@@ -13,7 +14,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import * as Theme from '@/constants/theme';
@@ -152,20 +153,17 @@ const transformOpportunityFromBackend = (opp: any): Opportunity | MultiOpp => {
 
 
 interface CreateOpportunityPageProps {
-  organizations: Organization[];
   opportunities: Opportunity[];
   allOpps: (Opportunity | MultiOpp)[];
   setAllOpps: (allOpps: (Opportunity | MultiOpp)[] | ((prev: (Opportunity | MultiOpp)[]) => (Opportunity | MultiOpp)[])) => void;
-
 }
 
 const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
-  organizations,
-  setAllOpps,
-  allOpps,
-  opportunities,
+  // setAllOpps,
+  // allOpps,
+  // opportunities,
 }) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+  const { setAllOpps, allOpps, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, organizations } = useUserStore();
 
   const USE_MOCKS = false;
 
@@ -175,12 +173,13 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
 
   const user = USE_MOCKS ? mockUsers[0] : currentUser;
   const sourceOrganizations = USE_MOCKS ? mockOrganizations : organizations ?? [];
+  
   const sourceOpportunities =
     USE_MOCKS
     ? mockOpportunities
-    : allOpps && allOpps.length > 0
-      ? allOpps
-      : opportunities ?? [];
+    : allOpps.flatMap((item) =>
+      'opportunities' in item ? item.opportunities ?? [] : [item]
+    );
 
   if (!sourceOrganizations) return <Text>Organizations not found</Text>;
   if (!user) return <Text>User not found</Text>;
@@ -192,14 +191,21 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
 
   const { clonedOpportunityData, setClonedOpportunityData } = useCloneOpportunity();
   
+  const defaultTime = () => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}:00`;
+  };
+
   // Update the initial formData state to use cloned data
   const [formData, setFormData] = useState({
     name: clonedOpportunityData?.name || '',
     description: clonedOpportunityData?.description || '',
     cause: clonedOpportunityData?.causes || ([] as string[]),
     tags: clonedOpportunityData?.tags || ([] as string[]),
-    date: clonedOpportunityData?.date || '',
-    time: clonedOpportunityData?.time || '',
+    date: clonedOpportunityData?.date || new Date().toISOString().split('T')[0],
+    time: clonedOpportunityData?.time || defaultTime(),
     duration: clonedOpportunityData?.duration || 60,
     total_slots: clonedOpportunityData?.total_slots || 10,
     nonprofit: clonedOpportunityData?.nonprofit || '',
@@ -255,6 +261,21 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
   // For searchable org selector when event is private
   const [orgFilter, setOrgFilter] = useState<string>('');
   const [showOrgModal, setShowOrgModal] = useState(false);
+
+  const addOpp = useUserStore((state) => state.addOpp);
+
+  const renderOrgItem = useCallback(({ item: org }: { item: Organization }) => (
+    <Pressable
+      style={styles.orgRow}
+      onPress={() => {
+        setFormData((prev) => ({ ...prev, host_org_id: org.id }));
+        setShowOrgPicker(false);
+      }}
+    >
+      <Text style={{ flex: 1, fontSize: 12 }}>{org.name}</Text>
+      {formData.host_org_id === org.id && <Text>✓</Text>}
+    </Pressable>
+  ), [formData.host_org_id]);
 
   // Filtered + alphabetically sorted organizations for the checklist
   const filteredOrgs = sourceOrganizations
@@ -344,6 +365,10 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
       formDataToSend.append('description', formData.description);
       // formData.cause.forEach((cause: string) => { formDataToSend.append('causes', cause) });
       formData.tags.forEach((tag: string) => { formDataToSend.append('tags', tag) });
+      
+      console.log('date:', formData.date, 'time:', formData.time);
+      console.log('combined:', formatDateTimeForBackend(formData.date, formData.time));
+      
       formDataToSend.append('date', formatDateTimeForBackend(formData.date, formData.time));
       formDataToSend.append('duration', formData.duration.toString());
       formDataToSend.append('total_slots', formData.total_slots.toString());
@@ -372,11 +397,9 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
         formDataToSend.append('week_recurrences', weekRecurrences.toString());
       }
 
-
       // If private, append visibility org ids as a single JSON field (numbers)
       // This ensures the backend receives a JSON array of integers instead of
       // multiple string entries (FormData always serializes values as strings).
-
       if (formData.isPrivate && Array.isArray(formData.visibility)) {
         try {
           formDataToSend.append('visibility', JSON.stringify(formData.visibility));
@@ -385,10 +408,10 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
         }
       }
 
-      // Make the API call
       const newOpp = isRecurring
         ? await api.createMultiOpportunity(formDataToSend)
         : await api.createOpportunity(formDataToSend);
+      useUserStore.getState().addOpp(newOpp);
 
       // Transform the opportunity to match the frontend format
       const rawOpp = isRecurring ? newOpp.multiopp : newOpp;
@@ -398,15 +421,10 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
 
       if (user.admin) {
         const approvedOpp = { ...transformedOpp, approved: true };
-
         if (isSingleOpp) {
           // setOpportunities((prev) => [approvedOpp as Opportunity, ...prev]);
         }
-
-        setAllOpps((prev) => {
-          const updated = [approvedOpp, ...prev];
-          return updated;
-        });
+        setAllOpps([approvedOpp, ...allOpps]);
       } else if (isSingleOpp) {
         // setOpportunities((prev) => [transformedOpp as Opportunity, ...prev]);
         queryClient.invalidateQueries({ queryKey: ['opportunities'] });
@@ -544,28 +562,15 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                   >
                     <Pressable
                       style={styles.orgModalPopup}
-                      onPress={(e) => e.stopPropagation()}
+                      onPress={() => {}}
                     >
                       <FlatList
                         data={sourceOrganizations}
                         keyExtractor={(org) => org.id.toString()}
-                        renderItem={({ item: org }) => (
-                          <Pressable
-                            style={styles.orgRow}
-                            onPress={() => {
-                              setFormData((prev) => ({
-                                ...prev,
-                                host_org_id: org.id,
-                              }));
-                              setShowOrgPicker(false);
-                            }}
-                          >
-                            <Text style={{ flex: 1 }}>{org.name}</Text>
-                            {formData.host_org_id === org.id && (
-                              <Text>✓</Text>
-                            )}
-                          </Pressable>
-                        )}
+                        renderItem={renderOrgItem}
+                        ListEmptyComponent={
+                          <Text style={{ padding: 16, color: '#666' }}>No organizations found</Text>
+                        }
                       />
                     </Pressable>
                   </Pressable>
@@ -584,7 +589,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
             <View>
               <Text style={styles.inputHeader}>Redirect Link (Optional)</Text>
               <TextInput
-                value={formData.address}
+                value={formData.redirect_url}
                 onChangeText={(text) => handleInputChange("redirect_url", text)}
                 style={styles.input}
                 placeholder='https://example.com/register'
@@ -1115,7 +1120,7 @@ const styles = StyleSheet.create({
   orgRow: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },

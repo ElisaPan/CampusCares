@@ -4,13 +4,13 @@
  *    Do GroupsPage via `Manage Orgs` button
  *  High:
  *    Fix service journal link (See my opportunities)
- *    Fix user sub/unsub function
  *  Low
  *    -
  */
 
 import { signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
@@ -24,7 +24,7 @@ import {
   SignUp,
   User
 } from '@/types';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
@@ -50,7 +50,7 @@ interface ProfilePageProps {
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = (props) => {
-  const { currentUser, setCurrentUser } = useUserStore();
+  const { currentUser, setCurrentUser, clearCurrentUser } = useUserStore();
   const {
     students,
     signups,
@@ -68,46 +68,28 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     setAllTimeMyOpps,
   } = props;
 
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 370;
+
   const USE_MOCKS = false;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const parsedId = rawId ? parseInt(rawId, 10) : null;
-
   const isLoading = !USE_MOCKS && !currentUser;
-
-  if (isLoading) {
-    return <Text>Loading...</Text>;
-  }
-
-  const baseUser =
-    parsedId !== null
-      ? students?.find((s) => s.id === parsedId)
-      : currentUser;
-
-  // console.log('parsedId:', parsedId, 'currentUser:', currentUser);
-
+  const baseUser = parsedId !== null ? students?.find((s) => s.id === parsedId) : currentUser;
   const profileUser = USE_MOCKS ? mockUsers[0] : baseUser;
-  // console.log('{\n}baseUser:', baseUser);
-  // console.log('students:', students?.length);
-  // console.log('parsedId:', parsedId);
-  // console.log('currentUser:', currentUser?.id);
-  // console.log('baseUser:', baseUser?.id);
-  // console.log('profileUser:', profileUser?.id);
-
-  if (!profileUser) {
-    return <Text>User not found</Text>;
-  }
 
   const safeSignups = USE_MOCKS ? mockSignups : signups ?? [];
   const safeOrganizations = USE_MOCKS ? mockOrganizations : organizations ?? [];
   const safeOpportunities = USE_MOCKS ? mockOpportunities : opportunities ?? [];
 
-  const isCurrentUser = USE_MOCKS ? true : profileUser.id === currentUser?.id;
-  const userSignups = safeSignups.filter((s) => s.userId === profileUser.id);
-  const userOrgs = safeOrganizations.filter((g) => profileUser.organizationIds?.includes(g.id));
+  const isCurrentUser = USE_MOCKS ? true : profileUser?.id === currentUser?.id;
+  const userSignups = safeSignups.filter((s) => s.userId === profileUser?.id);
+  const userOrgs = safeOrganizations.filter((g) => profileUser?.organizationIds?.includes(g.id));
 
-  const key = `${profileUser.id}-${profileUser._lastUpdate ?? 'no-update'}`;
+  const key = `${profileUser?.id}-${profileUser?._lastUpdate ?? 'no-update'}`;
 
   const profileUserPoints = profileUser?.points || 0;
   const hoursVolunteered = userSignups.reduce((total, signup) => {
@@ -128,58 +110,57 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   // Note: getFriendsForUser is now async, so we'll need to handle this differently
   // For now, we'll pass an empty array and handle the async loading in ProfilePage
 
-  const [selectedInterests, setSelectedInterests] = useState(profileUser.interests);
+  const [selectedInterests, setSelectedInterests] = useState(profileUser?.interests);
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>('add');
   const [profileUserFriends, setProfileUserFriends] = useState<User[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
   const [uploadingProfilePic, setUploadingProfilePic] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingBio, setEditingBio] = useState(profileUser.bio || '');
+  const [editingBio, setEditingBio] = useState(profileUser?.bio || '');
   const [focusedBio, setFocusedBio] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [localUser, setLocalUser] = useState(profileUser); // Add local user state
 
-  const { width } = useWindowDimensions();
-  const isSmallScreen = width < 370;
-
-  React.useEffect(() => {
-  }, [localUser]);
+  // React.useEffect(() => {
+  // }, [localUser]);
 
   // Update selectedInterests when user.interests changes
   React.useEffect(() => {
-    setSelectedInterests(profileUser.interests);
-  }, [profileUser.interests]);
+    setSelectedInterests(profileUser?.interests);
+  }, [profileUser?.interests]);
 
   // Update editingBio when profileUser.bio changes
   React.useEffect(() => {
-    setEditingBio(profileUser.bio || '');
+    setEditingBio(profileUser?.bio || '');
     setLocalUser(profileUser); // Update local user when user prop changes
   }, [profileUser]);
 
   // Check friendship status when component mounts or user changes
   useEffect(() => {
-    if (!isCurrentUser && currentUser) {
+    if (!isCurrentUser && currentUser && profileUser?.id) {
       checkFriendshipStatus(profileUser.id).then(setFriendshipStatus);
     }
-  }, [isCurrentUser, currentUser, profileUser.id, checkFriendshipStatus, friendshipsData]);
+  }, [isCurrentUser, currentUser, profileUser?.id, checkFriendshipStatus, friendshipsData]);
 
   useEffect(() => { }, [currentUser]);
 
-    // Load friends when user changes
+  // Load friends when user changes
   useEffect(() => {
+    if (!profileUser?.id) return;
+
     const loadFriends = async () => {
-    setLoadingFriends(true);
-    try {
-      const friends = USE_MOCKS
-        ? mockUsers.filter((u) => profileUser.friendIds?.includes(u.id))
+      setLoadingFriends(true);
+      try {
+        const friends = USE_MOCKS
+          ? mockUsers.filter((u) => profileUser?.friendIds?.includes(u.id))
         : await getFriendsForUser(profileUser.id);
-      setProfileUserFriends(friends);
-    } catch (error) {
-      setProfileUserFriends([]);
-    } finally {
-      setLoadingFriends(false);
-    }
-  };
+        setProfileUserFriends(friends);
+      } catch (error) {
+        setProfileUserFriends([]);
+      } finally {
+        setLoadingFriends(false);
+      }
+    };
     loadFriends();
   }, [profileUser?.id]);
 
@@ -190,6 +171,9 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
   //     .then(setAllTimeMyOpps)
   //     .catch((err) => console.error('Error loading allTimeMyOpps:', err));
   // }, [isCurrentUser, currentUser?.id]);
+
+  if (!profileUser) { return <Text>User not found</Text> }
+  if (!localUser) { return <Text>User not found</Text> }
 
   const handlePickProfilePhoto = async () => {
     try {
@@ -212,31 +196,28 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     }
   };
 
-  const handleInterestChange = (interest: string) => {
-    if (!isCurrentUser) return;
-    const newInterests = selectedInterests.includes(interest)
-      ? selectedInterests.filter((i) => i !== interest)
-      : [...selectedInterests, interest];
-    setSelectedInterests(newInterests);
-    updateInterests(newInterests);
-  };
+  // const handleInterestChange = (interest: string) => {
+  //   if (!isCurrentUser) return;
+  //   const newInterests = selectedInterests?.includes(interest)
+  //     ? selectedInterests.filter((i) => i !== interest)
+  //     : [...selectedInterests, interest];
+  //   setSelectedInterests(newInterests);
+  //   updateInterests(newInterests);
+  // };
 
   const handleSubscriptionUpdate = async () => {
-    if (!isCurrentUser) return;
-    try {
-      const newValue = !localUser.subscribed;
-      await updateUser(localUser.id, {
-        subscribed: newValue
-      });
-      setLocalUser((prev) => ({
-        ...prev,
-        subscribed: newValue
-      }));
-      if (currentUser) setCurrentUser({ ...currentUser, subscribed: newValue });
-    } catch (error) {
-      console.error("Error updating subscription:", error);
-    }
-  };
+  if (!isCurrentUser || !localUser) return;
+  try {
+    const newValue = !localUser.subscribed;
+    await updateUser(localUser.id, {
+      subscribed: newValue,
+    });
+    setLocalUser({ ...localUser, subscribed: newValue });
+    if (currentUser) setCurrentUser({ ...currentUser, subscribed: newValue });
+  } catch (error) {
+    console.error('Error updating subscription:', error);
+  }
+};
 
   const handleProfilePicUpdate = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (isCurrentUser && e.target.files && e.target.files[0]) {
@@ -252,13 +233,11 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     }
   };
 
-  const { clearCurrentUser } = useUserStore();
-
   const handleLogout = async () => {
     try {
     await signOut();
     clearCurrentUser();
-    router.replace(`/LoginPage`);
+    router.replace(`/HomePage`);
   } catch (error) {
     console.error('Logout failed:', error);
   }
@@ -266,6 +245,8 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
 
   const isFriend = friendshipStatus === 'friends';
   const requestPending = friendshipStatus === 'sent' || friendshipStatus === 'received';
+
+  if (isLoading) { return <Text>Loading...</Text>; }
 
   return (
     <View style={{ flex: 1 }}>
@@ -406,7 +387,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
                 style={styles.sectionHeader}
                 numberOfLines={1}
               >
-                {profileUser.name}'s Organizations
+                Organizations
               </Text>
               {isCurrentUser && (
                 <Pressable
@@ -638,18 +619,21 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   bioWrapper: {
-    gap: 12,
+    gap: 80,
+    flexShrink: 1,
     flexWrap: 'wrap',
     display: 'flex',
+    flexDirection: 'row',
     marginBottom: 12,
   },
   smallText: {
     color: '#6B7280',
-    fontSize: 12,
-    lineHeight: 20,
+    fontSize: 13,
+    flexShrink: 1,
+    flexWrap: 'wrap',
   },
   bioTextEditing: {
-    fontSize: 12,
+    fontSize: 13,
     width: '100%',
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -695,12 +679,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   orgBlock: {
-    backgroundColor: 'rgb(245 245 245)',
+    backgroundColor: '#f5f5f5',
     padding: 12,
     borderRadius: 8,
   },
   orgBlockText: {
-    color: 'rgb(31 41 55)',
+    color: '#1f2937',
     fontWeight: '500',
   },
   manageOrgsBtn: {
@@ -708,7 +692,6 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     width: 100,
-    marginLeft: 8,
   },
   friendGrid: {
     flexDirection: 'row',

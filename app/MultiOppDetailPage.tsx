@@ -10,10 +10,10 @@
 
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
-import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
+import { mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
 import { UploadFile, deleteMultiOpp, getOpportunity, getProfilePictureSource, updateMultiOpp, uploadProfilePicture } from '../api';
-import { MultiOpp, Opportunity as OppType, Opportunity, Organization, User } from '../types';
+import { MultiOpp, Opportunity as OppType, Opportunity, User } from '../types';
 import { formatMiniOppTime } from '../utils/timeUtils';
 
 import { MaterialIcons } from '@expo/vector-icons';
@@ -24,26 +24,26 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+function isOpportunity(opp: Opportunity | MultiOpp): opp is Opportunity {
+  return 'allow_carpool' in opp;
+}
+
+function isMultiOpp(opp: Opportunity | MultiOpp): opp is MultiOpp {
+  return !('allow_carpool' in opp);
+}
+
 interface MultiOppDetailPageProps {
-  multiopps: MultiOpp[];
-  opportunities: Opportunity[];
-  allOrgs: Organization[];
-  users: User[];
   staticId?: number;
   onSignUp?: (opportunityId: number) => Promise<void> | void;
   onUnsignUp?: (opportunityId: number) => Promise<void> | void;
 }
 
 const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
-  multiopps,
-  allOrgs,
-  opportunities,
-  users,
   staticId,
   onSignUp,
   onUnsignUp,
 }) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+  const { students: users, organizations: allOrgs, allOpps, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
 
   const USE_MOCKS = false;
 
@@ -53,19 +53,27 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
   const parsedId = rawId ? parseInt(rawId, 10) : null;
 
-  const sourceMultiOpps = USE_MOCKS ? mockMultiOpps : multiopps ?? [];
-  const sourceOpportunities = USE_MOCKS ? mockOpportunities : opportunities ?? [];
-  const sourceUsers = USE_MOCKS ? mockUsers : users ?? [];
+  // const sourceOpportunities = USE_MOCKS ? mockOpportunities : opportunities ?? [];
+  // const sourceUsers = USE_MOCKS ? mockUsers : users ?? [];
+  const sourceUsers = useMemo(
+    () => (USE_MOCKS ? mockUsers : users ?? []),
+    [users]
+  );
   
   const activeCurrentUser = USE_MOCKS ? mockUsers[0] : currentUser;
 
   if (!activeCurrentUser) {
     return <Text>Loading...</Text>;
   }
-
+  
   const multioppId = staticId ?? parsedId;
 
-  const multiopp = sourceMultiOpps.find((m) => m.id === multioppId);
+  const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
+  const multiopps = useMemo(() => allOpps.filter(isMultiOpp), [allOpps]);
+  const multiopp = useMemo(
+    () => multiopps.find((m) => m.id === multioppId),
+    [multiopps, multioppId]
+  );
 
   if (!multiopp) return <Text>Opportunity not found.</Text>;
   
@@ -220,16 +228,18 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   useEffect(() => {
     let cancelled = false;
     const loadParticipants = async () => {
+      console.log('loadParticipants called');
       if (!upcomingOpps.length) {
         setParticipantsByOppId({});
         return;
       }
       setLoadingParticipants(true);
+      console.log('setLoadingParticipants(true) called');
       try {
         const map: Record<number, User[]> = {};
         for (const opp of upcomingOpps) {
           try {
-            const full = sourceOpportunities.find((o) => o.id === opp.id);
+            const full = opportunities.find((o) => o.id === opp.id);
             const participants =
               full?.involved_users
                 ?.map((u: { id: number }) => sourceUsers.find((usr) => usr.id === u.id))
@@ -239,7 +249,8 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
             map[opp.id] = [];
           }
         }
-        if (!cancelled) setParticipantsByOppId(map);
+        if (!cancelled) {
+          setParticipantsByOppId(map);}
       } finally {
         if (!cancelled) setLoadingParticipants(false);
       }
@@ -248,7 +259,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [upcomingOpps, sourceOpportunities, sourceUsers]);
+  }, [upcomingOpps, opportunities, sourceUsers]);
 
   if (!multiopp) return <Text style={{ textAlign: 'center', color: '#9e9e9e', marginTop: 40 }}>Recurring opportunity not found.</Text>;
 
@@ -259,7 +270,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     if (d < today) return;
 
     try {
-      let full = sourceOpportunities.find((o) => o.id === opp.id);
+      let full = opportunities.find((o) => o.id === opp.id);
       if (!full) {
         try {
           full = await getOpportunity(opp.id);
