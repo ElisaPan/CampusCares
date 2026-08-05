@@ -16,7 +16,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
 const GroupsPage = () => {
   const { organizations: allOrgs, currentUser, setCurrentUser, setStudents, students } = useUserStore();
@@ -272,7 +272,7 @@ const GroupsPage = () => {
                         <Text style={{ fontSize: 20, color: '#6B7280' }}>✕</Text>
                       </Pressable>
                     </View>
-                    <FlatList
+                    {/* <FlatList
                       data={organizationTypes}
                       keyExtractor={(item) => item}
                       renderItem={({ item }) => (
@@ -290,7 +290,26 @@ const GroupsPage = () => {
                           {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
                         </Pressable>
                       )}
-                    />
+                    /> */}
+                    { organizationTypes && organizationTypes.length > 0 && (
+                      organizationTypes.map((item) => {
+                        return (
+                          <Pressable
+                          style={[
+                            styles.pickerOption,
+                            newOrgType === item && styles.pickerOptionSelected,
+                          ]}
+                          onPress={() => {
+                            setNewOrgType(item as OrganizationType);
+                            setShowTypePicker(false);
+                          }}
+                        >
+                          <Text style={styles.pickerOptionTxt}>{item}</Text>
+                          {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
+                        </Pressable>
+                        )
+                      })
+                    )}
                   </Pressable>
                 </Pressable>
               </Modal>

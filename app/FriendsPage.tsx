@@ -2,7 +2,7 @@ import { User } from '@/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
@@ -137,13 +137,16 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
       {loadingFriends ? (
         <Text>Loading friends...</Text>
         ) : profileUserFriends.length > 0 ? (
-          <FlatList
-            data={profileUserFriends}
-            keyExtractor={(friend) => friend.id.toString()}
-            renderItem={({ item }) => (
-              <Friend user={item} />
-            )}
-          />
+          // <FlatList
+          //   data={profileUserFriends}
+          //   keyExtractor={(friend) => friend.id.toString()}
+          //   renderItem={({ item }) => (
+          //     <Friend user={item} />
+          //   )}
+          // />
+          profileUserFriends.map((friend) => (
+            <Friend key={friend.id.toString()} user={friend} />
+          ))
         ) : (
           <Text>{profileUser.name} hasn't added any friends yet.</Text>
       )}

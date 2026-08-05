@@ -15,7 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import * as api from '@/api';
 import * as Theme from '@/constants/theme';
@@ -626,14 +626,19 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                       style={styles.orgModalPopup}
                       onPress={() => {}}
                     >
-                      <FlatList
+                      {/* <FlatList
                         data={sourceOrganizations}
                         keyExtractor={(org) => org.id.toString()}
                         renderItem={renderOrgItem}
                         ListEmptyComponent={
                           <Text style={{ padding: 16, color: '#666' }}>No organizations found</Text>
                         }
-                      />
+                      /> */}
+                      {sourceOrganizations && sourceOrganizations.length > 0 ? (
+                        sourceOrganizations.map((org) => renderOrgItem({ item: org }))
+                      ) : (
+                        <Text style={{ padding: 16, color: '#666' }}>No organizations found</Text>
+                      )}
                     </Pressable>
                   </Pressable>
                 </Modal>
@@ -977,7 +982,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                     <View style={styles.visibilityModalBackdrop}>
                       <View style={styles.visibilityModalCard}>
                         <Text style={styles.visibilityModalHeader}>Select Organizations</Text>
-                        <FlatList
+                        {/* <FlatList
                           data={filteredOrgs}
                           keyExtractor={(org) => org.id.toString()}
                           keyboardShouldPersistTaps="handled"
@@ -1001,8 +1006,28 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                           ListEmptyComponent={
                             <Text>No organizations match your search.</Text>
                           }
-                        />
+                        /> */}
+                        { filteredOrgs && filteredOrgs.length > 0 ? (
+                          filteredOrgs.map((org) => {
+                            const selected = isOrgSelected(org.id);
+                            return (
+                              <Pressable
+                                onPress={() => toggleOrgSelection(org.id)}
+                                style={styles.visibilityOrgRow}
+                              >
+                                <Text style={{ flex: 1 }}>
+                                  {org.name}
+                                </Text>
 
+                                <Text>
+                                  {selected ? "✓" : ""}
+                                </Text>
+                              </Pressable>
+                            )
+                          })
+                        ) : (
+                          <Text>No organizations match your search.</Text>
+                        )}
                         <Pressable
                           onPress={() => setShowOrgModal(false)}
                           style={styles.doneBtn}

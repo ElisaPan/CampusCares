@@ -43,7 +43,7 @@ import { Asset } from "expo-asset";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Dimensions, FlatList, Image, Pressable, Animated as RNAnimated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, Image, Pressable, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 
 const HomePage = () => {
@@ -54,8 +54,6 @@ const HomePage = () => {
   const fadeAnim = useRef(new RNAnimated.Value(0)).current;
   const translateY = useRef(new RNAnimated.Value(-20)).current;
   
-  const carouselRef = useRef<HTMLDivElement>(null);
-
   const homeImages = [helpIcon, locationIcon, profileCheckIcon, searchIcon, childrensGarden, cover1, cover2, cover3, cover4, cover5, cover6, heartImg, mobilePack, salvationArmy, secondWind, tmBlockMB1, tmBlockMB2, tmBlock1, tmBlock3, grace, lee, scott]
   const icons = [searchIcon, profileCheckIcon, locationIcon, helpIcon];
 
@@ -72,20 +70,20 @@ const HomePage = () => {
   const gap = 0;
 
   const [activeSlide, setActiveSlide] = useState(0);
-  const flatListRef = useRef<FlatList<any>>(null);
+  const slideshowRef = useRef<ScrollView>(null);
   const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goToSlide = useCallback((index: number) => {
     const next = index % covers.length;
-    flatListRef.current?.scrollToIndex({ index: next, animated: true });
+    slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
     setActiveSlide(next);
-  }, []);
+  }, [covers.length, slideWidth]);
 
   useEffect(() => {
     slideTimer.current = setInterval(() => {
       setActiveSlide((prev) => {
         const next = (prev + 1) % covers.length;
-        flatListRef.current?.scrollToIndex({ index: next, animated: true });
+        slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
         return next;
       });
     }, slideInt);
@@ -168,7 +166,7 @@ const HomePage = () => {
   // Partner Carousel
   const [scrollNum, setScrollNum] = useState(0);
   const [maxScrollSteps, setMaxScrollSteps] = useState(0);
-  const partnerListRef = useRef<FlatList<any>>(null);
+  const carouselRef = useRef<ScrollView>(null);
   
   const carouselCardWidth = screenWidth * 0.85
 
@@ -178,7 +176,7 @@ const HomePage = () => {
         ? Math.max(0, scrollNum - 1)
         : Math.min(partners.length - 1, scrollNum + 1);
 
-    partnerListRef.current?.scrollToIndex({ index: next, animated: true });
+    carouselRef.current?.scrollTo({ x: next * (carouselCardWidth + 16), animated: true });
     setScrollNum(next);
   };
   
@@ -197,7 +195,7 @@ const HomePage = () => {
     if (partners.length > 0) {
       setMaxScrollSteps(partners.length - 1);
     }
-  }, [partnerListRef]);
+  }, [carouselRef]);
 
   useEffect(() => {
     fadeAnim.setValue(0);
@@ -393,7 +391,7 @@ const HomePage = () => {
           <AosView animation="fade" delay={100} scrollY={scrollY}>
             <View style={styles.slideshowWrapper}>
               <View style={[styles.slideshowContainer, { width: slideWidth }]}>
-                <FlatList
+                {/* <FlatList
                   ref={flatListRef}
                   data={covers}
                   keyExtractor={(_, i) => String(i)}
@@ -426,7 +424,36 @@ const HomePage = () => {
                       resizeMode="cover"
                     />
                   )}
-                />
+                /> */}
+                <ScrollView
+                  ref={slideshowRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate="fast"
+                  scrollEnabled
+                  onMomentumScrollEnd={(e) => {
+                    const index = Math.round(e.nativeEvent.contentOffset.x / (slideWidth + 16));
+                    setActiveSlide(index);
+                    if (slideTimer.current) clearInterval(slideTimer.current);
+                    slideTimer.current = setInterval(() => {
+                      setActiveSlide((prev) => {
+                        const next = (prev + 1) % covers.length;
+                        slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
+                        return next;
+                      });
+                    }, slideInt);
+                  }}
+                >
+                  {covers.map((item, i) => (
+                    <Image
+                      key={String(i)}
+                      source={item}
+                      style={{ width: slideWidth, height: slideHeight }}
+                      resizeMode="cover"
+                    />
+                  ))}
+                </ScrollView>
                 <View style={styles.dots}>
                   {covers.map((_, i) => (
                     <Pressable key={i} onPress={() => goToSlide(i)}>
@@ -504,83 +531,10 @@ const HomePage = () => {
               <Text style={styles.pageHeader}>OUR COMMUNITY PARTNERS</Text>
               <Text style={styles.pageSubheader}>Explore our network of partners and find an organization whose mission resonates with you.</Text>
             </View>
-            {/* <View style={styles.carouselWrapper}>
-              <View style={styles.carouselContainer}>
-                <Pressable
-                  onPress={() => handleScroll("left")}
-                  disabled={scrollNum === 0}
-                  style={styles.arrowBtn}
-                >
-                  <MaterialIcons name="keyboard-arrow-left" size={32} color={scrollNum === 0 ? "#9CA3AF" : "#000"} />
-                </Pressable>
-                <View style={[styles.carouselViewport, { width: carouselCardWidth }]}>
-                  <FlatList
-                    ref={partnerListRef}
-                    data={partners}
-                    horizontal
-                    pagingEnabled
-                    // decelerationRate='fast'
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={(_, i) => String(i)}
-                    onMomentumScrollEnd={(e) => {
-                      const index = Math.round(
-                        e.nativeEvent.contentOffset.x / carouselCardWidth
-                      );
-                      setScrollNum(index);
-                    }}
-                    getItemLayout={(_, index) => ({
-                      length: carouselCardWidth,
-                      offset: carouselCardWidth * index,
-                      index,
-                    })}
-                    renderItem={({ item: partner }) => (
-                      <View style={{ width: carouselCardWidth }}>
-                        <View style={[styles.partnerImgWrapper, { width: carouselCardWidth }]}>
-                          <Image
-                            source={ typeof partner.img === "string" ? { uri: partner.img } : partner.img }
-                            style={styles.partnerImg}
-                            resizeMode="cover"
-                          />
-                        </View>
-                        <View style={styles.tags}>
-                          {partner.tags.map((tag: string) => (
-                            <View
-                              key={tag}
-                              style={[ styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles] ]}
-                            >
-                              <Text style={[ styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles] ]}>{tag}</Text>
-                            </View>
-                          ))}
-                        </View>
-                        <View style={styles.subTitle}>
-                          <Text style={styles.partnerTitle}>{partner.title}</Text>
-                          <Text style={styles.partnerDesc}>{partner.desc}</Text>
-                        </View>
-                      </View>
-                    )}
-                  />
-                </View>
-                <Pressable
-                  onPress={() => handleScroll("right")}
-                  disabled={scrollNum >= maxScrollSteps}
-                  style={[styles.arrowBtn, scrollNum >= maxScrollSteps && styles.disabledArrow ]}
-                >
-                  <MaterialIcons name="keyboard-arrow-right" size={36} color={scrollNum >= maxScrollSteps ? "#9CA3AF" : "#000"} />
-                </Pressable>
-              </View>
-              <View style={styles.carouselDots}>
-                {Array.from({ length: maxScrollSteps + 1 }).map((_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.carouselDot, scrollNum === i && styles.carouselDotActive]}
-                  />
-                ))}
-              </View>
-            </View> */}
             <View style={styles.carouselWrapper}>
               <View style={styles.carouselContainer}>
                 <View style={[styles.carouselViewport, { width: carouselCardWidth }]}>
-                  <FlatList
+                  {/* <FlatList
                     ref={partnerListRef}
                     data={partners}
                     horizontal
@@ -619,7 +573,41 @@ const HomePage = () => {
                         </View>
                       </View>
                     )}
-                  />
+                  /> */}
+                  <ScrollView
+                    ref={carouselRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.carouselShadow}
+                    onMomentumScrollEnd={(e) => {
+                      const index = Math.round(e.nativeEvent.contentOffset.x / carouselCardWidth);
+                      setScrollNum(index);
+                    }}
+                  >
+                    {partners.map((partner, i) => (
+                      <View key={String(i)} style={{ width: carouselCardWidth }}>
+                        <View style={[styles.partnerImgWrapper, { width: carouselCardWidth }]}>
+                          <Image
+                            source={typeof partner.img === "string" ? { uri: partner.img } : partner.img}
+                            style={styles.partnerImg}
+                            resizeMode="cover"
+                          />
+                        </View>
+                        <View style={styles.tags}>
+                          {partner.tags.map((tag: string) => (
+                            <View key={tag} style={[styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles]]}>
+                              <Text style={[styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles]]}>{tag}</Text>
+                            </View>
+                          ))}
+                        </View>
+                        <View style={styles.subTitle}>
+                          <Text style={styles.partnerTitle}>{partner.title}</Text>
+                          <Text style={styles.partnerDesc}>{partner.desc}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
 
                   {/* Arrows overlaid on top of the image */}
                   <Pressable

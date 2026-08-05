@@ -41,7 +41,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from "expo-clipboard";
@@ -847,17 +847,25 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
                 {/* Display existing announcements */}
                 {opportunity.comments && opportunity.comments.length > 0 ? (
-                  <FlatList
-                    data={opportunity.comments}
-                    keyExtractor={(_, index) => index.toString()}
-                    scrollEnabled={false}
-                    renderItem={({ item:comment }) => (
+                  // <FlatList
+                  //   data={opportunity.comments}
+                  //   keyExtractor={(_, index) => index.toString()}
+                  //   scrollEnabled={false}
+                  //   renderItem={({ item:comment }) => (
+                  //     <View style={styles.announceDisplay}>
+                  //       <Text style={styles.commentTxt}>{comment}</Text>
+                  //       <Text style={styles.commentLabel}>Host</Text>
+                  //     </View>
+                  //   )}
+                  // />
+                  opportunity.comments.map((comment) => {
+                    return(
                       <View style={styles.announceDisplay}>
                         <Text style={styles.commentTxt}>{comment}</Text>
                         <Text style={styles.commentLabel}>Host</Text>
                       </View>
-                    )}
-                  />
+                    )
+                  })
                 ) : (
                   <View style={styles.noComments}>
                     <Text style={styles.noCommentsTxt}>{canManageOpportunity ? 'No announcements yet. Add one above!' : 'No announcements yet.'}</Text>
@@ -1212,8 +1220,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                       {userLookupName.trim() && (
                         <View style={styles.results}>
                           {userLookupResults.length > 0 ? (
-                            <>
-                              <FlatList
+                              /* <FlatList
                               data={userLookupResults}
                               keyExtractor={(user) => user.id.toString()}
                               nestedScrollEnabled
@@ -1237,8 +1244,26 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                                   </View>
                                 )
                               }}
-                              />
-                            </>
+                              /> */
+                              userLookupResults.map((user) => {
+                                const isAlreadyRegistered = signedUpStudents.some(s => s.id === user.id);
+                                const isThisUserRegistering = registeringUserId === user.id;
+                                return(
+                                  <View style={styles.lookupOneResult}>
+                                    <View>
+                                      <Text style={styles.resultName}>{user.name}</Text>
+                                      <Text style={styles.smallGray600}>{user.email}</Text>
+                                    </View>
+                                    <Pressable
+                                      onPress={() => handleRegisterUser(user.id)}
+                                      disabled={registeringUserId !== null || isAlreadyRegistered}
+                                      style={[styles.resultBtn, isAlreadyRegistered && styles.registeredBtn]}
+                                    >
+                                      <Text style={styles.boldWhite}>{isThisUserRegistering ? 'Registering...' : isAlreadyRegistered ? 'Registered' : 'Register'}</Text>
+                                    </Pressable>
+                                  </View>
+                                )
+                              })
                           ) : (
                             <Text style={styles.lookupNote}>
                               No users found matching "{userLookupName}"  
