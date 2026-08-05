@@ -1,33 +1,25 @@
-import { FriendshipStatus, FriendshipsResponse, User } from '@/types';
+import { User } from '@/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
+import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
+import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
 interface FriendsPageProps {
-  students: User[];
-  handleFriendRequest: (toUserId: number) => void;
-  handleRemoveFriend: (friendId: number) => void;
-  friendshipsData: FriendshipsResponse | null;
-  checkFriendshipStatus: (otherUserId: number) => Promise<FriendshipStatus>;
-  getFriendsForUser: (userId: number) => Promise<User[]>;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
+  // handleFriendRequest: (toUserId: number) => void;
+  // handleRemoveFriend: (friendId: number) => void;
+  // friendshipsData: FriendshipsResponse | null;
+  // checkFriendshipStatus: (otherUserId: number) => Promise<FriendshipStatus>;
+  // getFriendsForUser: (userId: number) => Promise<User[]>;
 }
 
 const FriendsPage: React.FC<FriendsPageProps> = (props) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
-
-  const {
-    students,
-    handleFriendRequest,
-    handleRemoveFriend,
-    friendshipsData,
-    checkFriendshipStatus,
-    getFriendsForUser,
-  } = props;
+  const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students } = useUserStore();
+  const { getFriendsForUser, checkFriendshipStatus, handleAcceptFriendRequest, handleRejectFriendRequest, handleRemoveFriend } = useFriendships();
 
   const USE_MOCKS = false;
   
@@ -36,24 +28,15 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
   const parsedId = rawId ? parseInt(rawId, 10) : null;
 
   const isLoading = !USE_MOCKS && !currentUser;
-  if (isLoading) {
-    return (
-      <View>
-        <Text>Loading profile...</Text>
-      </View>
-    );
-  }
 
-  const sourceUsers = USE_MOCKS ? mockUsers : students;
+  const sourceStudents = useMemo(
+    () => (USE_MOCKS ? mockUsers : students ?? []),
+    [students]
+  );
 
-  const profileUser =
-    parsedId !== null
-      ? sourceUsers.find((u) => u.id === parsedId)
-      : currentUser;
+  const baseUser = parsedId !== null ? students?.find((s) => s.id === parsedId) : currentUser;
+  const profileUser = USE_MOCKS ? mockUsers[0] : baseUser;
 
-  if (!profileUser) return <Text>User not found</Text>;
-
-  const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>('add');
   const [profileUserFriends, setProfileUserFriends] = useState<User[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
 
@@ -63,8 +46,15 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
       const loadFriends = async () => {
       setLoadingFriends(true);
       try {
+        if (!profileUser) {
+          return (
+            <View style={styles.loadingView}>
+              <ActivityIndicator size='large' color={Theme.cornellRed} />
+            </View>
+          )
+        }
         const friends = USE_MOCKS
-          ? mockUsers.filter((u) => profileUser.friendIds?.includes(u.id))
+          ? mockUsers.filter((u) => profileUser?.friendIds?.includes(u.id))
           : await getFriendsForUser(profileUser.id);
         setProfileUserFriends(friends);
       } catch (error) {
@@ -79,7 +69,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
   const Friend = ({ user }: { user: User }) => (
     <Pressable
       style={styles.friendCard}
-      onPress={() => router.push(`/profile/${user.id}`)}
+      onPress={() => router.push(`/UserProfile?id=${user.id}`)}
     >
       {user.profile_image ? (
         <Image
@@ -105,6 +95,16 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
       )}
     </Pressable>
   );
+
+  if (isLoading) {
+    return (
+      <View>
+        <Text>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  if (!profileUser) return <Text>User not found</Text>;
   
   return (
     <View style={styles.container}>
@@ -156,6 +156,13 @@ export default FriendsPage;
 const styles = StyleSheet.create({
   container: {
     padding: 24,
+  },
+  loadingView: {
+    width: '100%',
+    flexDirection: 'column',
+    paddingVertical: 24,
+    marginTop: 130,
+    marginBottom: 280,
   },
   backWrapper: {
     flexDirection: 'row',
@@ -214,14 +221,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   friendAvatar: {
-    width: 56,
-    height: 56,
+    width: 40,
+    height: 40,
     borderRadius: 28,
     marginLeft: 4,
   },
   friendAvatarFallback: {
-    width: 56,
-    height: 56,
+    width: 40,
+    height: 40,
     borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",

@@ -35,7 +35,6 @@ import grace from '@/public/team_pic/grace.jpeg';
 import lee from '@/public/team_pic/lee.png';
 import scott from '@/public/team_pic/scott.png';
 
-import { registerForPushNotifications } from '../utils/registerForPushNotifications';
 
 import AosView from '@/components/AOSView';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -44,7 +43,7 @@ import { Asset } from "expo-asset";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Button, Dimensions, FlatList, Image, Pressable, Animated as RNAnimated, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Dimensions, FlatList, Image, Pressable, Animated as RNAnimated, StyleSheet, Text, View } from 'react-native';
 
 
 const HomePage = () => {
@@ -171,7 +170,7 @@ const HomePage = () => {
   const [maxScrollSteps, setMaxScrollSteps] = useState(0);
   const partnerListRef = useRef<FlatList<any>>(null);
   
-  const carouselCardWidth = screenWidth * 0.75
+  const carouselCardWidth = screenWidth * 0.85
 
   const handleScroll = (direction: "left" | "right") => {
     const next =
@@ -323,13 +322,13 @@ const HomePage = () => {
       <View style={styles.headerShadow}>
         <PublicHeader />
       </View>
-      <Button
+      {/* <Button
         title="Test Push Token"
         onPress={async () => {
           const token = await registerForPushNotifications();
           console.log('Push token:', token);
         }}
-      />
+      /> */}
       <RNAnimated.ScrollView
         style={styles.container}
         // onScroll={(e) => {
@@ -505,7 +504,7 @@ const HomePage = () => {
               <Text style={styles.pageHeader}>OUR COMMUNITY PARTNERS</Text>
               <Text style={styles.pageSubheader}>Explore our network of partners and find an organization whose mission resonates with you.</Text>
             </View>
-            <View style={styles.carouselWrapper}>
+            {/* <View style={styles.carouselWrapper}>
               <View style={styles.carouselContainer}>
                 <Pressable
                   onPress={() => handleScroll("left")}
@@ -575,6 +574,83 @@ const HomePage = () => {
                     key={i}
                     style={[styles.carouselDot, scrollNum === i && styles.carouselDotActive]}
                   />
+                ))}
+              </View>
+            </View> */}
+            <View style={styles.carouselWrapper}>
+              <View style={styles.carouselContainer}>
+                <View style={[styles.carouselViewport, { width: carouselCardWidth }]}>
+                  <FlatList
+                    ref={partnerListRef}
+                    data={partners}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={(_, i) => String(i)}
+                    style={styles.carouselShadow}
+                    onMomentumScrollEnd={(e) => {
+                      const index = Math.round(e.nativeEvent.contentOffset.x / carouselCardWidth);
+                      setScrollNum(index);
+                    }}
+                    getItemLayout={(_, index) => ({
+                      length: carouselCardWidth,
+                      offset: carouselCardWidth * index,
+                      index,
+                    })}
+                    renderItem={({ item: partner }) => (
+                      <View style={{ width: carouselCardWidth }}>
+                        <View style={[styles.partnerImgWrapper, { width: carouselCardWidth }]}>
+                          <Image
+                            source={typeof partner.img === "string" ? { uri: partner.img } : partner.img}
+                            style={styles.partnerImg}
+                            resizeMode="cover"
+                          />
+                        </View>
+                        <View style={styles.tags}>
+                          {partner.tags.map((tag: string) => (
+                            <View key={tag} style={[styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles]]}>
+                              <Text style={[styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles]]}>{tag}</Text>
+                            </View>
+                          ))}
+                        </View>
+                        <View style={styles.subTitle}>
+                          <Text style={styles.partnerTitle}>{partner.title}</Text>
+                          <Text style={styles.partnerDesc}>{partner.desc}</Text>
+                        </View>
+                      </View>
+                    )}
+                  />
+
+                  {/* Arrows overlaid on top of the image */}
+                  <Pressable
+                    onPress={() => handleScroll("left")}
+                    disabled={scrollNum === 0}
+                    style={[
+                      styles.arrowBtnOverlay,
+                      scrollNum === 0 ? styles.disabledArrow : null,
+                      { left: -4 }
+                    ]}
+                  >
+                    <MaterialIcons name="keyboard-arrow-left" size={38} color="#fff" />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => handleScroll("right")}
+                    disabled={scrollNum >= maxScrollSteps}
+                    style={[
+                      styles.arrowBtnOverlay,
+                      scrollNum >= maxScrollSteps ? styles.disabledArrow : null,
+                      { right: 4 }
+                    ]}
+                  >
+                    <MaterialIcons name="keyboard-arrow-right" size={38} color="#fff" />
+                  </Pressable>
+                </View>
+              </View>
+
+              <View style={styles.carouselDots}>
+                {Array.from({ length: maxScrollSteps + 1 }).map((_, i) => (
+                  <View key={i} style={[styles.carouselDot, scrollNum === i && styles.carouselDotActive]} />
                 ))}
               </View>
             </View>
@@ -743,6 +819,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginHorizontal: 20,
     marginBottom: 16,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 1,
   },
   slideshowContainer: {
     borderRadius: 14,
@@ -780,6 +863,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: "space-between",
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   redLeft: {
     flexDirection: 'column',
@@ -817,7 +907,7 @@ const styles = StyleSheet.create({
     gap: 8,
 
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
@@ -837,6 +927,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: "space-between",
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   avatarRow: {
     flexDirection: 'row',
@@ -890,7 +987,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexDirection: 'column',
     paddingVertical: 8,
-    width: '32%'
+    width: '32%',
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   bigNum: {
     alignSelf: 'center',
@@ -917,7 +1021,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   carouselViewport: {
+    position: 'relative',
     overflow: "hidden",
+  },
+  carouselShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   partnerImgWrapper: {
     width: '100%',
@@ -929,6 +1042,17 @@ const styles = StyleSheet.create({
   partnerImg: {
     width: '100%',
     height: '100%',
+  },
+  arrowBtnOverlay: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -56,
+    width: 38,
+    height: 38,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
   },
   tags: {
     flexDirection: "row",
@@ -971,6 +1095,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+    marginTop: 6,
   },
   carouselDot: {
     width: 7,
@@ -1035,5 +1160,12 @@ const styles = StyleSheet.create({
   timelineImg: {
     width: '100%',
     height: 180,
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
 });

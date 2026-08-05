@@ -1,10 +1,11 @@
+import { createOrUpdateCar, createRide, getCar, updateUser } from '@/api';
 import * as Theme from '@/constants/theme';
+import { useUserStore } from '@/hooks/useUserStore';
+import { User } from '@/types';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { createOrUpdateCar, createRide, getCar } from '../api';
-import { User } from '../types';
 
 interface CarpoolFormPopupProps {
   setShowPopup: React.Dispatch<React.SetStateAction<boolean>>,
@@ -28,8 +29,12 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
   const [color, setColor] = useState('');
   const [model, setModel] = useState('');
   const [licensePlate, setLicensePlate] = useState('');
-  const [error, setError] = useState("");
+  const [phone, setPhone] = useState('');
+  const [error, setError] = useState('');
+  const [phoneError, setPhoneError] = useState('');
   const queryClient = useQueryClient();
+
+  const { updateCurrentUser } = useUserStore();
 
   const { data: carData, isLoading } = useQuery({
     queryKey: ['car', currentUser.id],
@@ -51,6 +56,8 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
 
   if (isLoading || !carData) return;
 
+  const closePopup = () => setShowPopup(false);
+
   const onSubmit = async () => {
     if (!carSeats) {
       setError('Number of car seats cannot be empty');
@@ -60,18 +67,28 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
       setError('License plate value should only be the last 4 characters');
       return;
     }
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
+      setPhoneError('A valid phone number is required to offer a ride.');
+      return;
+    }
 
     try {
+      if (currentUser && currentUser.phone !== phone) {
+        await updateUser(currentUser.id, { phone });
+        updateCurrentUser({ phone });
+      }
       await createOrUpdateCar({
         seats: carSeats,
         user_id: currentUser.id,
         color: color,
         model: model,
-        license_plate: licensePlate
+        license_plate: licensePlate,
+        driver_phone: phone
       });
       await createRide({
         carpool_id: carpoolId,
         driver_id: currentUser.id,
+        driver_phone: phone
       });
 
       queryClient.invalidateQueries({ queryKey: ['rides', carpoolId] });
@@ -91,10 +108,13 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
       visible={isModalVisible}
       transparent
       animationType="fade"
-      onRequestClose={() => setShowPopup(false)}
+      onRequestClose={closePopup}
     >
-      <View style={styles.modalBackdrop}>
-        <View style={styles.modal}>
+      <Pressable
+        style={styles.modalBackdrop}
+        onPress={closePopup}
+      >
+        <View style={styles.modalBox}>
           <Pressable
             style={styles.close}
             onPress={() => {
@@ -102,11 +122,7 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
               setShowPopup(false);
             }}
           >
-            <MaterialDesignIcons
-              name="close"
-              size={24}
-              color="#6B7280"
-            />
+            <MaterialDesignIcons name='close' size={24} color='#a8abb2' />
           </Pressable>
           <Text style={styles.header}>Add a Ride</Text>
           <Text style={styles.msg}>
@@ -157,6 +173,20 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
                 onChangeText={setLicensePlate}
               />
             </View>
+            <View>
+              <Text style={styles.label}>Phone Number *</Text>
+              <TextInput
+                value={phone}
+                onChangeText={(text) => {
+                  setPhone(text);
+                  setPhoneError('');
+                }}
+                keyboardType="phone-pad"
+                placeholder="e.g. 607-555-0123"
+                style={styles.field}
+              />
+              {phoneError !== '' && <Text style={styles.error}>{phoneError}</Text>}
+            </View>
           </View>
           {!!error && (
             <Text style={styles.error}>{error}</Text>
@@ -173,7 +203,7 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
             <Text style={styles.btnTxt}>Add Ride</Text>
           </Pressable>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   )
 }
@@ -183,22 +213,21 @@ export default CarpoolFormPopup;
 const styles = StyleSheet.create({
   modalBackdrop: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 4,
-    zIndex: 50,
-  },
-  modal: {
-    width: "100%",
-    maxWidth: 448,
-    borderRadius: 12,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: 24,
-    backgroundColor: "white",
+  },
+  modalBox: {
+    width: '100%',
+    maxWidth: 448,
+    backgroundColor: '#fff',
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
     alignItems: "center",
-
+    
+    padding: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.1,
@@ -214,30 +243,25 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   header: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: 'rgb(0,0,0)',
-    paddingTop: 6,
+    fontSize: 24,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 4,
   },
   msg: {
-    marginTop: 8,
-    fontSize: 14,
+    fontSize: 16,
     color: 'rgb(0,0,0)',
     textAlign: 'center',
-  },
-  actions: {
-    marginTop: 4,
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 8,
+    marginBottom: 12,
   },
   content: {
     gap: 8,
   },
   label: {
+    color: '#6b6b6b',
     fontSize: 14,
     fontWeight: "600",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   field: {
     borderWidth: 1,
@@ -248,6 +272,8 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "#DC2626",
+    marginTop: 8,
+    fontSize: 14,
     textAlign: "center",
   },
   redBtn: {
@@ -255,18 +281,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 6,
-    borderWidth: 1,
+    marginTop: 8,
+    borderRadius: 8,
     backgroundColor: Theme.cornellRed,
   },
   btnTxt: {
     color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   driverWarning: {
+    color: '#575757',
     textAlign: "center",
     fontSize: 12,
+    marginTop: 8,
   },
 })
 

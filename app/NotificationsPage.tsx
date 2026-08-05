@@ -1,22 +1,29 @@
+import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router } from "expo-router";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { FriendshipsResponse, User } from '../types';
 
 interface NotificationsPageProps {
-  friendshipsData: FriendshipsResponse | null;
-  allUsers: User[];
-  handleRequestResponse: (requestId: number, response: 'accepted' | 'declined') => void;
+  // friendshipsData: FriendshipsResponse | null;
+  // allUsers: User[];
+  // handleRequestResponse: (requestId: number, response: 'accepted' | 'declined') => void;
 }
 
 const NotificationsPage: React.FC<NotificationsPageProps> = ({
-  friendshipsData,
-  allUsers,
-  handleRequestResponse,
+  // friendshipsData,
+  // allUsers,
+  // handleRequestResponse,
 }) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+  const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students: allUsers } = useUserStore();
+  const { handleRequestResponse, loadUserFriendships } = useFriendships();
+
+  useEffect(() => {
+    if (currentUser) {
+      loadUserFriendships(currentUser.id);
+    }
+  }, [currentUser]);
 
   const receivedRequests =
     friendshipsData?.users.filter((user) => user.friendship_status === 'received') ?? [];
@@ -41,7 +48,7 @@ const NotificationsPage: React.FC<NotificationsPageProps> = ({
                 key={user.user_id}
                 style={[
                   styles.requestRow,
-                  index !== receivedRequests.length - 1 && styles.requestDivider,
+                  // index !== receivedRequests.length - 1 && styles.requestDivider,
                 ]}
               >
                 <View style={styles.leftSection}>
@@ -58,30 +65,28 @@ const NotificationsPage: React.FC<NotificationsPageProps> = ({
                     </View>
                   )}
 
-                  <Text style={styles.requestText}>
-                    <Text style={styles.requestName}>{user.name}</Text> wants to be your friend.
-                  </Text>
+                  <Text style={styles.requestName}>{user.name}</Text>
                 </View>
 
                 <View style={styles.buttonGroup}>
                   <Pressable
                     onPress={() => handleRequestResponse(user.user_id, 'accepted')}
                     style={({ pressed }) => [
-                      styles.acceptButton,
+                      styles.confirmButton,
                       pressed && styles.pressed,
                     ]}
                   >
-                    <Text style={styles.acceptButtonText}>Accept</Text>
+                    <Text style={styles.confirmButtonText}>Confirm</Text>
                   </Pressable>
 
                   <Pressable
                     onPress={() => handleRequestResponse(user.user_id, 'declined')}
                     style={({ pressed }) => [
-                      styles.declineButton,
+                      styles.deleteButton,
                       pressed && styles.pressed,
                     ]}
                   >
-                    <Text style={styles.declineButtonText}>Decline</Text>
+                    <Text style={styles.deleteButtonText}>Delete</Text>
                   </Pressable>
                 </View>
               </View>
@@ -100,7 +105,7 @@ export default NotificationsPage;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 24,
+    padding: 16,
   },
   backWrapper: {
     flexDirection: 'row',
@@ -124,7 +129,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 24,
+    paddingBottom: 4,
     
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -133,33 +138,36 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   sectionTitle: {
+    color: '#111827',
     fontSize: 20,
     fontWeight: '700',
-    marginBottom: 16,
-    color: '#111827',
+    paddingTop: 16,
+    paddingLeft: 16,
+    paddingRight: 16,
+    marginBottom: 8,
   },
   requestRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    marginRight: 12,
+    paddingVertical: 8,
+    paddingLeft: 14,
+    paddingRight: 4,
   },
-  requestDivider: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
+  // requestDivider: {
+  //   borderBottomWidth: 1,
+  //   borderBottomColor: '#E5E7EB',
+  // },
   leftSection: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 12,
   },
   avatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    marginRight: 12,
+    marginRight: 10,
   },
   avatarFallback: {
     width: 40,
@@ -175,39 +183,44 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 14,
   },
-  requestText: {
-    color: '#111827',
-    flexShrink: 1,
-  },
   requestName: {
+    color: '#111827',
+    fontSize: 14,
     fontWeight: '600',
+    flexShrink: 1,
+    marginRight: 8,
   },
   buttonGroup: {
     flexDirection: 'row',
     marginRight: 8,
+    gap: 6,
   },
-  acceptButton: {
-    backgroundColor: '#16A34A',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+  confirmButton: {
+    backgroundColor: '#2563EB',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 10,
   },
-  acceptButtonText: {
+  confirmButtonText: {
     color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '700',
   },
-  declineButton: {
+  deleteButton: {
     backgroundColor: '#D1D5DB',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
     borderRadius: 10,
   },
-  declineButtonText: {
+  deleteButtonText: {
     color: '#1F2937',
+    fontSize: 12,
     fontWeight: '700',
   },
   emptyText: {
     color: '#6B7280',
+    paddingBottom: 8,
+    paddingHorizontal: 14,
   },
   pressed: {
     opacity: 0.8,

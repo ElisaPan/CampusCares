@@ -12,74 +12,79 @@
  *    Show participants with two columns, filling out columnn first
  */
 
-import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import * as ImagePicker from "expo-image-picker";
-import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useState } from 'react';
-import { Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-
-import { Header as MainHeader } from '@/components/HeaderComponent';
-import * as Theme from '@/constants/theme';
-import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
-import { mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
-import { useUserStore } from '@/hooks/useUserStore';
-import {
-  MultiOpp,
-  Opportunity,
-  User
-} from '@/types';
-import { MaterialIcons } from '@expo/vector-icons';
-import * as Clipboard from "expo-clipboard";
-import * as MailComposer from "expo-mail-composer";
-import { router, useLocalSearchParams } from 'expo-router';
-
-import { useQueryClient } from '@tanstack/react-query';
 import {
   deleteOpportunity,
   getCurrentOpportunities,
-  getOpportunityAttendance,
   registerForOpp,
   unregisterForOpp,
   updateOpportunity,
   UploadFile,
   uploadProfilePicture
-} from '../api';
-// import AttendanceManager from '../components/AttendanceManager';
+} from '@/api';
+import { Header as MainHeader } from '@/components/HeaderComponent';
+import * as Theme from '@/constants/theme';
+import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
+import { mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
+import { useSignupHandlers } from '@/hooks/useSignupHandlers';
+import { useUserStore } from '@/hooks/useUserStore';
+import {
+  User
+} from '@/types';
+// import AttendanceManager from '@/components/AttendanceManager';
+import { isOpportunity } from '@/utils/isOpp';
+import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
+
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
-import { calculateEndTime, formatDateTimeForBackend } from '../utils/timeUtils';
+import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
+import { useQueryClient } from '@tanstack/react-query';
+import * as ImagePicker from "expo-image-picker";
+import { LinearGradient } from 'expo-linear-gradient';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, FlatList, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
-function isOpportunity(opp: Opportunity | MultiOpp): opp is Opportunity {
-  return 'allow_carpool' in opp;
-}
+import { MaterialIcons } from '@expo/vector-icons';
+import * as Clipboard from "expo-clipboard";
+import * as MailComposer from "expo-mail-composer";
+import { router, useLocalSearchParams } from 'expo-router';
 
 interface OpportunityDetailPageProps {
-  handleSignUp: (opportunityId: number) => void;
-  handleUnSignUp: (
-    opportunityId: number,
-    opportunityDate?: string,
-    opportunityTime?: string
-  ) => Promise<boolean>;
-  currentUserSignupsSet: Set<number>;
-  allTimeMyOpps: Opportunity[];
+  // handleSignUp: (opportunityId: number) => void;
+  // handleUnSignUp: (
+  //   opportunityId: number,
+  //   opportunityDate?: string,
+  //   opportunityTime?: string
+  // ) => Promise<boolean>;
+  // currentUserSignupsSet: Set<number>;
+  // allTimeMyOpps: Opportunity[];
 }
 
 const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
-  handleSignUp,
-  handleUnSignUp,
-  currentUserSignupsSet,
-  allTimeMyOpps,
+  // handleSignUp,
+  // handleUnSignUp,
+  // currentUserSignupsSet,
+  // allTimeMyOpps,
 }) => {
-  const { signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
-
+  const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps } = useUserStore();
+  const { handleSignUp, handleUnSignUp } = useSignupHandlers();
+  
   const USE_MOCKS = false;
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
 
-  const sourceStudents = USE_MOCKS ? mockUsers : students ?? [];
-  const sourceSignups = USE_MOCKS ? mockSignups : signups ?? [];
-  const sourceOrganizations = USE_MOCKS ? mockOrganizations : organizations ?? [];
+  const sourceStudents = useMemo(
+    () => (USE_MOCKS ? mockUsers : students ?? []),
+    [students]
+  );
+  const sourceSignups = useMemo(
+    () => (USE_MOCKS ? mockSignups : signups ?? []),
+    [signups]
+  );
+  const sourceOrganizations = useMemo(
+    () => (USE_MOCKS ? mockOrganizations : organizations ?? []),
+    [organizations]
+  );
   const activeCurrentUser = USE_MOCKS ? mockUsers[0] : currentUser;
   const activeCurrentUserSignupsSet = USE_MOCKS
     ? new Set( mockSignups
@@ -88,34 +93,26 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       )
     : currentUserSignupsSet ?? new Set();
 
-  if (!activeCurrentUser) {
-    return <Text>Loading...</Text>;
-  }
-
-  const singleOpportunities = allOpps.filter(isOpportunity);
+  const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
   const opportunity = singleOpportunities.find((o) => o.id === parseInt(id!));
-
-  if (!opportunity || !activeCurrentUser) {
-    return <Text>Loading...</Text>;
-  }
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
-    name: opportunity.name,
-    description: opportunity.description,
-    address: opportunity.address,
-    date: opportunity.date,
-    time: opportunity.time,
-    duration: opportunity.duration,
-    nonprofit: opportunity.nonprofit || '',
-    redirect_url: opportunity.redirect_url || '',
-    allow_carpool: opportunity.allow_carpool || false
+    name: opportunity?.name,
+    description: opportunity?.description,
+    address: opportunity?.address,
+    date: opportunity?.date,
+    time: opportunity?.time,
+    duration: opportunity?.duration,
+    nonprofit: opportunity?.nonprofit || '',
+    redirect_url: opportunity?.redirect_url || '',
+    allow_carpool: opportunity?.allow_carpool || false
   });
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [time, setTime] = useState(new Date());
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const initAllowCarpool = opportunity.allow_carpool;
+  const initAllowCarpool = opportunity?.allow_carpool;
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [selectedImage, setSelectedImage] = useState<UploadFile | null>(null);
@@ -126,7 +123,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
   // Slot limit management state
   const [isEditingSlots, setIsEditingSlots] = useState(false);
-  const [newSlotLimit, setNewSlotLimit] = useState(opportunity.total_slots);
+  const [newSlotLimit, setNewSlotLimit] = useState(opportunity?.total_slots);
   const [isUpdatingSlots, setIsUpdatingSlots] = useState(false);
 
   // Comment/announcement state
@@ -135,18 +132,18 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   const [showUserLookup, setShowUserLookup] = useState(false);
   const [userLookupName, setUserLookupName] = useState('');
   const [userLookupResults, setUserLookupResults] = useState<User[]>([]);
-  const [isRegisteringUser, setIsRegisteringUser] = useState(false);
+  const [registeringUserId, setRegisteringUserId] = useState<number | null>(null);
 
   // Transfer host state
   const [showTransferHost, setShowTransferHost] = useState(false);
   const [selectedTransferUserId, setSelectedTransferUserId] = useState<number | ''>('');
   const [isTransferringHost, setIsTransferringHost] = useState(false);
 
-  const signedUpStudents = opportunity.involved_users
+  const signedUpStudents = opportunity?.involved_users
     ? opportunity.involved_users.filter((user) => user.registered === true)
     : sourceStudents.filter((student) => {
       const signupUserIds = sourceSignups
-        .filter((s) => s.opportunityId === opportunity.id)
+        .filter((s) => s.opportunityId === opportunity?.id)
         .map((s) => s.userId);
       return signupUserIds.includes(student.id);
     });
@@ -154,27 +151,27 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   //     console.log(s.email);
   //   });
 
-  const isUserSignedUp = opportunity.involved_users
+  const isUserSignedUp = opportunity && (opportunity.involved_users
     ? opportunity.involved_users.some(
-      (user) => user.id === activeCurrentUser.id && user.registered === true
+      (user) => user.id === activeCurrentUser?.id && user.registered === true
     )
-    : activeCurrentUserSignupsSet.has(opportunity.id);
+    : activeCurrentUserSignupsSet.has(opportunity.id))
 
-  const isUserHost = opportunity.host_id === activeCurrentUser.id;
-  const canManageOpportunity = isUserHost || activeCurrentUser.admin;
+  const isUserHost = opportunity?.host_id === activeCurrentUser?.id;
+  const canManageOpportunity = isUserHost || activeCurrentUser?.admin;
 
   const eligibleHostUsers = sourceStudents.filter(
     (user) =>
       user.admin === true ||
-      (opportunity.host_org_id !== undefined && user.organizationIds.includes(opportunity.host_org_id))
+      (opportunity?.host_org_id !== undefined && user.organizationIds.includes(opportunity.host_org_id))
   );
-  const availableSlots = opportunity.total_slots - signedUpStudents.length;
+  const availableSlots = Number(opportunity?.total_slots) - signedUpStudents.length;
   const canSignUp = availableSlots > 0 && !isUserSignedUp;
-  const allowCarpool = opportunity.allow_carpool;
+  const allowCarpool = opportunity?.allow_carpool;
   const hasComment = newComment.trim().length > 0;
 
   // Parse date components manually to avoid timezone issues
-  const [year, month, day] = opportunity.date.split('-').map(Number);
+  const [year, month, day] = String(opportunity?.date).split('-').map(Number);
   const displayDate = new Date(year, month - 1, day).toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
@@ -183,7 +180,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   });
 
   // Parse time correctly for display (already in Eastern Time from backend conversion)
-  const [hours, minutes] = opportunity.time.split(':');
+  const [hours, minutes] = String(opportunity?.time).split(':');
   const displayTime = new Date(2024, 0, 1, parseInt(hours), parseInt(minutes)).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -191,12 +188,12 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   });
 
   // Calculate and format end time (no adjustment needed - time is already Eastern)
-  const displayEndTime = calculateEndTime(opportunity.date, opportunity.time, opportunity.duration);
+  const displayEndTime = calculateEndTime(String(opportunity?.date), String(opportunity?.time), Number(opportunity?.duration));
 
   // Organizations that can see this opportunity (visibility list)
   const visibilityOrgs = (sourceOrganizations || [])
     .filter(
-      (org) => Array.isArray(opportunity.visibility) && opportunity.visibility.includes(org.id)
+      (org) => Array.isArray(opportunity?.visibility) && opportunity.visibility.includes(org.id)
     )
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -204,10 +201,18 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
     try {
       // If user is already signed up, confirm unregistration
       if (isUserSignedUp) {
-        if (opportunity.redirect_url) {
-          alert(
+        if (opportunity?.redirect_url) {
+          Alert.alert(
             "You are registered for this opportunity via an external site. To un-register, please visit that site as well."
           );
+        }
+
+        if (!opportunity) {
+          return (
+            <View style={styles.loadingView}>
+              <ActivityIndicator size='large' color={Theme.cornellRed} />
+            </View>
+          )
         }
 
         const unregistered = await handleUnSignUp(
@@ -216,70 +221,85 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
           opportunity.time
         );
         if (unregistered) {
-          alert("You have been unregistered successfully.");
+          Alert.alert("You have been unregistered successfully.");
         }
         return; // stop here after un-sign-up
       }
 
       // Otherwise, handle sign up
-      if (opportunity.redirect_url) {
+      if (opportunity?.redirect_url) {
         // External registration link flow
-        const confirmed = window.confirm(
-          "This opportunity requires registration on an external site.\n\nClick OK to open the registration link in a new tab."
-        );
+        const confirmed = await new Promise<boolean>((resolve) => {
+          Alert.alert(
+            'External registration',
+            "This opportunity requires registration on an external site.\n\nClick OK to open the registration link in a new tab.",
+            [
+              { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+              { text: 'OK', style: 'destructive', onPress: () => resolve(true) },
+            ]
+          );
+        });
+        
         if (confirmed) {
-          window.open(opportunity.redirect_url, "_blank");
+          await Linking.openURL(opportunity.redirect_url);
           await handleSignUp(opportunity.id);
-          alert("You are now registered and redirected to the external site!");
+          Alert.alert("You are now registered and redirected to the external site!");
         }
         return;
       }
 
+      if (!opportunity) {
+        return (
+          <View style={styles.loadingView}>
+            <ActivityIndicator size='large' color={Theme.cornellRed} />
+          </View>
+        )
+      }
       // Normal sign up
-      await handleSignUp(opportunity.id);
-      alert("You have successfully signed up!");
+      await handleSignUp(opportunity?.id);
+      // Alert.alert("You have successfully signed up!");
     } catch (error) {
       console.error("Error during sign up / un-sign up:", error);
-      alert("Something went wrong. Please try again.");
+      Alert.alert("Something went wrong. Please try again.");
     }
   };
 
 
-  const handleAttendanceSubmitted = async () => {
-    try {
-      // Fetch updated attendance data from the API
-      const attendanceData = await getOpportunityAttendance(opportunity.id);
+  // const handleAttendanceSubmitted = async () => {
+  //   try {
+  //     // Fetch updated attendance data from the API
+  //     const attendanceData = await getOpportunityAttendance(opportunity.id);
 
-      // Update the opportunity's involved_users with the attendance data
-      if (attendanceData.users && opportunity.involved_users) {
-        const updatedInvolvedUsers = opportunity.involved_users.map((user) => {
-          const attendanceUser = attendanceData.users.find((au: any) => au.user_id === user.id);
-          if (attendanceUser) {
-            return {
-              ...user,
-              attended: attendanceUser.attended,
-            };
-          }
-          return user;
-        });
+  //     // Update the opportunity's involved_users with the attendance data
+  //     if (attendanceData.users && opportunity.involved_users) {
+  //       const updatedInvolvedUsers = opportunity.involved_users.map((user) => {
+  //         const attendanceUser = attendanceData.users.find((au: any) => au.user_id === user.id);
+  //         if (attendanceUser) {
+  //           return {
+  //             ...user,
+  //             attended: attendanceUser.attended,
+  //           };
+  //         }
+  //         return user;
+  //       });
 
-        // Update the opportunity object
-        const updatedOpportunity = {
-          ...opportunity,
-          involved_users: updatedInvolvedUsers,
-          attendance_marked: true,
-        };
+  //       // Update the opportunity object
+  //       const updatedOpportunity = {
+  //         ...opportunity,
+  //         involved_users: updatedInvolvedUsers,
+  //         attendance_marked: true,
+  //       };
 
-        // Update the opportunities in the parent component
-        queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      }
+  //       // Update the opportunities in the parent component
+  //       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+  //     }
 
-      alert('Attendance submitted successfully!');
-    } catch (error: any) {
-      console.error('Error updating attendance data:', error);
-      alert('Attendance submitted, but failed to update display. Please refresh the page.');
-    }
-  };
+  //     alert('Attendance submitted successfully!');
+  //   } catch (error: any) {
+  //     console.error('Error updating attendance data:', error);
+  //     alert('Attendance submitted, but failed to update display. Please refresh the page.');
+  //   }
+  // };
 
   // Admin functions for user management
   const handleUserLookup = () => {
@@ -297,44 +317,45 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   };
 
   const handleRegisterUser = async (userId: number) => {
+    if (!opportunity) return <Text>Loading...</Text>
     if (signedUpStudents.length >= opportunity.total_slots) {
-      alert('This event has reached its maximum capacity.');
+      Alert.alert('This event has reached its maximum capacity.');
       return;
     }
 
-    setIsRegisteringUser(true);
+    setRegisteringUserId(userId);
     try {
       await registerForOpp({ user_id: userId, opportunity_id: opportunity.id });
-      // Refresh opportunities data to get updated involved_users
+
       const updatedOpps = await getCurrentOpportunities();
-      // setOpportunities(updatedOpps);
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      // alert('User registered successfully!');
+      const multiopps = allOpps.filter((o) => !isOpportunity(o));
+      setAllOpps([...updatedOpps, ...multiopps]);
+      Alert.alert('User registered successfully!');
     } catch (error) {
-      console.error('Error registering user:', error);
-      alert('Failed to register user. They may already be registered.');
+      console.error(error);
+      Alert.alert('Error', 'Failed to register user');
     } finally {
-      setIsRegisteringUser(false);
+      setRegisteringUserId(null);
     }
   };
 
   const handleUnregisterUser = async (userId: number) => {
     try {
+      if (!opportunity) return <Text>Loading...</Text>
       await unregisterForOpp({
         user_id: userId,
         opportunity_id: opportunity.id,
         opportunityDate: opportunity.date,
         opportunityTime: opportunity.time,
-        isAdminOrHost: activeCurrentUser.admin || opportunity.host_id === activeCurrentUser.id,
+        isAdminOrHost: activeCurrentUser?.admin || opportunity.host_id === activeCurrentUser?.id,
       });
-      // Refresh opportunities data to get updated involved_users
       const updatedOpps = await getCurrentOpportunities();
-      // setOpportunities(updatedOpps);
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-      alert('User unregistered successfully!');
+      const multiopps = allOpps.filter((o) => !isOpportunity(o));
+      setAllOpps([...updatedOpps, ...multiopps]);
+      Alert.alert('User unregistered successfully!');
     } catch (error) {
       console.error('Error unregistering user:', error);
-      alert('Failed to unregister user.');
+      Alert.alert('Failed to unregister user.');
     }
   };
 
@@ -342,64 +363,95 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
     if (!selectedTransferUserId) return;
     const newHost = eligibleHostUsers.find((u) => u.id === selectedTransferUserId);
     if (!newHost) return;
-    const confirmed = window.confirm(`Transfer host to ${newHost.name}?`);
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Host transfer',
+        `Transfer host to ${newHost.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Transfer', style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+
     if (!confirmed) return;
     setIsTransferringHost(true);
     try {
+      if (!opportunity) return <Text>Loading...</Text>
       await updateOpportunity(opportunity.id, { host_user_id: selectedTransferUserId });
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       setShowTransferHost(false);
       setSelectedTransferUserId('');
-      alert(`Host transferred to ${newHost.name}.`);
+      Alert.alert(`Host transferred to ${newHost.name}.`);
     } catch (error) {
       console.error('Error transferring host:', error);
-      alert('Failed to transfer host.');
+      Alert.alert('Failed to transfer host.');
     } finally {
       setIsTransferringHost(false);
     }
   };
 
   const handleUnapproveOpportunity = async () => {
-    const confirmed = window.confirm(
-      `Are you sure you want to unapprove the opportunity "${opportunity.name}"? This will hide it from all users.`
-    );
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Unapprove Opportunity',
+        `Are you sure you want to unapprove the opportunity "${opportunity?.name}"? This will hide it from all users.`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Unapprove', style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+    
     if (!confirmed) return;
 
     try {
+      if (!opportunity) return <Text>Loading...</Text>
       await updateOpportunity(opportunity.id, { approved: false });
 
       // Update the local opportunity object to reflect changes
       opportunity.approved = false;
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
 
-      alert('Opportunity has been unapproved successfully!');
+      Alert.alert('Opportunity has been unapproved successfully!');
     } catch (error: any) {
-      alert(`Error unapproving opportunity: ${error.message}`);
+      Alert.alert(`Error unapproving opportunity: ${error.message}`);
     }
   };
 
   const handleDeleteOpportunity = async () => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the opportunity "${opportunity.name}"? This action cannot be undone.`
-    );
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Delete Opportunity',
+        `Are you sure you want to delete "${opportunity?.name}"? This action cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+
     if (!confirmed) return;
 
     try {
-      await deleteOpportunity(opportunity.id);
+      if (!opportunity) return <Text>Loading...</Text>
+      await deleteOpportunity(opportunity?.id);
 
-      // Remove the opportunity from the state
-      queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+      router.replace('/(tabs)/OpportunitiesPage');
 
-      alert('Opportunity has been deleted successfully!');
-      // Navigate back to opportunities page
-      router.push(`/(tabs)/OpportunitiesPage`);
+      // Refresh opportunities in store
+      const updatedOpps = await getCurrentOpportunities();
+      const multiopps = allOpps.filter((o) => !isOpportunity(o));
+      setAllOpps([...updatedOpps, ...multiopps]);
     } catch (error: any) {
-      alert(`Error deleting opportunity: ${error.message}`);
+      Alert.alert('Error', `Error deleting opportunity: ${error.message}`);
     }
   };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
+    if (!editForm.date || !editForm.time) return <Text>Loading...</Text>;
+
     try {
       // Format the date and time correctly using the utility function
       const formattedDateTime = formatDateTimeForBackend(editForm.date, editForm.time);
@@ -415,6 +467,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
         allow_carpool: editForm.allow_carpool
       };
 
+      if (!opportunity) return <Text>Loading...</Text>
       await updateOpportunity(opportunity.id, updateData);
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
 
@@ -430,10 +483,10 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
         allow_carpool: editForm.allow_carpool
       });
 
-      alert('Opportunity details updated successfully!');
+      Alert.alert('Opportunity details updated successfully!');
       setIsEditing(false);
     } catch (error: any) {
-      alert(`Error updating opportunity: ${error.message}`);
+      Alert.alert(`Error updating opportunity: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -441,15 +494,15 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
   const handleCancelEdit = () => {
     setEditForm({
-      name: opportunity.name,
-      description: opportunity.description,
-      address: opportunity.address,
-      date: opportunity.date,
-      time: opportunity.time,
-      duration: opportunity.duration,
-      redirect_url: opportunity.redirect_url || '',
-      nonprofit: opportunity.nonprofit || '',
-      allow_carpool: opportunity.allow_carpool || false
+      name: opportunity?.name,
+      description: opportunity?.description,
+      address: opportunity?.address,
+      date: opportunity?.date,
+      time: opportunity?.time,
+      duration: opportunity?.duration,
+      redirect_url: opportunity?.redirect_url || '',
+      nonprofit: opportunity?.nonprofit || '',
+      allow_carpool: opportunity?.allow_carpool || false
     });
     setSelectedImage(null);
     setImagePreview(null);
@@ -458,35 +511,38 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
   // Slot limit management functions
   const handleUpdateSlotLimit = async () => {
+    if (!newSlotLimit) return <Text>Loading...</Text>;
+
     if (newSlotLimit < signedUpStudents.length) {
-      alert(
+      Alert.alert(
         `Cannot set slot limit lower than current number of participants (${signedUpStudents.length}).`
       );
       return;
     }
 
-    if (newSlotLimit === opportunity.total_slots) {
+    if (newSlotLimit === opportunity?.total_slots) {
       setIsEditingSlots(false);
       return;
     }
 
     setIsUpdatingSlots(true);
     try {
+      if (!opportunity) return <Text>Loading...</Text>
       await updateOpportunity(opportunity.id, { total_slots: newSlotLimit });
-      alert(`Slot limit updated successfully to ${newSlotLimit}!`);
+      Alert.alert(`Slot limit updated successfully to ${newSlotLimit}!`);
 
       // Update the local opportunity object
       opportunity.total_slots = newSlotLimit;
       setIsEditingSlots(false);
     } catch (error: any) {
-      alert(`Error updating slot limit: ${error.message}`);
+      Alert.alert(`Error updating slot limit: ${error.message}`);
     } finally {
       setIsUpdatingSlots(false);
     }
   };
 
   const handleCancelSlotEdit = () => {
-    setNewSlotLimit(opportunity.total_slots);
+    setNewSlotLimit(opportunity?.total_slots);
     setIsEditingSlots(false);
   };
 
@@ -495,32 +551,32 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
     setIsAddingComment(true);
     try {
-      const currentComments = opportunity.comments || [];
+      const currentComments = opportunity?.comments || [];
       const updatedComments = [...currentComments, newComment.trim()];
 
+      if (!opportunity) return <Text>Loading...</Text>
       await updateOpportunity(opportunity.id, { comments: updatedComments });
-
       // Update the local opportunity object to reflect changes
       opportunity.comments = updatedComments;
 
       // Clear the input and show success message
       setNewComment('');
-      alert('Announcement added successfully!');
+      Alert.alert('Announcement added successfully!');
 
       // Force a re-render by updating the opportunity object
       router.push({
         pathname: `../OpportunityDetailPage`,
-        params: { id: opportunity.id.toString() },
+        params: { id: opportunity?.id.toString() },
       });
     } catch (error: any) {
-      alert(`Error adding announcement: ${error.message}`);
+      Alert.alert(`Error adding announcement: ${error.message}`);
     } finally {
       setIsAddingComment(false);
     }
   };
 
   const handleStartSlotEdit = () => {
-    setNewSlotLimit(opportunity.total_slots);
+    setNewSlotLimit(opportunity?.total_slots);
     setIsEditingSlots(true);
   };
 
@@ -530,7 +586,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permissionResult.granted) {
-      alert("Permission required");
+      Alert.alert("Permission required");
       return;
     }
     
@@ -564,6 +620,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       const uploadResult = await uploadProfilePicture(selectedImage);
       const imageUrl = uploadResult;
 
+      if (!opportunity) return <Text>Loading...</Text>
       // Update the opportunity with the new image URL
       await updateOpportunity(opportunity.id, { image: imageUrl });
 
@@ -575,9 +632,9 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       setSelectedImage(null);
       setImagePreview(null);
 
-      alert('Image updated successfully!');
+      Alert.alert('Image updated successfully!');
     } catch (error: any) {
-      alert(`Error uploading image: ${error.message}`);
+      Alert.alert(`Error uploading image: ${error.message}`);
     } finally {
       setIsUploadingImage(false);
     }
@@ -598,7 +655,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   }, [userLookupName, sourceStudents]);
 
   useEffect(() => {
-    const uri = imagePreview || opportunity.imageUrl;
+    const uri = imagePreview || opportunity?.imageUrl;
 
     if (!uri) return;
 
@@ -606,7 +663,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       const displayWidth = Dimensions.get("window").width - 48; // adjust for padding
       setImageHeight(displayWidth * height / width);
     });
-  }, [imagePreview, opportunity.imageUrl]);
+  }, [imagePreview, opportunity?.imageUrl]);
 
   // Function to format description text with newlines and links
   const formatDescription = (text: string) => {
@@ -643,32 +700,36 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
 
   const handleCloneEvent = () => {
     setClonedOpportunityData({
-      name: opportunity.name,
-      description: opportunity.description,
-      address: opportunity.address,
-      date: opportunity.date,
-      time: opportunity.time,
-      duration: opportunity.duration,
-      total_slots: opportunity.total_slots,
-      nonprofit: opportunity.nonprofit || "",
-      host_org_id: opportunity.host_org_id,
-      causes: opportunity.causes || [],
-      tags: opportunity.tags || [],
-      redirect_url: opportunity.redirect_url || "",
-      imageUrl: opportunity.imageUrl || "",
-      visibility: opportunity.visibility || [],
-      isPrivate: opportunity.isPrivate || false,
-      allow_carpool: opportunity.allow_carpool || false,
+      name: opportunity?.name,
+      description: opportunity?.description,
+      address: opportunity?.address,
+      date: opportunity?.date,
+      time: opportunity?.time,
+      duration: opportunity?.duration,
+      total_slots: opportunity?.total_slots,
+      nonprofit: opportunity?.nonprofit || "",
+      host_org_id: opportunity?.host_org_id,
+      causes: opportunity?.causes || [],
+      tags: opportunity?.tags || [],
+      redirect_url: opportunity?.redirect_url || "",
+      imageUrl: opportunity?.imageUrl || "",
+      visibility: opportunity?.visibility || [],
+      isPrivate: opportunity?.isPrivate || false,
+      allow_carpool: opportunity?.allow_carpool || false,
     });
 
     router.push("/CreateOpportunityPage");
   };
 
-  const img = opportunity.imageUrl;
+  const img = opportunity?.imageUrl;
 	const oppPicSource =
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
+
+  if (!activeCurrentUser) return <Text>Loading...</Text>; 
+  
+  if (!opportunity || !activeCurrentUser) return <Text>Loading...</Text>;
 
   return (
     <ScrollView
@@ -1088,24 +1149,21 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                 </View>
               </View>
               {signedUpStudents.length > 0 ? (
-                <View style={styles.signUpStudents}>
+                <View style={styles.signedUpStudents}>
                   {signedUpStudents.map(student => (
                     <View
                       key={`${student.id}-${student._lastUpdate || 'no-update'}`}
-                      style={styles.students}
+                      style={styles.student}
                     >
-                      <Pressable onPress={() => router.push(`/profile/${student.id}`)}>
+                      <Pressable onPress={() => router.push(`/UserProfile?id=${student.id}`)}>
                         <Text style={styles.studentName}>{student.name}</Text> 
                       </Pressable>
                       {activeCurrentUser.admin && (
                         <Pressable
-                          onPress={(e) => {
-                            e.stopPropagation();
-                            handleUnregisterUser(student.id);
-                          }}
+                          onPress={() => handleUnregisterUser(student.id)}
                           style={styles.unregBtn}
                         >
-                          <Text style={[styles.boldWhite, { textAlign: 'center' }]}>Unregister</Text>
+                          <Text style={[styles.boldWhite, { textAlign: 'center', fontSize: 11 }]}>Unregister</Text>
                         </Pressable>
                       )}
                     </View>
@@ -1162,6 +1220,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                               keyboardShouldPersistTaps="handled"
                               renderItem={({ item: user }) => {
                                 const isAlreadyRegistered = signedUpStudents.some(s => s.id === user.id);
+                                const isThisUserRegistering = registeringUserId === user.id;
                                 return(
                                   <View style={styles.lookupOneResult}>
                                     <View>
@@ -1170,10 +1229,10 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                                     </View>
                                     <Pressable
                                       onPress={() => handleRegisterUser(user.id)}
-                                      disabled={isRegisteringUser || isAlreadyRegistered}
-                                      style={styles.resultBtn}
+                                      disabled={registeringUserId !== null || isAlreadyRegistered}
+                                      style={[styles.resultBtn, isAlreadyRegistered && styles.registeredBtn]}
                                     >
-                                      <Text style={styles.boldWhite}>{isRegisteringUser ? 'Registering...' : isAlreadyRegistered ? 'Already Registered' : 'Register'}</Text>
+                                      <Text style={styles.boldWhite}>{isThisUserRegistering ? 'Registering...' : isAlreadyRegistered ? 'Registered' : 'Register'}</Text>
                                     </Pressable>
                                   </View>
                                 )
@@ -1206,7 +1265,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
             
             {allowCarpool && (isUserSignedUp || activeCurrentUser.admin) &&
               <Pressable
-                onPress={() => {router.push(`/carpool/${opportunity.id}`)}}
+                onPress={() => {router.push(`/CarpoolPage?id=${opportunity.id}`)}}
                 style={styles.viewCarpools}
               >
                 <Text style={styles.viewCarpoolsTxt}>View Carpool Rides</Text>
@@ -1270,7 +1329,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                               }
                             }}
                             onBlur={() => {
-                              if (isNaN(newSlotLimit) || newSlotLimit < signedUpStudents.length) {
+                              if (isNaN(Number(newSlotLimit)) || Number(newSlotLimit) < signedUpStudents.length) {
                                 setNewSlotLimit(signedUpStudents.length);
                               }
                             }}
@@ -1282,7 +1341,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                         <View style={styles.flexGap}>
                           <Pressable
                             onPress={handleUpdateSlotLimit}
-                            disabled={isUpdatingSlots || newSlotLimit < signedUpStudents.length}
+                            disabled={isUpdatingSlots || Number(newSlotLimit) < signedUpStudents.length}
                             style={styles.saveUpdateBtn}
                           >
                             <Text style={styles.boldWhite}>{isUpdatingSlots ? 'Updating...' : 'Save Changes'}</Text>
@@ -1382,12 +1441,12 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                             typeof email === "string" && email.trim().length > 0
                           )
                         if (!participantEmails) {
-                          alert("No participant emails available.");
+                          Alert.alert("No participant emails available.");
                           return;
                         }
                         const available = await MailComposer.isAvailableAsync();
                         if (!available) {
-                          alert("Email is not available on this device.");
+                          Alert.alert("Email is not available on this device.");
                           return;
                         }
                         await MailComposer.composeAsync({
@@ -1417,11 +1476,11 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                           .map((phone) => phone.trim())
                           .join("\n");
                         if (!participantPhones) {
-                          alert("No participant phone numbers available.");
+                          Alert.alert("No participant phone numbers available.");
                           return;
                         }
                         await Clipboard.setStringAsync(participantPhones);
-                        alert("Participant phone numbers copied to clipboard!");
+                        Alert.alert("Participant phone numbers copied to clipboard!");
                       }}
                       style={styles.phoneBtn}
                     >
@@ -1488,7 +1547,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                     return (
                       <View style={{ rowGap: 12 }}>
                         <Pressable
-                          onPress={() => router.push(`/profile/${hostUser.id}`)}
+                          onPress={() => router.push(`/UserProfile?id=${hostUser.id}`)}
                           style={styles.contactBtn}
                         >
                           <View style={styles.contactSymbol}>
@@ -1583,8 +1642,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingView: {
+    width: '100%',
+    flexDirection: 'column',
+    paddingVertical: 24,
+    marginTop: 130,
+    marginBottom: 280,
+  },
   mainHeader: {
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     backgroundColor: '#fff',
     zIndex: 1,
 
@@ -1890,14 +1956,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'right',
   },
-  signUpStudents: {
+  signedUpStudents: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
+    alignItems: 'center',
+    alignContent: 'center',
     gap: 20,
   },
-  students: {
-    marginLeft: 24,
+  student: {
+    borderRadius: 8,
+    alignItems: 'center',
   },
   studentName: {
     color: '#424242',
@@ -1905,14 +1974,13 @@ const styles = StyleSheet.create({
   },
   unregBtn: {
     color: 'rgb(255, 255, 255)',
-    width: 100,
     fontSize: 12,
-    lineHeight: 16,
-    backgroundColor: 'rgb(220, 38, 38)',
+    backgroundColor: 'rgb(234, 134, 134)',
     borderRadius: 4,
     marginTop: 6,
     paddingHorizontal: 8,
     paddingVertical: 4,
+    alignSelf: 'center',
   },
   firstNote: {
     borderRadius: 8,
@@ -1985,11 +2053,13 @@ const styles = StyleSheet.create({
     color: '#757575',
   },
   resultBtn: {
-    color: 'rgb(255, 255, 255)',
-    borderRadius: 10,
     backgroundColor: '#16A34A',
     paddingHorizontal: 12,
     paddingVertical: 4,
+    borderRadius: 10,
+  },
+  registeredBtn: {
+    backgroundColor: '#9ca3af',
   },
   lookupNote: {
     color: '#9E9E9E',

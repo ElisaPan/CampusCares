@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, StyleSheet, View } from 'react-native';
 
 import UserContext from '@/components/user-context';
+import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -22,7 +23,13 @@ export const Header = () => {
 			? students.find((s) => s.id === parsedId) || currentUser
 			: currentUser;
 	const profileUser = USE_MOCKS ? mockUsers[0] : baseUser;
-	if (!profileUser) return <Text>User not found</Text>;
+	if (!profileUser) {
+		return (
+			<View style={styles.loadingView}>
+				<ActivityIndicator size='large' color={Theme.cornellRed} />
+			</View>
+		)
+	};
 	
   return (
     <View style={styles.container}>
@@ -44,7 +51,7 @@ export const Header = () => {
 				>
 					<Ionicons
 						name="notifications-outline"
-						size={28}
+						size={26}
 						color={'#4B5563'}
 					/>
 				</Pressable>
@@ -61,15 +68,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+	loadingView: {
+    width: '100%',
+    flexDirection: 'column',
+    paddingVertical: 24,
+    marginTop: 130,
+    marginBottom: 280,
+  },
   logo: {
-    width: 75,
-    height: 75,
+    width: 60,
+    height: 60,
     borderRadius: 9999,
     marginTop: 40,
     marginLeft: 5,
   },
   notifBtn: {
-    marginTop: 65,
-    marginRight: 25,
+    marginTop: 57,
+    marginRight: 20,
   },
 });

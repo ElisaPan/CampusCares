@@ -8,6 +8,7 @@
  *    -
  */
 
+import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
 import { router } from "expo-router";
 import React from "react";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
@@ -30,10 +31,13 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
       animationType="fade"
       onRequestClose={closePopup}
     >
-      <View style={styles.modalBackdrop}>
+      <Pressable
+        style={styles.modalBackdrop}
+        onPress={closePopup}
+      >
         <View style={styles.modal}>
           <Pressable style={styles.closeButton} onPress={closePopup}>
-            <Text style={styles.closeText}>×</Text>
+            <MaterialDesignIcons name="close" size={24} color="#a8abb2" />
           </Pressable>
 
           <View style={styles.popupIconHeader}>
@@ -91,7 +95,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
             </Pressable>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -106,7 +110,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
-
   modal: {
     width: "100%",
     maxWidth: 448,
@@ -116,19 +119,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-
   closeButton: {
     position: "absolute",
-    top: 12,
-    right: 12,
-    zIndex: 1,
+    // top: 12,
+    // right: 12,
   },
-
-  closeText: {
-    fontSize: 28,
-    color: "#6B7280",
-  },
-
   popupIconHeader: {
     width: 72,
     height: 72,
@@ -138,26 +133,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
   },
-
   carpoolIcon: {
     width: 44,
     height: 44,
     resizeMode: "contain",
   },
-
   title: {
     fontSize: 18,
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 24,
   },
-
   modalActions: {
     width: "100%",
     gap: 12,
     alignItems: "center",
   },
-
   redBtn: {
     width: "100%",
     backgroundColor: "#B31B1B",
@@ -165,16 +156,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-
   redBtnText: {
     color: "white",
     fontSize: 16,
   },
-
   bold: {
     fontWeight: "700",
   },
-
   secondaryText: {
     paddingTop: 10,
     color: "#6B7280",

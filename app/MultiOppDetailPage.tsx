@@ -8,13 +8,23 @@
  *    -
  */
 
+import {
+  UploadFile,
+  deleteOpportunity,
+  getCurrentOpportunities,
+  getOpportunity,
+  getProfilePictureSource,
+  updateMultiOpp,
+  uploadProfilePicture
+} from '@/api';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
+import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
-import { UploadFile, deleteMultiOpp, getOpportunity, getProfilePictureSource, updateMultiOpp, uploadProfilePicture } from '../api';
-import { MultiOpp, Opportunity as OppType, Opportunity, User } from '../types';
-import { formatMiniOppTime } from '../utils/timeUtils';
+import { Opportunity as OppType, User } from '@/types';
+import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
+import { formatMiniOppTime } from '@/utils/timeUtils';
 
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
@@ -22,29 +32,18 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-
-function isOpportunity(opp: Opportunity | MultiOpp): opp is Opportunity {
-  return 'allow_carpool' in opp;
-}
-
-function isMultiOpp(opp: Opportunity | MultiOpp): opp is MultiOpp {
-  return !('allow_carpool' in opp);
-}
+import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 interface MultiOppDetailPageProps {
   staticId?: number;
-  onSignUp?: (opportunityId: number) => Promise<void> | void;
-  onUnsignUp?: (opportunityId: number) => Promise<void> | void;
 }
 
 const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   staticId,
-  onSignUp,
-  onUnsignUp,
 }) => {
-  const { students: users, organizations: allOrgs, allOpps, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
-
+  const { setAllOpps, students, organizations: allOrgs, allOpps, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+  const { handleSignUp: onSignUp, handleUnSignUp: onUnSignUp } = useSignupHandlers();
+  
   const USE_MOCKS = false;
 
   const queryClient = useQueryClient();
@@ -54,17 +53,12 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const parsedId = rawId ? parseInt(rawId, 10) : null;
 
   // const sourceOpportunities = USE_MOCKS ? mockOpportunities : opportunities ?? [];
-  // const sourceUsers = USE_MOCKS ? mockUsers : users ?? [];
-  const sourceUsers = useMemo(
-    () => (USE_MOCKS ? mockUsers : users ?? []),
-    [users]
+  const sourceStudents = useMemo(
+    () => (USE_MOCKS ? mockUsers : students ?? []),
+    [students]
   );
   
   const activeCurrentUser = USE_MOCKS ? mockUsers[0] : currentUser;
-
-  if (!activeCurrentUser) {
-    return <Text>Loading...</Text>;
-  }
   
   const multioppId = staticId ?? parsedId;
 
@@ -74,8 +68,6 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     () => multiopps.find((m) => m.id === multioppId),
     [multiopps, multioppId]
   );
-
-  if (!multiopp) return <Text>Opportunity not found.</Text>;
   
   const [participantsByOppId, setParticipantsByOppId] = useState<Record<number, User[]>>({});
   const [loadingParticipants, setLoadingParticipants] = useState(false);
@@ -85,7 +77,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const [selectedOpportunity, setSelectedOpportunity] = useState<OppType | null>(null);
   const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-  const isUserHost = multiopp.host_user_id === activeCurrentUser.id;
+  const isUserHost = multiopp?.host_user_id === activeCurrentUser?.id;
   const canManageOpportunity = isUserHost || activeCurrentUser?.admin;
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -93,13 +85,13 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const [selectedImage, setSelectedImage] = useState<UploadFile | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageHeight, setImageHeight] = useState(200);
-  const initAllowCarpool = multiopp.opportunities.every(opp => opp.allow_carpool)
+  const initAllowCarpool = multiopp?.opportunities.every(opp => opp.allow_carpool)
   const [editForm, setEditForm] = useState({
-    name: multiopp.name,
-    description: multiopp.description || '',
-    address: multiopp.address,
-    nonprofit: multiopp.nonprofit || '',
-    redirect_url: multiopp.redirect_url || '',
+    name: multiopp?.name,
+    description: multiopp?.description || '',
+    address: multiopp?.address,
+    nonprofit: multiopp?.nonprofit || '',
+    redirect_url: multiopp?.redirect_url || '',
     allow_carpool: initAllowCarpool
   });
 
@@ -141,7 +133,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         await ImagePicker.requestMediaLibraryPermissionsAsync();
   
       if (!permissionResult.granted) {
-        alert("Permission required");
+        Alert.alert("Permission required");
         return;
       }
       
@@ -175,6 +167,14 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       const uploadResult = await uploadProfilePicture(selectedImage);
       const imageUrl = uploadResult;
 
+      if (!multiopp) {
+        return (
+          <View style={styles.loadingView}>
+            <ActivityIndicator size='large' color={Theme.cornellRed} />
+          </View>
+        )
+      }
+
       // Update the opportunity with the new image URL
       await updateMultiOpp(multiopp.id, { image: imageUrl });
 
@@ -186,9 +186,9 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       setSelectedImage(null);
       setImagePreview(null);
 
-      alert('Image updated successfully!');
+      Alert.alert('Image updated successfully!');
     } catch (error: any) {
-      alert(`Error uploading image: ${error.message}`);
+      Alert.alert(`Error uploading image: ${error.message}`);
     } finally {
       setIsUploadingImage(false);
     }
@@ -242,7 +242,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
             const full = opportunities.find((o) => o.id === opp.id);
             const participants =
               full?.involved_users
-                ?.map((u: { id: number }) => sourceUsers.find((usr) => usr.id === u.id))
+                ?.map((u: { id: number }) => sourceStudents.find((s) => s.id === u.id))
                 .filter(Boolean) ?? [];
             map[opp.id] = participants as User[];
           } catch {
@@ -259,11 +259,10 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [upcomingOpps, opportunities, sourceUsers]);
-
-  if (!multiopp) return <Text style={{ textAlign: 'center', color: '#9e9e9e', marginTop: 40 }}>Recurring opportunity not found.</Text>;
+  }, [upcomingOpps, opportunities, sourceStudents]);
 
   const handleOppClick = async (opp: OppType) => {
+    console.log('handleOppClick called for opp:', opp.id, new Date(opp.date));
     const d = new Date(opp.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -271,9 +270,11 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
 
     try {
       let full = opportunities.find((o) => o.id === opp.id);
+      console.log('found locally:', !!full);
       if (!full) {
         try {
           full = await getOpportunity(opp.id);
+          console.log('fetched remotely:', !!full);
         } catch (err) {
           console.error("Failed to fetch remote opportunity:", err);
         }
@@ -285,25 +286,43 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
 
       const isUserSignedUp = full.involved_users?.some(
         (u: { id: number; registered?: boolean }) =>
-          u.id === activeCurrentUser.id && (u.registered ?? true)
+          u.id === activeCurrentUser?.id && (u.registered ?? true)
       );
+
+      console.log('redirect_url:', full.redirect_url, 'isUserSignedUp:', isUserSignedUp);
 
       if (full.redirect_url && !isUserSignedUp) {
         setSelectedOpportunity(full);
         setShowExternalSignupModal(true);
       } else {
-        router.push(`/opportunity/${opp.id}`);
+        console.log('navigating to:', opp.id);
+        router.push(`/OpportunityDetailPage?id=${opp.id}`);
       }
     } catch (error) {
       console.error("Error fetching opportunity:", error);
-      router.push(`/opportunity/${opp.id}`);
+      router.push(`/OpportunityDetailPage?id=${opp.id}`);
+    }
+  };
+
+  const [pressedStudentId, setPressedStudentId] = useState<number | null>(null);
+  const handleProfilePress = (studentId: number) => {
+    if (!currentUser) setPressedStudentId(null);
+
+    if (pressedStudentId === studentId) {
+      setPressedStudentId(null);
+    } else {
+      setPressedStudentId(studentId);
     }
   };
 
   const handleExternalSignupConfirm = async () => {
     if (!selectedOpportunity) return;
+    if (!activeCurrentUser) {
+      router.push(`/LoginPage`);
+      return;
+    }
     if (selectedOpportunity.redirect_url) {
-      window.open(selectedOpportunity.redirect_url, '_blank', 'noopener,noreferrer');
+      await Linking.openURL(selectedOpportunity.redirect_url);
     }
     try {
       if (onSignUp) await onSignUp(selectedOpportunity.id);
@@ -311,7 +330,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       console.error('Local signup failed:', err);
     }
     setShowExternalSignupModal(false);
-    router.push(`/opportunity/${selectedOpportunity.id}`);
+    router.push(`/OpportunityDetailPage?id=${selectedOpportunity.id}`)
     setSelectedOpportunity(null);
   };
 
@@ -326,22 +345,34 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   };
 
   const handleDeleteOpportunity = async () => {
-    const confirmed = window.confirm(
-      `Are you sure you want to delete the opportunity "${multiopp.name}"? This action cannot be undone.`
-    );
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Delete Opportunity',
+        `Are you sure you want to delete "${multiopp?.name}"? This action cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+
     if (!confirmed) return;
 
     try {
-      await deleteMultiOpp(multiopp.id);
-      queryClient.invalidateQueries({ queryKey: ['multiopps'] });
+      if (!multiopp) return <Text>Loading...</Text>
+      await deleteOpportunity(multiopp.id);
 
-      alert('Multiopp has been deleted successfully!');
-      // Navigate back to opportunities page
-      router.push('/(tabs)/OpportunitiesPage');
+      // Refresh opportunities in store
+      const updatedOpps = await getCurrentOpportunities();
+      const multiopps = allOpps.filter((o) => !isOpportunity(o));
+      setAllOpps([...updatedOpps, ...multiopps]);
+
+      router.replace('/(tabs)/OpportunitiesPage');
+      Alert.alert('Success', 'Opportunity has been deleted successfully!');
     } catch (error: any) {
-      alert(`Error deleting opportunity: ${error.message}`);
+      Alert.alert('Error', `Error deleting opportunity: ${error.message}`);
     }
-  }
+  };
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
@@ -356,6 +387,8 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         allow_carpool: editForm.allow_carpool,
       };
 
+      if (!multiopp) return <Text>Loading...</Text>
+
       await updateMultiOpp(multiopp.id, updateData);
       queryClient.invalidateQueries({ queryKey: ['multiopps'] });
 
@@ -369,10 +402,10 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         allow_carpool: editForm.allow_carpool,
       });
 
-      alert('Opportunity details updated successfully!');
+      Alert.alert('Opportunity details updated successfully!');
       setIsEditing(false);
     } catch (error: any) {
-      alert(`Error updating opportunity: ${error.message}`);
+      Alert.alert(`Error updating opportunity: ${error.message}`);
     } finally {
       setIsSaving(false);
     }
@@ -383,7 +416,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   }
 
   useEffect(() => {
-      const uri = imagePreview || multiopp.image;
+      const uri = imagePreview || multiopp?.image;
   
       if (!uri) return;
   
@@ -391,13 +424,20 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         const displayWidth = Dimensions.get("window").width - 48; // adjust for padding
         setImageHeight(displayWidth * height / width);
       });
-    }, [imagePreview, multiopp.image]);
+    }, [imagePreview, multiopp?.image]);
 
-  const img = multiopp.image;
+  const img = multiopp?.image;
 	const oppPicSource =
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
+
+  if (!activeCurrentUser) {
+    return <Text>Loading...</Text>;
+  }
+
+  if (!multiopp) return <Text style={{ textAlign: 'center', color: '#9e9e9e', marginTop: 40 }}>Recurring opportunity not found.</Text>;
+
 
   return (
     <ScrollView
@@ -615,7 +655,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
             )}
 
             {/* Upcoming Dates */}
-            <View style={{ marginTop: 20 }}>
+            <View style={{ marginTop: 12 }}>
               <Text style={styles.datesHeader}>Upcoming Dates</Text>
               {upcomingOpps.length > 0 ? (
                 <View style={styles.opps}>
@@ -630,6 +670,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
                           styles.oppCard,
                           thisWeek ? styles.oppCardThisWeek : styles.oppCardDefault,
                         ]}
+                        unstable_pressDelay={50}
                       >
                         <View>
                           <Text style={styles.oppDate}>
@@ -647,13 +688,28 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
                           {loadingParticipants ? (
                             <Text style={styles.loading}>Loading</Text>
                           ) : participants.length > 0 ? (
-                            <View style={styles.participantsImgWrapper}>
-                              {participants.map((p) => (
-                                  <Image
-                                    source={getProfilePictureSource(p.profile_image, p.photoURL)}
-                                    style={styles.participantImg}
-                                  />
+                            <View style={styles.participants}>
+                              {participants.slice(0, 4).map((u, index) => (
+                                <View
+                                  key={u.id}
+                                  style={[
+                                    styles.avatarContainer,
+                                    (index !== 4 && index !== participants.length-1) && { marginRight: -8 },
+                                  ]}
+                                  >
+                                  <Pressable key={u.id} onPress={() => handleProfilePress(u.id)}>
+                                    <Image
+                                      source={getProfilePictureSource(u.profile_image, u.photoURL)}
+                                      style={styles.avatar}
+                                    />
+                                  </Pressable>
+                                </View>
                               ))}
+                              {participants.length > 4 && (
+                                <View style={styles.moreParticipants}>
+                                  <Text style={styles.moreParticipantsTxt}>+{participants.length - 4}</Text>
+                                </View>
+                              )}
                             </View>
                           ) : (
                             <Text style={styles.noUsers}>No Users Yet</Text>
@@ -698,27 +754,32 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         </View>
 
         {/* External Signup Modal */}
-        {showExternalSignupModal && selectedOpportunity && (
-          <View style={styles.extRegSection}>
-            <Text style={styles.extRegText}>External Registration Required</Text>
-            <Text style={{ color: '#4B5563', marginBottom: 16 }}>Please register externally by clicking the button below.</Text>
-            <Text style={styles.smallGray500}>After registering externally, you'll still be registered locally in our system.</Text>
-            <View style={{ gap: 12 }}>
-              <Pressable
-                onPress={handleExternalSignupConfirm}
-                style={styles.extSignupBtn}
-              >
-                <Text style={styles.extSignupBtnTxt}>Open Link & Register Locally</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleExternalSignupCancel}
-                style={styles.extCancelBtn}
-              >
-                <Text style={styles.extCancelBtnTxt}>Cancel</Text>
-              </Pressable>
+        <Modal
+          visible={showExternalSignupModal && !!selectedOpportunity}
+          transparent
+          animationType="fade"
+          onRequestClose={handleExternalSignupCancel}
+        >
+          <View style={styles.modalBackdrop}>
+            <View style={styles.modalBox}>
+              <Text style={styles.extRegText}>External Registration Required</Text>
+              <Text style={{ color: '#4B5563', marginBottom: 8 }}>
+                Please register externally by clicking the button below.
+              </Text>
+              <Text style={[styles.smallGray500, { marginBottom: 18 } ]}>
+                After registering externally, you'll still be registered locally in our system.
+              </Text>
+              <View style={{ gap: 6 }}>
+                <Pressable onPress={handleExternalSignupConfirm} style={styles.extSignupBtn}>
+                  <Text style={styles.extSignupBtnTxt}>Open Link & Register Locally</Text>
+                </Pressable>
+                <Pressable onPress={handleExternalSignupCancel} style={styles.extCancelBtn}>
+                  <Text style={styles.extCancelBtnTxt}>Cancel</Text>
+                </Pressable>
+              </View>
             </View>
           </View>
-        )}
+        </Modal>
       </View>
       {/* Terms */}
       <View style={{ alignItems: 'center', marginBottom: 6 }}>
@@ -743,8 +804,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingView: {
+    width: '100%',
+    flexDirection: 'column',
+    paddingVertical: 24,
+    marginTop: 130,
+    marginBottom: 280,
+  },
   mainHeader: {
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     backgroundColor: '#fff',
     zIndex: 1,
 
@@ -896,7 +964,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     fontWeight: '700',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   imgUploadTxt: {
     color: '#616161',
@@ -962,14 +1030,12 @@ const styles = StyleSheet.create({
     marginTop: 4
   },
   opps: {
-    // flexWrap: "wrap",
-    // gap: 16,
+    gap: 6,
   },
   oppCard: {
     padding: 16,
-    borderRadius: 12,
+    borderRadius: 8,
     borderWidth: 1,
-    marginBottom: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: "center",
@@ -986,18 +1052,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#1F2937',
   },
-  participantImg: {
-    width: 28,
-    height: 28,
-    borderRadius: 9999,
-    borderWidth: 2,
-    borderColor: 'white',
-    objectFit: 'cover',
-  },
-  participantName: {
-    fontSize: 14,
-    color: '#374151',
-  },
   participantsWrapper: {
     flexDirection: 'column',
     gap: 4,
@@ -1007,7 +1061,43 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontSize: 12,
     fontWeight: '700',
+    alignSelf: 'flex-end',
   },
+  participants: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+  },
+	avatarContainer: {
+		width: 28,
+  	height: 28,
+		// marginRight: -8,
+	},
+	avatar: {
+		width: 28,
+		height: 28,
+		borderWidth: 1.5,
+		borderRadius: 9999,
+    // borderColor: '#d4d4d4',
+    borderColor: 'white',
+		objectFit: 'cover',
+	},
+	moreParticipants: {
+		width: 26,
+		height: 26,
+    borderRadius: 9999,
+    backgroundColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    // borderColor: '#d4d4d4',
+    borderColor: 'white',
+	},
+	moreParticipantsTxt: {
+		color: '#4b5563',
+    fontSize: 12,
+    fontWeight: '600',
+	},
   loading: {
     color: '#9CA3AF',
     fontSize: 12,
@@ -1061,23 +1151,44 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     flexShrink: 1,
   },
-  extRegSection: {
-    //"fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 bg-white rounded-lg p-6 max-w-md mx-4"
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalBox: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
   },
   extRegText: {
-    //"text-lg font-bold text-gray-900 mb-4"
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#212121',
+    marginBottom: 16,
   },
   extSignupBtn: {
-    //"flex-1 bg-cornell-red text-white font-bold py-2 px-4 rounded-lg hover:bg-red-800 transition-colors"
+    backgroundColor: Theme.cornellRed,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   extSignupBtnTxt: {
-
+    color: 'white',
+    fontWeight: '600',
   },
   extCancelBtn: {
-    //"flex-1 bg-gray-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-600 transition-colors"
+    backgroundColor: '#9E9E9E',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
   },
   extCancelBtnTxt: {
-
+    color: 'white',
+    fontWeight: '500',
   },
   smallGray500: {
     fontSize: 14,
@@ -1106,7 +1217,6 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 24,
-    lineHeight: 32,
     fontWeight: '700',
   },
   flexGap: {

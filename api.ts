@@ -2,7 +2,6 @@ import { ImageSourcePropType } from "react-native";
 import { auth } from './firebase-config';
 import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 
-
 // A helper for making Acucaresbackend.onrender.comPI requests.
 const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
 
@@ -1175,20 +1174,32 @@ export const createWaiver = async (data: {
 }): Promise<Waiver> => {
   const token = await getFirebaseToken();
 
+  // const response = await fetch(`${ENDPOINT_URL}/api/waivers/create-waiver`, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //     'Authorization': `Bearer ${token}`
+  //   },
+  //   body: JSON.stringify({
+  //     typed_name: data.typed_name,
+  //     type: data.type,
+  //     content: data.content,
+  //     checked_consent: data.checked_consent,
+  //     user_id: data.user_id,
+  //     organization_id: data.organization_id
+  //   })
+  // });
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${ENDPOINT_URL}/api/waivers/create-waiver`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      typed_name: data.typed_name,
-      type: data.type,
-      content: data.content,
-      checked_consent: data.checked_consent,
-      user_id: data.user_id,
-      organization_id: data.organization_id
-    })
+    headers,
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {

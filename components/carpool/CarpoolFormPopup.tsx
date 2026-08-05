@@ -1,9 +1,10 @@
+import { addRider } from '@/api';
 import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
 import { useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
 import { FlatList } from "react-native";
-import { addRider } from '../api';
 
+import { User } from '@/types';
 import {
   Modal,
   Pressable,
@@ -12,7 +13,6 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { User } from '../types';
 
 interface CarpoolFormPopupProps {
   setShowPopup: React.Dispatch<React.SetStateAction<boolean>>,
@@ -77,16 +77,19 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
 
   return (
     <Modal visible transparent animationType='fade'>
-      <View style={styles.modalBackdrop}>
+      <Pressable
+        style={styles.modalBackdrop}
+        onPress={() => setShowPopup(false)}
+      >
         <View style={styles.modal}>
           <Pressable
             style={styles.closeButton}
             onPress={() => setShowPopup(false)}
           >
-            <MaterialDesignIcons name='close' size={24} color='#6B7280' />
+            <MaterialDesignIcons name='close' size={24} color='#a8abb2' />
           </Pressable>
 
-          <Text style={styles.title}>Enter Pickup Information</Text>
+          <Text style={styles.header}>Enter Pickup Information</Text>
 
           <View style={styles.formContent}>
             <View>
@@ -168,7 +171,7 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
             <Text style={styles.redButtonText}>Sign Up</Text>
           </Pressable>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -188,19 +191,20 @@ const styles = StyleSheet.create({
     maxWidth: 448,
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 24,
-    gap: 20,
+    padding: 12,
   },
   closeButton: {
     alignSelf: 'flex-end',
   },
-  title: {
+  header: {
     fontSize: 24,
     fontWeight: '700',
     textAlign: 'center',
+    marginBottom: 20,
   },
   formContent: {
     gap: 16,
+    paddingHorizontal: 12,
   },
   formLabel: {
     fontSize: 14,
@@ -225,7 +229,8 @@ const styles = StyleSheet.create({
     maxHeight: '60%',
     backgroundColor: 'white',
     borderRadius: 16,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
   },
   optionRow: {
     flexDirection: 'row',
@@ -242,6 +247,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#B31B1B',
     borderRadius: 10,
     paddingVertical: 12,
+    marginTop: 20,
     alignItems: 'center',
   },
   redButtonText: {

@@ -9,36 +9,30 @@
  *    Redesign page title formatting
  */
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, FlatList, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { getCurrentOpportunities, getMultiOpps, getOrgs, getUsers } from '@/api';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import MultiOppCard from '@/components/MultiOppCard';
 import OpportunityCard from '@/components/OpportunityCard';
+import PublicHeader from '@/components/PublicHeaderComponent';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
-import { mockMultiOpps, mockOpportunities, mockUsers } from '@/data/initialData';
+import { mockMultiOpps, mockOpportunities } from '@/data/initialData';
+import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, User } from '@/types';
-
-function isOpportunity(opp: Opportunity | MultiOpp): opp is Opportunity {
-  return 'allow_carpool' in opp;
-}
-
-function isMultiOpp(opp: Opportunity | MultiOpp): opp is MultiOpp {
-  return !('allow_carpool' in opp);
-}
+import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
 
 interface OpportunitiesPageProps {
   // students: User[];
   // signups: SignUp[];
-  handleSignUp?: (opportunityId: number) => void;
-  handleUnSignUp?: (
-    opportunityId: number,
-    opportunityDate?: string,
-    opportunityTime?: string
-  ) => Promise<boolean>;
+  // handleSignUp?: (opportunityId: number) => void;
+  // handleUnSignUp?: (
+  //   opportunityId: number,
+  //   opportunityDate?: string,
+  //   opportunityTime?: string
+  // ) => Promise<boolean>;
   // currentUserSignupsSet?: Set<number>;
   feedOrder: FeedOrderItem[];
   invisibleMultioppIds: number[];
@@ -54,8 +48,8 @@ interface OpportunitiesPageProps {
 const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   // students,
   // signups,
-  handleSignUp,
-  handleUnSignUp,
+  // handleSignUp,
+  // handleUnSignUp,
   // currentUserSignupsSet,
   feedOrder,
   invisibleMultioppIds,
@@ -63,41 +57,12 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   setShowCarpoolPopup,
   showPopup,
 }) => {
-  const { students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
+  const { currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
+  const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   const [oppsLoading, setOppsLoading] = useState(true);
-
-  useEffect(() => {
-    const start = Date.now();
-    setOppsLoading(true);
-    Promise.all([
-      getOrgs(),
-      getCurrentOpportunities(),
-      getMultiOpps(),
-      getUsers(),
-    ])
-      .then(([orgs, opps, multiopps, students]) => {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
-        const upcomingMultiopps = multiopps.filter((m) =>
-          m.opportunities?.some((o) => new Date(o.date) >= today)
-        );
-        console.log('Fetch took', Date.now() - start, 'ms');
-        console.log('opps count:', opps.length, 'multiopps count:', multiopps.length);
-        setOrganizations(orgs);
-        setAllOpps([...upcomingOpps, ...upcomingMultiopps]);
-        setStudents(students);
-      })
-      .catch(console.error)
-      .finally(() => setOppsLoading(false));
-  }, []);
   
-  const opportunities = allOpps.filter(isOpportunity);
+  const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
   const multiopps = allOpps.filter(isMultiOpp);
-
-  console.log('opps: ' + opportunities)
-  console.log('multiopps: ' + multiopps)
 
   const USE_MOCKS = false;
 
@@ -110,7 +75,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       ? students?.find((s) => s.id === parsedId)
       : currentUser;
   
-  const user = USE_MOCKS ? mockUsers[0] : baseUser;
   const userOpportunities = USE_MOCKS ? mockOpportunities : opportunities;
   const userMultiOpps = USE_MOCKS ? mockMultiOpps : multiopps;
 
@@ -118,52 +82,52 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   const [showExternalUnsignupModal, setShowExternalUnsignupModal] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
 
-  const currentUserSignupsSet = useMemo(() => {
+  useMemo(() => {
     if (!currentUser) return new Set<number>();
-    const userSignups = new Set<number>();
     signups.forEach((signup) => {
-      if (signup.userId === currentUser.id) userSignups.add(signup.opportunityId);
+      if (signup.userId === currentUser.id) currentUserSignupsSet.add(signup.opportunityId);
     });
     opportunities.forEach((opp) => {
       const isRegistered = opp.involved_users?.some(
-        (user) => user.id === currentUser.id && user.registered === true
+        (u) => u.id === currentUser.id && u.registered === true
       );
-      if (isRegistered) userSignups.add(opp.id);
+      if (isRegistered) currentUserSignupsSet.add(opp.id);
     });
-    return userSignups;
+    return currentUserSignupsSet;
   }, [currentUser, opportunities, signups]);
 
   const feedItems = useMemo((): FeedItem[] => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
 
     // Filter standalone opps (approved, upcoming, visible, not part of a multiopp)
     const standaloneOpps = (userOpportunities ?? []).map((opp) => {
-        const [year, month, day] = opp.date.split('-').map(Number);
-        const localDate = new Date(year, month - 1, day);
-        const [hours, minutes] = opp.time.split(':').map(Number);
-        const fullDateTime = new Date(year, month - 1, day, hours, minutes);
-        return { ...opp, localDate, fullDateTime };
-      })
-      .filter((opp) => {
-        if (!opp.approved) return false;
-        if (opp.localDate.getTime() < today.getTime()) return false;
-        if (opp.multiopp) return false;
-        if (!opp.visibility || opp.visibility.length === 0) return true;
-        if (!user) return false;
-        if (user.admin) return true;
-        const userOrgIds = user.organizationIds || [];
-        return opp.visibility.some((orgId) => userOrgIds.includes(orgId));
-      });
+      const [year, month, day] = opp.date.split('-').map(Number);
+      const localDate = new Date(year, month - 1, day);
+      const [hours, minutes] = opp.time.split(':').map(Number);
+      const fullDateTime = new Date(year, month - 1, day, hours, minutes);
+      return { ...opp, localDate, fullDateTime };
+    })
+    .filter((opp) => {
+      if (!opp.approved) return false;
+      if (opp.fullDateTime.getTime() < now.getTime()) return false;
+      // if (currentUser && opp.involved_users?.includes(currentUser)) return true;
+      // if ((opp.total_slots - Number(opp.involved_users?.length)) === 0) return false;
+      if (opp.multiopp) return false;
+      if (!opp.visibility || opp.visibility.length === 0) return true;
+      if (!currentUser) return false;
+      if (currentUser.admin) return true;
+      const userOrgIds = currentUser.organizationIds || [];
+      return opp.visibility.some((orgId) => userOrgIds.includes(orgId));
+    });
 
     // Filter visible multiopps (excluding invisible ones set by admin)
     const invisibleSet = new Set(invisibleMultioppIds);
     const visibleMultiOpps = (userMultiOpps ?? []).filter((m) => {
       if (invisibleSet.has(m.id)) return false;
       if (!m.visibility || m.visibility.length === 0) return true;
-      if (!user) return false;
-      if (user.admin) return true;
-      const userOrgIds = user.organizationIds || [];
+      if (!currentUser) return false;
+      if (currentUser.admin) return true;
+      const userOrgIds = currentUser.organizationIds || [];
       return m.visibility.some((orgId) => userOrgIds.includes(orgId));
     });
 
@@ -181,16 +145,24 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       const posA = positionMap.get(keyA) ?? Infinity;
       const posB = positionMap.get(keyB) ?? Infinity;
       if (posA !== posB) return posA - posB;
-      // Fallback: chronological by first date
-      const dateA = a.kind === 'opp'
-        ? (a.data as typeof standaloneOpps[0]).fullDateTime.getTime()
-        : new Date(a.data.date).getTime();
-      const dateB = b.kind === 'opp'
-        ? (b.data as typeof standaloneOpps[0]).fullDateTime.getTime()
-        : new Date(b.data.date).getTime();
-      return dateA - dateB;
+
+      // Fallback: chronological by next upcoming date
+      const getNextDate = (item: FeedItem): number => {
+        if (item.kind === 'opp') {
+          return (item.data as typeof standaloneOpps[0]).fullDateTime.getTime();
+        }
+        // For multiopps, find the next upcoming occurrence
+        const multiOpp = item.data as MultiOpp;
+        const upcoming = (multiOpp.opportunities ?? [])
+          .map((o) => new Date(o.date).getTime())
+          .filter((t) => t >= now.getTime())
+          .sort((a, b) => a - b);
+        return upcoming[0] ?? Infinity; // no upcoming dates → sort to end
+      };
+
+      return getNextDate(a) - getNextDate(b);
     });
-  }, [userOpportunities, userMultiOpps, user, feedOrder, invisibleMultioppIds]);
+  }, [userOpportunities, userMultiOpps, currentUser, feedOrder, invisibleMultioppIds]);
   
   const handleExternalSignup = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -202,19 +174,18 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     setShowExternalUnsignupModal(true);
   };
 
-  const handleExternalSignupConfirm = () => {
-    if (selectedOpportunity) {
-      if (!user) {
-        router.push('../login');
-        return;
-      }
-      window.open(selectedOpportunity.redirect_url!, '_blank');
-      if (handleSignUp) {
-        handleSignUp(selectedOpportunity.id);
-      }
-      setShowExternalSignupModal(false);
-      setSelectedOpportunity(null);
+  const handleExternalSignupConfirm = async () => {
+    if (!selectedOpportunity) return;
+    if (!currentUser) {
+      router.push(`/LoginPage`);
+      return;
     }
+    if (selectedOpportunity.redirect_url) {
+      await Linking.openURL(selectedOpportunity.redirect_url);
+    }
+    await handleSignUp(selectedOpportunity.id);
+    setShowExternalSignupModal(false);
+    setSelectedOpportunity(null);
   };
 
   const handleExternalUnsignupConfirm = () => {
@@ -243,9 +214,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     router.push(`/CreateOpportunityPage`);
   };
 
-  if (!user) return <Text>User not found</Text>;
-
-  const Header = ({ user }: { user: User }) => (
+  const Header = ({ user }: { user: User | null | undefined }) => (
     <View style={styles.headerWrapper}>
       <View style={styles.headerLeft}>
         <Text style={styles.headerTxt}>Opportunities</Text>
@@ -284,8 +253,8 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.mainHeader}>
-        <MainHeader />
+      <View style={styles.header}>
+        { currentUser ? <MainHeader /> : <PublicHeader /> }
       </View>
       {/* Opportunities Grid */}
       <FlatList
@@ -299,7 +268,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           ? `multiopp-${item.data.id}`
           : `opp-${item.data.id}`
         }
-        ListHeaderComponent={<Header user={user}/>}
+        ListHeaderComponent={<Header user={currentUser}/>}
         ListFooterComponent={<Footer oppsLoading={oppsLoading}/>}
         ListEmptyComponent={
           oppsLoading ? (
@@ -309,7 +278,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           ) : feedItems.length === 0 ? (
             <View style={styles.loadedView}>
               <Text style={styles.noOpps}>There are currently no opportunities.</Text>
-              {user && 
+              {currentUser && 
                 <Text style={styles.noOppsDesc}>Please click 'Create Opportunity' if you would like to propose an opportunity.</Text>
               }
             </View>
@@ -318,14 +287,11 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         renderItem={({ item }) => {
           if (item.kind === 'multiopp') {
             return (
-              <View style={{ marginBottom: 20 }}>
+              <View style={styles.card}>
                 <MultiOppCard
                   key={`multiopp-${item.data.id}`}
                   multiopp={item.data}
-                  allOrgs={allOrgs}
                   opportunitiesData={userOpportunities}
-                  onSignUp={handleSignUp}
-                  onUnSignUp={handleUnSignUp}
                   onExternalSignup={handleExternalSignup}
                   onExternalUnsignup={handleExternalUnsignup}
                 />
@@ -336,7 +302,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           let signedUpStudents: User[] = [];
           if (opp.involved_users && opp.involved_users.length > 0) {
             signedUpStudents = opp.involved_users.filter(
-              (user: User) => user.registered === true || opp.host_id === user.id
+              (u: User) => u.registered === true || opp.host_id === u.id
             );
           } else {
             const safeSignups = signups ?? [];
@@ -349,26 +315,22 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
             );
           }
           const isUserSignedUp =
-            !!user &&
+            !!currentUser &&
             (opp.involved_users
               ? opp.involved_users.some(
                   (participant: User) =>
-                    Number(participant.id) === Number(user.id) &&
-                    (participant.registered || Number(opp.host_id) === Number(user.id))
+                    Number(participant.id) === Number(currentUser.id) &&
+                    (participant.registered || Number(opp.host_id) === Number(currentUser.id))
                 )
               : currentUserSignupsSet?.has(opp.id) ?? false);
 
           return (
-            <View style={{ marginBottom: 20 }}>
+            <View style={styles.card}>
               <OpportunityCard
                 key={`opp-${opp.id}`}
                 opportunity={opp}
                 signedUpStudents={signedUpStudents}
-                currentUser={user}
-                onSignUp={handleSignUp}
-                onUnSignUp={handleUnSignUp}
                 isUserSignedUp={isUserSignedUp}
-                allOrgs={allOrgs}
                 onExternalSignup={handleExternalSignup}
                 onExternalUnsignup={handleExternalUnsignup}
                 showPopup={showPopup}
@@ -379,63 +341,61 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         />
 
       {/* External Signup Modal */}
-      {showExternalSignupModal && selectedOpportunity && (
+      <Modal
+        visible={showExternalSignupModal && !!selectedOpportunity}
+        transparent
+        animationType="fade"
+        onRequestClose={handleExternalSignupCancel}
+      >
         <View style={styles.signupModalBackdrop}>
           <View style={styles.signupModalBox}>
             <Text style={styles.signupModalHeader}>External Registration Required</Text>
-            <Text style={{ marginBottom: 16, color: '#757575' }}>
+            <Text style={{ color: '#4B5563', marginBottom: 8 }}>
               Please register externally on this link by clicking the button below.
             </Text>
-            <Text style={{ fontSize: 14, marginBottom: 24, color: '#757575' }}>
+            <Text style={[styles.smallGray500, { marginBottom: 18 } ]}>
               After registering externally, you'll still be registered locally in our system.
             </Text>
-            <View style={{ gap: 12 }}>
-              <Pressable
-                onPress={handleExternalSignupConfirm}
-                style={styles.externalSignupBtn}
-              >
-                <Text>Open Link & Register Locally</Text>
+            <View style={{ gap: 6 }}>
+              <Pressable onPress={handleExternalSignupConfirm} style={styles.extSignupBtn}>
+                <Text style={styles.extSignupBtnTxt}>Open Link & Register Locally</Text>
               </Pressable>
-              <Pressable
-                onPress={handleExternalSignupCancel}
-                style={styles.externalCancelBtn}
-              >
-                <Text>Cancel</Text>
+              <Pressable onPress={handleExternalSignupCancel} style={styles.extCancelBtn}>
+                <Text style={styles.extCancelBtnTxt}>Cancel</Text>
               </Pressable>
             </View>
           </View>
         </View>
-      )}
+      </Modal>
 
       {/* External Unsignup Modal */}
-      {showExternalUnsignupModal && selectedOpportunity && (
+      <Modal
+        visible={showExternalUnsignupModal && !!selectedOpportunity}
+        transparent
+        animationType="fade"
+        onRequestClose={handleExternalSignupCancel}
+      >
         <View style={styles.signupModalBackdrop}>
           <View style={styles.signupModalBox}>
             <Text style={styles.signupModalHeader}>External Application Notice</Text>
-            <Text style={{ marginBottom: 16, color: '#757575' }}>
+            <Text style={{ color: '#4B5563', marginBottom: 8 }}>
               This opportunity required an external application. Please notify the host non-profit
               that you no longer are able to participate in this opportunity.
             </Text>
-            <Text style={{ fontSize: 14, marginBottom: 24, color: '#757575' }}>
+            <Text style={[styles.smallGray500, { marginBottom: 18 } ]}>
               You will still be unregistered from our local system.
             </Text>
-            <View style={{ gap: 12 }}>
-              <Pressable
-                onPress={handleExternalUnsignupConfirm}
-                style={styles.externalSignupBtn}
-              >
-                <Text>Unregister Locally</Text>
+            <View style={{ gap: 6 }}>
+              <Pressable onPress={handleExternalUnsignupConfirm} style={styles.extSignupBtn}>
+                <Text style={styles.extSignupBtnTxt}>Unregister Locally</Text>
               </Pressable>
-              <Pressable
-                onPress={handleExternalSignupCancel}
-                style={styles.externalCancelBtn}
-              >
-                <Text>Cancel</Text>
+              <Pressable onPress={handleExternalSignupCancel} style={styles.extCancelBtn}>
+                <Text style={styles.extCancelBtnTxt}>Cancel</Text>
               </Pressable>
             </View>
           </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 };
@@ -446,8 +406,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  mainHeader: {
-    paddingHorizontal: 16,
+  header: {
+    // paddingHorizontal: 16,
     backgroundColor: '#fff',
     zIndex: 1,
 
@@ -523,6 +483,15 @@ const styles = StyleSheet.create({
     width: '100%',
     flex: 1,
   },
+  card: {
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 1,
+  },
   noOpps: {
     fontSize: 18,
     fontWeight: '600',
@@ -537,46 +506,49 @@ const styles = StyleSheet.create({
     color: '#999999',
   },
   signupModalBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
     alignItems: 'center',
-    zIndex: 50,   
+    padding: 24,
   },
   signupModalBox: {
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 16,
     padding: 24,
-    marginHorizontal: 16,
     width: '100%',
   },
   signupModalHeader: {
-    color: '#212121',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
+    color: '#212121',
     marginBottom: 16,
   },
-  externalSignupBtn: {
-    flex: 1,
+  extSignupBtn: {
     backgroundColor: Theme.cornellRed,
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
-  externalSignupBtnTexts: {
+  extSignupBtnTxt: {
     color: 'white',
-    fontWeight: '700',
+    fontWeight: '600',
   },
-  externalCancelBtn: {
-    flex: 1,
+  extCancelBtn: {
     backgroundColor: '#9E9E9E',
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
+  },
+  extCancelBtnTxt: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  smallGray500: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#9E9E9E',
+    marginBottom: 24
   },
   termsFooter: {
     color: '#6b7280',

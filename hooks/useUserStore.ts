@@ -1,6 +1,14 @@
 // store/useUserStore.ts
+import { FriendshipsResponse, MultiOpp, Opportunity, Organization, SignUp, User } from '@/types';
 import { create } from 'zustand';
-import { MultiOpp, Opportunity, Organization, SignUp, User } from '../types';
+
+interface PopupMessage {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  type: 'success' | 'info' | 'warning' | 'error';
+  opportunityId?: number;
+}
 
 interface UserStore {
   currentUser: User | null;
@@ -16,6 +24,12 @@ interface UserStore {
   allOpps: (Opportunity | MultiOpp)[];
   setAllOpps: (opps: (Opportunity | MultiOpp)[]) => void;
   addOpp: (opp: Opportunity | MultiOpp) => void;
+  popup: PopupMessage;
+  showPopup: (title: string, message: string, type?: 'success' | 'info' | 'warning' | 'error', opportunityId?: number) => void;
+  closePopup: () => void;
+  friendshipsData: FriendshipsResponse | null;
+  setFriendshipsData: (data: FriendshipsResponse | null) => void;
+  currentUserSignupsSet: Set<number>;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
@@ -35,4 +49,12 @@ export const useUserStore = create<UserStore>((set) => ({
   allOpps: [],
   setAllOpps: (opps) => set({ allOpps: opps }),
   addOpp: (opp) => set((state) => ({ allOpps: [...state.allOpps, opp] })),
+  popup: { isOpen: false, title: '', message: '', type: 'info' },
+  showPopup: (title, message, type = 'info', opportunityId) =>
+    set({ popup: { isOpen: true, title, message, type, opportunityId } }),
+  closePopup: () =>
+    set((state) => ({ popup: { ...state.popup, isOpen: false } })),
+  friendshipsData: null,
+  setFriendshipsData: (data) => set({ friendshipsData: data }),
+  currentUserSignupsSet: new Set<number>(),
 }));

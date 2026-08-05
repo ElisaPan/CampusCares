@@ -34,7 +34,6 @@ export default function MyOpportunitiesScreen() {
 
 // const ServiceJournal: React.FC<ServiceJournalProps> = ({ currentUser, allOrgs, allTimeMyOpps, setAllTimeMyOpps }) => {
 //   const { userId } = useParams<{ userId: string }>();
-//   const navigate = useNavigate();
 //   const [opportunities, setOpportunities] = useState<ServiceJournalEntry[]>([]);
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState<string | null>(null);
