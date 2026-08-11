@@ -32,6 +32,8 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [phoneError, setPhoneError] = useState('');
+  const [creatingRide, setCreatingRide] = useState(false);
+
   const queryClient = useQueryClient();
 
   const { updateCurrentUser } = useUserStore();
@@ -68,9 +70,12 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
       return;
     }
     if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
-      setPhoneError('A valid phone number is required to offer a ride.');
+      setPhoneError('Valid phone number is required.');
       return;
     }
+
+    if (creatingRide) return;
+    setCreatingRide(true);
 
     try {
       if (currentUser && currentUser.phone !== phone) {
@@ -100,6 +105,8 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
       );
     } catch (err) {
       setError('Failed to add ride, please try again');
+    } finally {
+      setCreatingRide(false);
     }
   }
 
@@ -146,6 +153,7 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
                   if (!isNaN(value) && value >= 1 && value <= 15) {
                     setCarSeats(value);
                   }
+                  setError('')
                 }}
               />
             </View>
@@ -182,7 +190,7 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
                   setPhoneError('');
                 }}
                 keyboardType="phone-pad"
-                placeholder="e.g. 607-555-0123"
+                placeholder="e.g. 607-254-4636"
                 style={styles.field}
               />
               {phoneError !== '' && <Text style={styles.error}>{phoneError}</Text>}
@@ -199,6 +207,7 @@ const CarpoolFormPopup: React.FC<CarpoolFormPopupProps> = ({
           <Pressable
             style={styles.redBtn}
             onPress={onSubmit}
+            disabled={creatingRide}
           >
             <Text style={styles.btnTxt}>Add Ride</Text>
           </Pressable>

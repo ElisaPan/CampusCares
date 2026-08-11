@@ -67,6 +67,8 @@ const styles = StyleSheet.create({
 		backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-between',
+		paddingTop: 8,
+    paddingBottom: 4,
   },
 	loadingView: {
     width: '100%',

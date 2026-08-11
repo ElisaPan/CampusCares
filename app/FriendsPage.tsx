@@ -9,6 +9,7 @@ import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
+
 interface FriendsPageProps {
   // handleFriendRequest: (toUserId: number) => void;
   // handleRemoveFriend: (friendId: number) => void;

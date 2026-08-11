@@ -12,6 +12,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import MultiOppCard from '@/components/MultiOppCard';
 import OpportunityCard from '@/components/OpportunityCard';
@@ -36,13 +37,13 @@ interface OpportunitiesPageProps {
   // currentUserSignupsSet?: Set<number>;
   feedOrder: FeedOrderItem[];
   invisibleMultioppIds: number[];
-  showCarpoolPopup?: number | null;
-  setShowCarpoolPopup?: React.Dispatch<React.SetStateAction<number | null>>;
-  showPopup?: (
-    title: string,
-    message: string,
-    type: 'success' | 'info' | 'warning' | 'error'
-  ) => void;
+  // showCarpoolPopup?: number | null;
+  // setShowCarpoolPopup?: React.Dispatch<React.SetStateAction<number | null>>;
+  // showPopup?: (
+  //   title: string,
+  //   message: string,
+  //   type: 'success' | 'info' | 'warning' | 'error'
+  // ) => void;
 }
 
 const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
@@ -53,11 +54,11 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   // currentUserSignupsSet,
   feedOrder,
   invisibleMultioppIds,
-  showCarpoolPopup,
-  setShowCarpoolPopup,
-  showPopup,
+  // showCarpoolPopup,
+  // setShowCarpoolPopup,
+  // showPopup,
 }) => {
-  const { currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
+  const { showCarpoolPopup, setShowCarpoolPopup, showPopup, currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   const [oppsLoading, setOppsLoading] = useState(true);
   
@@ -339,6 +340,13 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           );
         }}
         />
+      
+      {showCarpoolPopup !== null && (
+        <CarpoolPopup
+          opportunityId={showCarpoolPopup}
+          setShowPopup={setShowCarpoolPopup}
+        />
+      )}
 
       {/* External Signup Modal */}
       <Modal

@@ -31,6 +31,7 @@ import {
   User
 } from '@/types';
 // import AttendanceManager from '@/components/AttendanceManager';
+import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import { isOpportunity } from '@/utils/isOpp';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
 
@@ -41,7 +42,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import { MaterialIcons } from '@expo/vector-icons';
 import * as Clipboard from "expo-clipboard";
@@ -65,7 +66,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
   // currentUserSignupsSet,
   // allTimeMyOpps,
 }) => {
-  const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps } = useUserStore();
+  const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps, showCarpoolPopup, setShowCarpoolPopup } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   
   const USE_MOCKS = false;
@@ -208,11 +209,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
         }
 
         if (!opportunity) {
-          return (
-            <View style={styles.loadingView}>
-              <ActivityIndicator size='large' color={Theme.cornellRed} />
-            </View>
-          )
+          return;
         }
 
         const unregistered = await handleUnSignUp(
@@ -249,11 +246,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
       }
 
       if (!opportunity) {
-        return (
-          <View style={styles.loadingView}>
-            <ActivityIndicator size='large' color={Theme.cornellRed} />
-          </View>
-        )
+        return;
       }
       // Normal sign up
       await handleSignUp(opportunity?.id);
@@ -892,7 +885,7 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
                   {opportunity.address && (
                     <View style={styles.userViewIcons}>
                       <MaterialIcons name="location-pin" size={20} color='#374151'/>
-                      <Text style={{ color: "#374151" }}>{opportunity.address}</Text>
+                      <Text style={{ color: "#374151", paddingRight: 10 }}>{opportunity.address}</Text>
                     </View>
                   )}
                   <View style={styles.userViewIcons}>
@@ -1645,6 +1638,13 @@ const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
           </View>
         </View>
       </View>
+
+      {showCarpoolPopup !== null && (
+        <CarpoolPopup
+          opportunityId={showCarpoolPopup}
+          setShowPopup={setShowCarpoolPopup}
+        />
+      )}
 
       {/* Terms */}
       <View style={{ alignItems: 'center', marginBottom: 6 }}>

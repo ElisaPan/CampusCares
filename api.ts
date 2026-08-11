@@ -1462,6 +1462,12 @@ export const createRide = async (data: object) => {
   }
 }
 
+export const deleteRide = (rideId: number, userId: number) =>
+  authenticatedRequest(`/rides/${rideId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ user_id: userId }),
+  });
+
 export const addRider = async (data: object) => {
   try {
     await authenticatedRequest('/rides/add-rider', {
@@ -1496,6 +1502,23 @@ export const removeCarpoolUser = async (data: object) => {
     throw err;
   }
 }
+
+export const requestRideNotification = (carpoolId: number, userId: number) =>
+  authenticatedRequest('/rides/request-notification', {
+    method: 'POST',
+    body: JSON.stringify({ carpool_id: carpoolId, user_id: userId }),
+  });
+
+export const cancelRideNotificationRequest = (carpoolId: number, userId: number) =>
+  authenticatedRequest('/rides/cancel-notification-request', {
+    method: 'POST',
+    body: JSON.stringify({ carpool_id: carpoolId, user_id: userId }),
+  });
+
+export const checkWaitlistStatus = async (carpoolId: number, userId: number): Promise<boolean> => {
+  const response = await authenticatedRequest(`/rides/check-notification-request?carpool_id=${carpoolId}&user_id=${userId}`);
+  return response.on_waitlist ?? false;
+};
 
 export const getRides = async (carpoolId: number): Promise<Ride[]> => {
   try {

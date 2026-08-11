@@ -13,16 +13,16 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from "expo-router";
 import { Trash2 } from 'lucide-react-native';
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { getOpportunity, getProfilePictureSource, getRides, removeRider } from '@/api';
+import { cancelRideNotificationRequest, checkWaitlistStatus, deleteRide, getOpportunity, getProfilePictureSource, getRides, removeRider, requestRideNotification } from '@/api';
 import CarpoolFormPopup from '@/components/carpool/CarpoolFormPopup';
 import DriverFormPopup from '@/components/carpool/DriverFormPopup';
 import WaiverPopup from '@/components/carpool/WaiverPopup';
 import { mockOpportunities, mockRides, mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
-import { Opportunity, Ride, RideRider } from '@/types';
+import { Opportunity, Ride } from '@/types';
 import { calculateEndTime, canUnregisterFromOpportunity } from '@/utils/timeUtils';
 
 interface CarpoolPageProps {
@@ -46,6 +46,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   
   const mockOpportunity = mockOpportunities.find((o) => o.id === parsedId);
 
+  const [onWaitlist, setOnWaitlist] = useState(false);
 
   const [showRiderForm, setShowRiderForm] = useState(false);
   const [selectedRideId, setSelectedRideId] = useState('');
@@ -87,9 +88,16 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   const userRide = rides?.find(ride => ride.riders.some(rider => rider.user_id == profileUser?.id.toString()));
   const isRider = !!userRide;
 
+  useEffect(() => {
+    if (!currentUser || !carpoolId) return;
+
+    checkWaitlistStatus(Number(carpoolId), currentUser.id)
+      .then(setOnWaitlist)
+      .catch(() => setOnWaitlist(false));
+  }, [currentUser?.id, carpoolId, isDriver]);
 
   // Logic to get the time/date
-  const dateObj = new Date(Number(opportunity?.date));
+  const dateObj = new Date(opportunity?.date ?? '');
   dateObj.setDate(dateObj.getDate() + 1);
 
   const displayDate = dateObj.toLocaleDateString('en-US', {
@@ -125,9 +133,12 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
 
   const onAddRide = () => {
     setShowDriverPopup(true);
+    setOnWaitlist(false);
   }
 
-  const onRemoveRide = async (id: String, signedUpStudents: RideRider[]) => {
+  const onRemoveRide = async (id: string) => {
+    if (!currentUser) return;
+
     const confirmed = await new Promise<boolean>((resolve) => {
       Alert.alert(
         'Remove Ride',
@@ -142,20 +153,53 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     if (!confirmed) return;
 
     try {
-      // Notify riders before deleting, while their contact info is still available
-      const phoneNumbers = signedUpStudents
-        .map((rider) => students.find((s) => String(s.id) === rider.user_id)?.phone)
-        .filter((phone): phone is string => Boolean(phone)); // filters out null/undefined, narrows type
-
-      if (phoneNumbers.length > 0) {
-        sendTextToSignedUpUsers(phoneNumbers);
-      }
-
-      await deleteRide(id);
+      await deleteRide(Number(id), currentUser.id);
+      queryClient.invalidateQueries({ queryKey: ['rides', carpoolId] });
     } catch (error: any) {
       Alert.alert('Error', `Failed to remove ride: ${error.message}`);
     }
   };
+
+  const handleWaitlistPress = async () =>{
+    if (!carpoolId || !currentUser) return;
+
+    if (onWaitlist) {
+      try {
+        await cancelRideNotificationRequest(Number(carpoolId), currentUser.id);
+        setOnWaitlist(false);
+      } catch (e: any) {
+        Alert.alert('Error', e.message);
+      }
+      return;
+    }
+
+    try {
+      const rides = await getRides(Number(carpoolId))
+      if (rides.length === 0) {
+        Alert.alert(
+          'No rides available',
+          'There are no rides for this opportunity yet. Would you like to be notified when one is created?',
+          [
+            { text: 'No thanks', style: 'cancel' },
+            {
+              text: 'Notify me',
+              onPress: async () => {
+                try {
+                  await requestRideNotification(Number(carpoolId), currentUser.id);
+                  setOnWaitlist(true);
+                } catch (e: any) {
+                  Alert.alert('Error', e.message);
+                }
+              },
+            },
+          ]
+        );
+        return;
+      }
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to check for available rides.');
+    }
+  }
 
   const sendTextToSignedUpUsers = (phoneNumbers: string[]) => {
     const separator = Platform.OS === 'ios' ? ',' : ';';
@@ -199,7 +243,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
           {opportunity.address &&
             <View style={styles.locationWrapper}>
               <MaterialIcons name='location-on' size={24} color='#6B7280' />
-              <Text style={styles.location}>{opportunity.address}</Text>
+              <Text style={[styles.location ]}>{opportunity.address}</Text>
             </View>
           }
           {!canUnregister &&
@@ -228,8 +272,8 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
                   <View style={styles.ride}>
                     <View style={styles.rideHeader}>
                       <Text style={styles.driverName}>{ride.driver_name}</Text>
-                      {(Number(ride.driver_id) === Number(currentUser?.id)) &&
-                        <Pressable onPress={() => onRemoveRide(ride.id, ride.riders)} style={{ marginRight: -16}}>
+                      {((Number(ride.driver_id) === Number(currentUser?.id)) || currentUser?.admin )&&
+                        <Pressable onPress={() => onRemoveRide(ride.id)} style={{ paddingLeft: 4, marginRight: -16}}>
                           <Trash2 color='#d2d2d2'size={18}/>
                         </Pressable>
                       }
@@ -301,6 +345,19 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
         </View>
       </View>
 
+      {(onWaitlist || rides.length === 0 ) && (
+        <Pressable
+          onPress={handleWaitlistPress}
+          style={[styles.waitlistBtn, onWaitlist && {opacity: 0.7}]}
+        >
+          { onWaitlist ? (
+            <Text style={styles.waitlistTxt}>Waitlisted — tap to cancel</Text>
+          ) : (
+            <Text style={styles.waitlistTxt}>Notify me when a ride is added</Text>
+          )}
+        </Pressable>
+      )}
+
       {showRiderForm &&
         <CarpoolFormPopup
           setShowPopup={setShowRiderForm}
@@ -366,10 +423,10 @@ const styles = StyleSheet.create({
   headerWrapper: {
     alignItems: 'center',
     paddingVertical: 24,
-    // paddingHorizontal: 20,
+    paddingHorizontal: 20,
   },
   header: {
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '700',
     color: '#1F2937',
     textAlign: 'center',
@@ -380,7 +437,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   mainDetails: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     color: '#CF1C25',
     textAlign: 'center',
@@ -390,9 +447,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
+    paddingHorizontal: 8,
   },
   location: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#5f6771',
   },
   detail: {
@@ -424,7 +482,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: 'column',
     gap: 6,
-  
+
     borderBottomWidth: 0.6,
     borderBottomColor: '#abb1bd',
   },
@@ -434,6 +492,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   ride: {
+    width: '75%',
     flexDirection: 'column',
     gap: 4,
   },
@@ -533,4 +592,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     textAlign: 'center'
   },
+  waitlistBtn: {
+    backgroundColor: 'rgb(37, 99, 235)',
+    marginTop: 16,
+    marginHorizontal: 40,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  waitlistTxt: {
+    color: 'rgb(255,255,255)',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  }
 })

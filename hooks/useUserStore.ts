@@ -27,6 +27,8 @@ interface UserStore {
   popup: PopupMessage;
   showPopup: (title: string, message: string, type?: 'success' | 'info' | 'warning' | 'error', opportunityId?: number) => void;
   closePopup: () => void;
+  showCarpoolPopup: number | null;
+  setShowCarpoolPopup: (id: number | null) => void;
   friendshipsData: FriendshipsResponse | null;
   setFriendshipsData: (data: FriendshipsResponse | null) => void;
   currentUserSignupsSet: Set<number>;
@@ -54,6 +56,8 @@ export const useUserStore = create<UserStore>((set) => ({
     set({ popup: { isOpen: true, title, message, type, opportunityId } }),
   closePopup: () =>
     set((state) => ({ popup: { ...state.popup, isOpen: false } })),
+  showCarpoolPopup: null,
+  setShowCarpoolPopup: (id) => set({ showCarpoolPopup: id }),
   friendshipsData: null,
   setFriendshipsData: (data) => set({ friendshipsData: data }),
   currentUserSignupsSet: new Set<number>(),

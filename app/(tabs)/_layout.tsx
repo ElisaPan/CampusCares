@@ -39,22 +39,6 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
-        name="LeaderboardPage"
-        options={{
-          // title: 'Leaderboard',
-          // tabBarIcon: ({ color }) => (
-          //   <MaterialIcons
-          //     name="leaderboard"
-          //     size={28}
-          //     color={color}
-          //   />
-          // ),
-          // headerShown: false
-          href: null
-        }}
-      />
-
       {currentUser &&
         <Tabs.Screen
           name="ProfilePage"
@@ -71,6 +55,46 @@ export default function TabLayout() {
           }}
         />
       }
+
+      <Tabs.Screen
+        name="OpportunityDetailPage"
+        options={{
+          href: null,
+          headerShown: false
+        }}
+      />
+
+      <Tabs.Screen
+        name="MultiOppDetailPage"
+        options={{
+          href: null,
+          headerShown: false
+        }}
+      />
+
+      <Tabs.Screen
+        name="UserProfile"
+        options={{
+          href: null,
+          headerShown: false
+        }}
+      />
+
+      <Tabs.Screen
+        name="LeaderboardPage"
+        options={{
+          // title: 'Leaderboard',
+          // tabBarIcon: ({ color }) => (
+          //   <MaterialIcons
+          //     name="leaderboard"
+          //     size={28}
+          //     color={color}
+          //   />
+          // ),
+          // headerShown: false
+          href: null
+        }}
+      />
 
       <Tabs.Screen
         name="AdminPage"

@@ -45,7 +45,6 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Pressable, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(true);
   const [active, setActive] = useState(0);
@@ -329,27 +328,6 @@ const HomePage = () => {
       /> */}
       <RNAnimated.ScrollView
         style={styles.container}
-        // onScroll={(e) => {
-        //   const scrollY = e.nativeEvent.contentOffset.y;
-
-        //   if (!redTriggered.current && scrollY + screenHeight >= redGridY.current) {
-        //     redTriggered.current = true;
-        //     setShowRedGrid(true);
-        //     animateRedGrid();
-        //   }
-
-        //   if (!yellowTriggered.current && scrollY + screenHeight >= yellowGridY.current) {
-        //     yellowTriggered.current = true;
-        //     setShowYellowGrid(true);
-        //     animateYellowGrid();
-        //   }
-
-        //   if (!numGridTriggered.current && scrollY + screenHeight >= numGridY.current) {
-        //     numGridTriggered.current = true;
-        //     setShowNumGrid(true);
-        //     animateNumGrid();
-        //   }
-        // }}
         onScroll={RNAnimated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }

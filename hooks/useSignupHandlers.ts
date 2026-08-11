@@ -2,13 +2,15 @@ import * as api from '@/api';
 import { useUserStore } from '@/hooks/useUserStore';
 import { isOpportunity } from '@/utils/isOpp';
 import { canUnregisterFromOpportunity, formatTimeUntilEvent } from '@/utils/timeUtils';
+import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { Alert } from 'react-native';
 
 export function useSignupHandlers(
-  setShowCarpoolPopup?: (id: number | null) => void,
 ) {
-  const { currentUser, signups, setSignups, allOpps, setAllOpps, showPopup } = useUserStore();
+  const queryClient = useQueryClient();
+  
+  const { currentUser, signups, setSignups, allOpps, setAllOpps, showPopup, showCarpoolPopup, setShowCarpoolPopup } = useUserStore();
   const opportunities = allOpps.filter(isOpportunity);
 
   const handleSignUp = useCallback(async (opportunityId: number) => {
@@ -41,7 +43,7 @@ export function useSignupHandlers(
 
       const opportunity = await api.getOpportunity(opportunityId);
       if (opportunity.allow_carpool) {
-        setShowCarpoolPopup?.(opportunity.id);
+        setShowCarpoolPopup(opportunity.id);
       } else {
         showPopup?.(
           'Thank you for signing up!',
@@ -65,15 +67,22 @@ export function useSignupHandlers(
     if (!currentUser) return false;
 
     const opportunity = opportunities.find((opp) => opp.id === opportunityId);
+    let isDriverForThisOpp = false;
+    if (opportunity?.carpool_id) {
+      try {
+        const rides = await api.getRides(Number(opportunity.carpool_id));
+        isDriverForThisOpp = rides.some((ride) => Number(ride.driver_id) === currentUser.id);
+      } catch {
+        // If the check fails, fall back to the normal flow rather than blocking unregistration
+      }
+    }
     const isAdminOrHost = currentUser.admin || (opportunity && opportunity.host_id === currentUser.id);
 
     let confirmMessage = 'Are you sure you want to unregister from this opportunity? If you unregister within 7 hours of the event, an email will be sent to the event organizer.';
-
-    if (opportunityDate && opportunityTime && !isAdminOrHost) {
-      const { canUnregister, hoursUntilEvent } = canUnregisterFromOpportunity(
-        opportunityDate,
-        opportunityTime
-      );
+    if (isDriverForThisOpp) {
+      confirmMessage = 'You have signed up to give a ride for this opportunity. If you unregister, your ride will be deleted and all riders will be notified that they need to find a new ride. Are you sure you want to continue?';
+    } else if (opportunityDate && opportunityTime && !isAdminOrHost) {
+      const { canUnregister, hoursUntilEvent } = canUnregisterFromOpportunity(opportunityDate, opportunityTime);
       if (!canUnregister) {
         confirmMessage += `\n\nYou are within 7 hours of the scheduled start (${formatTimeUntilEvent(hoursUntilEvent)}). If this was a mistake, contact the event organizer after canceling.`;
       }
@@ -82,11 +91,11 @@ export function useSignupHandlers(
     // Replace requestUnregisterConfirm with RN Alert
     const confirmed = await new Promise<boolean>((resolve) => {
       Alert.alert(
-        'Unregister from this opportunity?',
+        isDriverForThisOpp ? 'Cancel Your Ride?' : 'Unregister from this opportunity?',
         confirmMessage,
         [
           { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
-          { text: 'Unregister', style: 'destructive', onPress: () => resolve(true) },
+          { text: isDriverForThisOpp ? 'Cancel Ride' : 'Unregister', style: 'destructive', onPress: () => resolve(true) },
         ]
       );
     });
@@ -109,6 +118,11 @@ export function useSignupHandlers(
       const updatedOpps = await api.getCurrentOpportunities();
       const multiopps = allOpps.filter((o) => !isOpportunity(o));
       setAllOpps([...updatedOpps, ...multiopps]);
+
+      // If they were a driver, invalidate the rides query so CarpoolPage refreshes immediately
+      if (isDriverForThisOpp && opportunity?.carpool_id) {
+        queryClient.invalidateQueries({ queryKey: ['rides', opportunity.carpool_id] });
+      }
 
       return true;
     } catch (e: any) {

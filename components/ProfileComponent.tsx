@@ -77,9 +77,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
   //   })
   // );
 
-  // Note: getFriendsForUser is now async, so we'll need to handle this differently
-  // For now, we'll pass an empty array and handle the async loading in ProfilePage
-
   const [selectedInterests, setSelectedInterests] = useState(profileUser?.interests);
   const [friendshipStatus, setFriendshipStatus] = useState<FriendshipStatus>('add');
   const [profileUserFriends, setProfileUserFriends] = useState<User[]>([]);
@@ -489,7 +486,7 @@ export default ProfilePage;
 
 const styles = StyleSheet.create({
   header: {
-    paddingHorizontal: 16,
+    // paddingHorizontal: 16,
     backgroundColor: '#fff',
     zIndex: 1,
 
