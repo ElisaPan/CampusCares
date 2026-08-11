@@ -8,6 +8,7 @@ CampusCares is an app designed to connect students with meaningful volunteer opp
 - Personalized Profiles: Manage your volunteer history, interests, and saved opportunities.
 - Organization Profiles: Organizations can create and manage their volunteer listings.
 - Request & Signup Management: Easily apply for volunteer positions and track your applications.
+- Push Notifications: Get notified about events, carpools, and more.
 
 **Tech Stack**
 Frontend: React Native
