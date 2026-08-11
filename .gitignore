@@ -43,5 +43,3 @@ app-example
 /android
 .env
 firebase-config.ts
-.env
-firebase-config.ts
