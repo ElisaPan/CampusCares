@@ -1,6 +1,7 @@
+import * as api from '@/api';
+import { Opportunity, User } from '@/types';
 import React, { useEffect, useState } from 'react';
-import * as api from '../api';
-import { Opportunity, User } from '../types';
+import { Alert } from 'react-native';
 
 interface AttendanceManagerProps {
   opportunity: Opportunity;
@@ -75,7 +76,7 @@ const AttendanceManager: React.FC<AttendanceManagerProps> = ({
       setIsUpdating(false);
       onAttendanceSubmitted();
     } catch (error: any) {
-      alert(`Error submitting attendance: ${error.message}`);
+      Alert.alert(`Error submitting attendance: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }

@@ -7,19 +7,20 @@
 
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
+import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
+import { MultiOpp, Opportunity, User } from '@/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { MultiOpp, Opportunity, Organization, User } from '../types';
 
 interface MultiOppCardProps {
   multiopp: MultiOpp;
-  allOrgs: Organization[];
+  // allOrgs: Organization[];
   opportunitiesData?: Opportunity[];
-  onSignUp?: (opportunityId: number) => void;
-  onUnSignUp?: (opportunityId: number, opportunityDate?: string, opportunityTime?: string) => void;
+  // onSignUp?: (opportunityId: number) => void;
+  // onUnSignUp?: (opportunityId: number, opportunityDate?: string, opportunityTime?: string) => void;
   onExternalSignup?: (opportunity: Opportunity) => void;
   onExternalUnsignup?: (opportunity: Opportunity) => void;
 }
@@ -72,14 +73,15 @@ const Avatar = ({ user }: { user: User }) => {
 
 const MultiOppCard: React.FC<MultiOppCardProps> = ({
   multiopp,
-  allOrgs,
+  // allOrgs,
   opportunitiesData,
-  onSignUp,
-  onUnSignUp,
+  // onSignUp,
+  // onUnSignUp,
   onExternalSignup,
   onExternalUnsignup,
 }) => {
-	const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+	const { organizations: allOrgs, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser } = useUserStore();
+	const { handleSignUp: onSignUp, handleUnSignUp: onUnSignUp } = useSignupHandlers();
 
   // Combined memo for both map and display opportunities
   const { displayOpportunities, opportunityMap } = useMemo(() => {
@@ -103,10 +105,10 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 
 	const handleCardPress = () => {
 		if (!currentUser) {
-				router.push(`../sign-up`);
+				router.push(`/SignUpPage`);
 				return;
 		}
-		router.push(`/multiopp/${multiopp.id}`);
+		router.push(`/MultiOppDetailPage?id=${multiopp.id}`);
 		};
 	
 	const [pressedStudentId, setPressedStudentId] = useState<number | null>(null);
@@ -274,8 +276,7 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 														key={u.id}
 														style={[
 															styles.avatarContainer,
-															index !== 0 && { marginLeft: -10 }, // overlap
-															{ zIndex: participants.length - index }, // stack order
+															(index !== 4 && index !== participants.length-1) && { marginRight: -8 },
 														]}
 														>
 														<Pressable key={u.id} onPress={() => handleProfilePress(u.id)}>
@@ -284,9 +285,9 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 													</View>
 												))}
 												{participants.length > 4 && (
-													<Text style={styles.moreText}>
-														+{participants.length - 4}
-													</Text>
+													<View style={styles.moreParticipants}>
+														<Text style={styles.moreParticipantsTxt}>+{participants.length - 4}</Text>
+													</View>
 												)}
 											</View>
 											<Pressable
@@ -333,7 +334,7 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 				<View>
 					<Pressable
 						onPress={handleCardPress}
-						style={styles.viewMore}
+						// style={styles.viewMore}
 					>
 						<Text style={styles.viewMoreTxt}>View More Dates</Text>
 					</Pressable>
@@ -371,7 +372,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
 		paddingTop: 10,
-    paddingBottom: 14,
+    paddingBottom: 6,
 		flexDirection: 'column',
 		flexGrow: 1,
     gap: 2,
@@ -450,7 +451,7 @@ const styles = StyleSheet.create({
 		marginTop: 2
 	},
 	right: {
-		gap: 8,
+		gap: 6,
 		alignItems: 'center',
 		flexDirection: 'column',
 		flexShrink: 0,
@@ -458,31 +459,44 @@ const styles = StyleSheet.create({
 	participants: {
     flexDirection: 'row',
     alignItems: 'center',
+		alignSelf: 'flex-end',
   },
 	avatarContainer: {
-		width: 24,
-  	height: 24,
+		width: 26,
+  	height: 26,
+		// marginRight: -8,
 	},
 	avatar: {
-		width: 24,
-		height: 24,
-		borderWidth: 2,
+		width: 26,
+		height: 26,
+		borderWidth: 1.5,
 		borderRadius: 9999,
+		// borderColor: '#d4d4d4',
+		borderColor: 'white',
 		objectFit: 'cover',
+	},
+	moreParticipants: {
+		width: 26,
+		height: 26,
+    borderRadius: 9999,
+    backgroundColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+		// borderColor: '#d4d4d4',
 		borderColor: 'white',
 	},
-	moreText: {
-		fontSize: 14,
-		lineHeight: 20,
-		color: '#6b7280',
-		alignSelf: 'center',
-		marginLeft: 8,
+	moreParticipantsTxt: {
+		color: '#4b5563',
+    fontSize: 12,
+    fontWeight: '600',
 	},
 	signUpBtn: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
     alignItems: 'center',
+		alignSelf: 'flex-end',
   },
   signUpText: {
     fontSize: 12,
@@ -540,8 +554,9 @@ const styles = StyleSheet.create({
 	},
 	viewMoreTxt: {
 		color: '#4B5563',
-		fontSize: 14,
-		fontWeight: '600',
+		fontSize: 12,
+		fontWeight: '400',
 		textAlign: 'center',
+		marginTop: -4,
 	},
 })

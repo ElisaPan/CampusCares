@@ -11,17 +11,16 @@
  *  Low
  *    -
  */
+import * as api from '@/api';
+import { signInWithGoogleIdToken, signOut } from '@/firebase-config';
+import { useUserStore } from '@/hooks/useUserStore';
+import { User } from '@/types';
+import { registerForPushNotifications } from '@/utils/registerForPushNotifications';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Google from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useRef, useState } from 'react';
-import * as api from '../api';
-import { loginTest } from '../api';
-import { signInWithGoogleIdToken, signOut } from '../firebase-config';
-import { useUserStore } from '../hooks/useUserStore';
-import { User } from '../types';
-import { registerForPushNotifications } from '../utils/registerForPushNotifications';
 
 import { ActivityIndicator, Animated, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -141,7 +140,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
 
   const handleLoginTest = async (id: number) => {
     try {
-      const res = await loginTest(id);
+      const res = await api.loginTest(id);
       console.log('Response status:', res.status, res.ok);
       const data: User = await res.json();
       console.log('Setting user:', data);
@@ -206,14 +205,14 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
           {mode === 'login' ? (
             <View style={styles.subq}>
               <Text>Don't have an account?</Text>
-              <Pressable onPress={() => router.push(`../SignUpPage`)}>
+              <Pressable onPress={() => router.push(`/SignUpPage`)}>
                 <Text style={styles.loginLink}>Sign up</Text>
               </Pressable>
             </View>
           ) : (
             <View style={styles.subq}>
               <Text>Already have an account?</Text>
-              <Pressable onPress={() => router.push(`../LoginPage`)}>
+              <Pressable onPress={() => router.push(`/LoginPage`)}>
                 <Text style={styles.loginLink}>Log in</Text>
               </Pressable>
             </View>

@@ -3,26 +3,27 @@
  *  Severe:
  *    Replace ALL time and date pickers with formatted text input (https://chatgpt.com/s/t_6a2f185e3ca0819189ba65044f91957f)
  *    Multiopp choose time is BADDD
- *    On click outline with red
+ *    handleSubmit check with Claude
  *  High:
  *    -
  *  Low
- *    -
+ *    On click outline with red
  */
 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { FlatList, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
+import * as api from '@/api';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { useUserStore } from '@/hooks/useUserStore';
-import * as api from '../api';
-import { MultiOpp, Opportunity, Organization } from '../types';
-import { formatDateTimeForBackend } from '../utils/timeUtils';
+import { MultiOpp, Opportunity, Organization } from '@/types';
+import { isOpportunity } from '@/utils/isOpp';
+import { formatDateTimeForBackend } from '@/utils/timeUtils';
 
 import { mockOpportunities, mockOrganizations, mockUsers } from '@/data/initialData';
 
@@ -89,7 +90,7 @@ const transformOpportunityFromBackend = (opp: any): Opportunity | MultiOpp => {
 
   // ---------- COMMON: image URL ----------
   const resolvedImageUrl =
-    opp.image_url || opp.image || opp.imageUrl || 'https://campus-cares.s3.us-east-2.amazonaws.com';
+    opp.image_url || opp.image || opp.imageUrl || require('@/assets/images/backup.jpeg');
 
   // ---------- CASE 1: MultiOpp ----------
   if (isMultiOpp) {
@@ -153,9 +154,9 @@ const transformOpportunityFromBackend = (opp: any): Opportunity | MultiOpp => {
 
 
 interface CreateOpportunityPageProps {
-  opportunities: Opportunity[];
-  allOpps: (Opportunity | MultiOpp)[];
-  setAllOpps: (allOpps: (Opportunity | MultiOpp)[] | ((prev: (Opportunity | MultiOpp)[]) => (Opportunity | MultiOpp)[])) => void;
+  // opportunities: Opportunity[];
+  // allOpps: (Opportunity | MultiOpp)[];
+  // setAllOpps: (allOpps: (Opportunity | MultiOpp)[] | ((prev: (Opportunity | MultiOpp)[]) => (Opportunity | MultiOpp)[])) => void;
 }
 
 const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
@@ -172,17 +173,29 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
   const parsedId = rawId ? parseInt(rawId, 10) : null;
 
   const user = USE_MOCKS ? mockUsers[0] : currentUser;
-  const sourceOrganizations = USE_MOCKS ? mockOrganizations : organizations ?? [];
+  const sourceOrganizations = useMemo(
+    () => (USE_MOCKS ? mockOrganizations : organizations ?? []),
+    [organizations]
+  );
   
-  const sourceOpportunities =
-    USE_MOCKS
-    ? mockOpportunities
-    : allOpps.flatMap((item) =>
-      'opportunities' in item ? item.opportunities ?? [] : [item]
-    );
+  const sourceOpportunities = useMemo(
+    () =>
+      USE_MOCKS
+        ? mockOpportunities
+        : allOpps.flatMap((item) =>
+            'opportunities' in item ? item.opportunities ?? [] : [item]
+          ),
+    [allOpps]
+  );
 
   if (!sourceOrganizations) return <Text>Organizations not found</Text>;
-  if (!user) return <Text>User not found</Text>;
+  if (!user) {
+    return (
+      <View style={styles.loadingView}>
+        <ActivityIndicator size='large' color={Theme.cornellRed} />
+      </View>
+    )
+  }
 
   const queryClient = useQueryClient();
   const isSingleOpportunity = ( opp: Opportunity | MultiOpp ): opp is Opportunity => {
@@ -331,15 +344,59 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
     if (!result.canceled) {
       const asset = result.assets[0];
       setImageFile({
-        uri: asset.uri,
-        name: asset.fileName ?? "image.jpg",
-        type: asset.mimeType ?? "image/jpeg",
+        uri: asset.uri ?? '@/assets/images/backup.jpeg',
+        name: asset.fileName ?? '@/assets/images/backup.jpeg',
+        type: asset.mimeType ?? '@/assets/images/backup.jpeg',
       });
       setImagePreview(asset.uri);
     }
   };
 
   const handleSubmit = async () => {
+    if (!formData.name) {
+      setError('Opportunity Name cannot be empty');
+      return;
+    }
+    if (!formData.total_slots) {
+      setError('Total Slots cannot be empty');
+      return;
+    }
+    if (!formData.host_org_id) {
+      setError('Host Organization cannot be empty');
+      return;
+    }
+    if (!formData.description) {
+      setError('Description cannot be empty');
+      return;
+    }
+    if (!isRecurring) {
+      if (!formData.date) {
+        setError('Date cannot be empty');
+        return;
+      }
+      if (!formData.duration) {
+        setError('Duration cannot be empty');
+        return;
+      }
+    } else if (currentUser?.admin && isRecurring) {
+      if (!daysOfWeek) {
+        setError('Date cannot be empty');
+        return;
+      }
+      if (!weekFrequency) {
+        setError('Date cannot be empty');
+        return;
+      }
+      if (!startDate) {
+        setError('Date cannot be empty');
+        return;
+      }
+      if (!weekRecurrences) {
+        setError('Date cannot be empty');
+        return;
+      }
+    }
+
     setIsSubmitting(true);
     setError(null);
 
@@ -389,6 +446,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
       if (imageUrl) {
         formDataToSend.append('image', imageUrl);
       } else {
+        formDataToSend.append('image', '@/assets/images/backup.jpeg');
       }
       if (isRecurring) {
         formDataToSend.append('start_date', startDate);
@@ -435,6 +493,10 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
       setTimeout(() => {
         router.push(`/(tabs)/OpportunitiesPage`);
       }, 2000);
+
+      const updatedOpps = await api.getCurrentOpportunities();
+      const multiopps = allOpps.filter((o) => !isOpportunity(o));
+      setAllOpps([...updatedOpps, ...multiopps]);
     } catch (err: any) {
       setError(err.message || 'An error occurred while creating the opportunity');
     } finally {
@@ -564,14 +626,19 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                       style={styles.orgModalPopup}
                       onPress={() => {}}
                     >
-                      <FlatList
+                      {/* <FlatList
                         data={sourceOrganizations}
                         keyExtractor={(org) => org.id.toString()}
                         renderItem={renderOrgItem}
                         ListEmptyComponent={
                           <Text style={{ padding: 16, color: '#666' }}>No organizations found</Text>
                         }
-                      />
+                      /> */}
+                      {sourceOrganizations && sourceOrganizations.length > 0 ? (
+                        sourceOrganizations.map((org) => renderOrgItem({ item: org }))
+                      ) : (
+                        <Text style={{ padding: 16, color: '#666' }}>No organizations found</Text>
+                      )}
                     </Pressable>
                   </Pressable>
                 </Modal>
@@ -660,7 +727,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                   <View style={styles.recurring}>
                     {/* Days + Time Slots */}
                     <View>
-                      <Text style={{ fontWeight: '600', marginBottom: 12 }}>Which days of the week does this occur on?</Text>
+                      <Text style={{ fontWeight: '600', marginBottom: 12 }}>Which days of the week? *</Text>
                       <View style={{ rowGap: 2 }}>
                         {days.map((day) => {
                           const existing = daysOfWeek.find((d) => Object.keys(d)[0] === day);
@@ -734,7 +801,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
 
                     {/* Frequency */}
                     <View>
-                      <Text style={styles.inputHeader}>How often does this repeat? (every X weeks)</Text>
+                      <Text style={styles.inputHeader}>How often does this repeat? * (every X weeks)</Text>
                       <TextInput
                         keyboardType="numeric"
                         value={weekFrequency.toString()}
@@ -747,7 +814,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                       />
                     </View>
                     <View>
-                      <Text style={styles.inputHeader}>When should this recurring event start?</Text>
+                      <Text style={styles.inputHeader}>When should this recurring event start? *</Text>
                       <Pressable
                         onPress={() => setShowStartDatePicker(true)}
                         style={styles.input}
@@ -779,7 +846,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
 
                     {/* Recurrence count */}
                     <View>
-                      <Text style={styles.inputHeader}>For how many weeks should this pattern repeat?</Text>
+                      <Text style={styles.inputHeader}>For how many weeks should this pattern repeat? *</Text>
                       <TextInput
                         keyboardType="numeric"
                         value={weekRecurrences.toString()}
@@ -915,7 +982,7 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                     <View style={styles.visibilityModalBackdrop}>
                       <View style={styles.visibilityModalCard}>
                         <Text style={styles.visibilityModalHeader}>Select Organizations</Text>
-                        <FlatList
+                        {/* <FlatList
                           data={filteredOrgs}
                           keyExtractor={(org) => org.id.toString()}
                           keyboardShouldPersistTaps="handled"
@@ -939,8 +1006,28 @@ const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
                           ListEmptyComponent={
                             <Text>No organizations match your search.</Text>
                           }
-                        />
+                        /> */}
+                        { filteredOrgs && filteredOrgs.length > 0 ? (
+                          filteredOrgs.map((org) => {
+                            const selected = isOrgSelected(org.id);
+                            return (
+                              <Pressable
+                                onPress={() => toggleOrgSelection(org.id)}
+                                style={styles.visibilityOrgRow}
+                              >
+                                <Text style={{ flex: 1 }}>
+                                  {org.name}
+                                </Text>
 
+                                <Text>
+                                  {selected ? "✓" : ""}
+                                </Text>
+                              </Pressable>
+                            )
+                          })
+                        ) : (
+                          <Text>No organizations match your search.</Text>
+                        )}
                         <Pressable
                           onPress={() => setShowOrgModal(false)}
                           style={styles.doneBtn}
@@ -1025,6 +1112,13 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 12,
   },
+  loadingView: {
+    width: '100%',
+    flexDirection: 'column',
+    paddingVertical: 24,
+    marginTop: 130,
+    marginBottom: 280,
+  },
   wrapper: {
     backgroundColor: 'white',
     borderRadius: 16,
@@ -1067,13 +1161,14 @@ const styles = StyleSheet.create({
   error: {
     marginBottom: 6,
     padding: 4,
+    paddingHorizontal: 10,
     backgroundColor: '#FEE2E2',
     borderWidth: 1,
     borderColor: '#F87171',
     borderRadius: 8,
   },
   errorMsg: {
-    color: '#B91C1C',
+    color: '#DC2626',
   },
   grid: {
     flexDirection: 'column',

@@ -2,7 +2,6 @@ import { ImageSourcePropType } from "react-native";
 import { auth } from './firebase-config';
 import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 
-
 // A helper for making Acucaresbackend.onrender.comPI requests.
 const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
 
@@ -1175,20 +1174,32 @@ export const createWaiver = async (data: {
 }): Promise<Waiver> => {
   const token = await getFirebaseToken();
 
+  // const response = await fetch(`${ENDPOINT_URL}/api/waivers/create-waiver`, {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json',
+  //     'Authorization': `Bearer ${token}`
+  //   },
+  //   body: JSON.stringify({
+  //     typed_name: data.typed_name,
+  //     type: data.type,
+  //     content: data.content,
+  //     checked_consent: data.checked_consent,
+  //     user_id: data.user_id,
+  //     organization_id: data.organization_id
+  //   })
+  // });
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(`${ENDPOINT_URL}/api/waivers/create-waiver`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      typed_name: data.typed_name,
-      type: data.type,
-      content: data.content,
-      checked_consent: data.checked_consent,
-      user_id: data.user_id,
-      organization_id: data.organization_id
-    })
+    headers,
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {
@@ -1451,6 +1462,12 @@ export const createRide = async (data: object) => {
   }
 }
 
+export const deleteRide = (rideId: number, userId: number) =>
+  authenticatedRequest(`/rides/${rideId}`, {
+    method: 'DELETE',
+    body: JSON.stringify({ user_id: userId }),
+  });
+
 export const addRider = async (data: object) => {
   try {
     await authenticatedRequest('/rides/add-rider', {
@@ -1485,6 +1502,23 @@ export const removeCarpoolUser = async (data: object) => {
     throw err;
   }
 }
+
+export const requestRideNotification = (carpoolId: number, userId: number) =>
+  authenticatedRequest('/rides/request-notification', {
+    method: 'POST',
+    body: JSON.stringify({ carpool_id: carpoolId, user_id: userId }),
+  });
+
+export const cancelRideNotificationRequest = (carpoolId: number, userId: number) =>
+  authenticatedRequest('/rides/cancel-notification-request', {
+    method: 'POST',
+    body: JSON.stringify({ carpool_id: carpoolId, user_id: userId }),
+  });
+
+export const checkWaitlistStatus = async (carpoolId: number, userId: number): Promise<boolean> => {
+  const response = await authenticatedRequest(`/rides/check-notification-request?carpool_id=${carpoolId}&user_id=${userId}`);
+  return response.on_waitlist ?? false;
+};
 
 export const getRides = async (carpoolId: number): Promise<Ride[]> => {
   try {

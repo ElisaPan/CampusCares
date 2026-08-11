@@ -1,4 +1,4 @@
-import { Badge, Member, MultiOpp, Opportunity, Organization, Ride, SignUp, User } from '../types';
+import { Badge, Member, MultiOpp, Opportunity, Organization, Ride, SignUp, User } from '@/types';
 
 const countSignupsForCause = (
   cause: string,

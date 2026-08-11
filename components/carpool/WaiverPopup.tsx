@@ -49,10 +49,7 @@ const WaiverPopup: React.FC<WaiverPopupProps> = ({
               style={styles.redBtn}
               onPress={() => {
                 setShowWaiverPopup(false);
-                router.push({
-                  pathname: "../sign-waiver",
-                  params: { opportunityId },
-                });
+                router.push(`/WaiverScreen?opportunityId=${opportunityId}` as any);
               }}
             >
               <Text style={styles.btnTxt}>Sign Waiver</Text>

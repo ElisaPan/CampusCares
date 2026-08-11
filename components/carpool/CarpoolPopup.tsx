@@ -8,20 +8,32 @@
  *    -
  */
 
+import { getRides, requestRideNotification } from "@/api";
+import { useUserStore } from "@/hooks/useUserStore";
+import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
 import { router } from "expo-router";
 import React from "react";
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface CarpoolPopupProps {
   opportunityId: number;
-  setShowPopup: React.Dispatch<React.SetStateAction<number | null>>;
+  setShowPopup: (id: number | null) => void;
 }
 
 const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
-  setShowPopup,
   opportunityId,
+  setShowPopup,
 }) => {
   const closePopup = () => setShowPopup(null);
+  const { currentUser, allOpps } = useUserStore();
+  const opportunity = allOpps.find((o) => o.id === Number(opportunityId));
+
+  if (!opportunity || !('carpool_id' in opportunity) || !opportunity.carpool_id) {
+    Alert.alert('Error', 'This opportunity does not have carpooling enabled.');
+    return;
+  }
+
+  const carpoolId = opportunity.carpool_id;
 
   return (
     <Modal
@@ -30,10 +42,13 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
       animationType="fade"
       onRequestClose={closePopup}
     >
-      <View style={styles.modalBackdrop}>
+      <Pressable
+        style={styles.modalBackdrop}
+        onPress={closePopup}
+      >
         <View style={styles.modal}>
           <Pressable style={styles.closeButton} onPress={closePopup}>
-            <Text style={styles.closeText}>×</Text>
+            <MaterialDesignIcons name="close" size={24} color="#a8abb2" />
           </Pressable>
 
           <View style={styles.popupIconHeader}>
@@ -50,15 +65,40 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
           <View style={styles.modalActions}>
             <Pressable
               style={styles.redBtn}
-              onPress={() => {
+              onPress={async () => {
                 closePopup();
-                router.push({
+                try {
+                  const rides = await getRides(Number(carpoolId));
+                  if (rides.length === 0) {
+                    Alert.alert(
+                      'No rides available',
+                      'There are no rides for this opportunity yet. Would you like to be notified when one is created?',
+                      [
+                        { text: 'No thanks', style: 'cancel' },
+                        {
+                          text: 'Notify me',
+                          onPress: async () => {
+                            try {
+                              await requestRideNotification(Number(carpoolId), currentUser!.id);
+                              Alert.alert('Got it', "We'll notify you when a ride is created.");
+                            } catch (e: any) {
+                              Alert.alert('Error', e.message);
+                            }
+                          },
+                        },
+                      ]
+                    )
+                  }
+                  router.push({
                   pathname: "/carpool/[id]",
                   params: {
                     id: opportunityId.toString(),
                     mode: "rider",
                   },
-                });
+                })
+                } catch (error: any) {
+                  Alert.alert('Error', 'Failed to check for available rides.')
+                }
               }}
             >
               <Text style={styles.redBtnText}>
@@ -91,7 +131,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
             </Pressable>
           </View>
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 };
@@ -106,7 +146,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
   },
-
   modal: {
     width: "100%",
     maxWidth: 448,
@@ -116,19 +155,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: "relative",
   },
-
   closeButton: {
     position: "absolute",
     top: 12,
     right: 12,
-    zIndex: 1,
   },
-
-  closeText: {
-    fontSize: 28,
-    color: "#6B7280",
-  },
-
   popupIconHeader: {
     width: 72,
     height: 72,
@@ -138,26 +169,22 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginBottom: 16,
   },
-
   carpoolIcon: {
     width: 44,
     height: 44,
     resizeMode: "contain",
   },
-
   title: {
     fontSize: 18,
     fontWeight: "700",
     textAlign: "center",
     marginBottom: 24,
   },
-
   modalActions: {
     width: "100%",
     gap: 12,
     alignItems: "center",
   },
-
   redBtn: {
     width: "100%",
     backgroundColor: "#B31B1B",
@@ -165,16 +192,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
-
   redBtnText: {
     color: "white",
     fontSize: 16,
   },
-
   bold: {
     fontWeight: "700",
   },
-
   secondaryText: {
     paddingTop: 10,
     color: "#6B7280",

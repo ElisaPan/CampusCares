@@ -35,7 +35,6 @@ import grace from '@/public/team_pic/grace.jpeg';
 import lee from '@/public/team_pic/lee.png';
 import scott from '@/public/team_pic/scott.png';
 
-import { registerForPushNotifications } from '../utils/registerForPushNotifications';
 
 import AosView from '@/components/AOSView';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
@@ -44,8 +43,7 @@ import { Asset } from "expo-asset";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Button, Dimensions, FlatList, Image, Pressable, Animated as RNAnimated, StyleSheet, Text, View } from 'react-native';
-
+import { ActivityIndicator, Dimensions, Image, Pressable, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -55,8 +53,6 @@ const HomePage = () => {
   const fadeAnim = useRef(new RNAnimated.Value(0)).current;
   const translateY = useRef(new RNAnimated.Value(-20)).current;
   
-  const carouselRef = useRef<HTMLDivElement>(null);
-
   const homeImages = [helpIcon, locationIcon, profileCheckIcon, searchIcon, childrensGarden, cover1, cover2, cover3, cover4, cover5, cover6, heartImg, mobilePack, salvationArmy, secondWind, tmBlockMB1, tmBlockMB2, tmBlock1, tmBlock3, grace, lee, scott]
   const icons = [searchIcon, profileCheckIcon, locationIcon, helpIcon];
 
@@ -73,20 +69,20 @@ const HomePage = () => {
   const gap = 0;
 
   const [activeSlide, setActiveSlide] = useState(0);
-  const flatListRef = useRef<FlatList<any>>(null);
+  const slideshowRef = useRef<ScrollView>(null);
   const slideTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const goToSlide = useCallback((index: number) => {
     const next = index % covers.length;
-    flatListRef.current?.scrollToIndex({ index: next, animated: true });
+    slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
     setActiveSlide(next);
-  }, []);
+  }, [covers.length, slideWidth]);
 
   useEffect(() => {
     slideTimer.current = setInterval(() => {
       setActiveSlide((prev) => {
         const next = (prev + 1) % covers.length;
-        flatListRef.current?.scrollToIndex({ index: next, animated: true });
+        slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
         return next;
       });
     }, slideInt);
@@ -169,9 +165,9 @@ const HomePage = () => {
   // Partner Carousel
   const [scrollNum, setScrollNum] = useState(0);
   const [maxScrollSteps, setMaxScrollSteps] = useState(0);
-  const partnerListRef = useRef<FlatList<any>>(null);
+  const carouselRef = useRef<ScrollView>(null);
   
-  const carouselCardWidth = screenWidth * 0.75
+  const carouselCardWidth = screenWidth * 0.85
 
   const handleScroll = (direction: "left" | "right") => {
     const next =
@@ -179,7 +175,7 @@ const HomePage = () => {
         ? Math.max(0, scrollNum - 1)
         : Math.min(partners.length - 1, scrollNum + 1);
 
-    partnerListRef.current?.scrollToIndex({ index: next, animated: true });
+    carouselRef.current?.scrollTo({ x: next * (carouselCardWidth + 16), animated: true });
     setScrollNum(next);
   };
   
@@ -198,7 +194,7 @@ const HomePage = () => {
     if (partners.length > 0) {
       setMaxScrollSteps(partners.length - 1);
     }
-  }, [partnerListRef]);
+  }, [carouselRef]);
 
   useEffect(() => {
     fadeAnim.setValue(0);
@@ -323,36 +319,15 @@ const HomePage = () => {
       <View style={styles.headerShadow}>
         <PublicHeader />
       </View>
-      <Button
+      {/* <Button
         title="Test Push Token"
         onPress={async () => {
           const token = await registerForPushNotifications();
           console.log('Push token:', token);
         }}
-      />
+      /> */}
       <RNAnimated.ScrollView
         style={styles.container}
-        // onScroll={(e) => {
-        //   const scrollY = e.nativeEvent.contentOffset.y;
-
-        //   if (!redTriggered.current && scrollY + screenHeight >= redGridY.current) {
-        //     redTriggered.current = true;
-        //     setShowRedGrid(true);
-        //     animateRedGrid();
-        //   }
-
-        //   if (!yellowTriggered.current && scrollY + screenHeight >= yellowGridY.current) {
-        //     yellowTriggered.current = true;
-        //     setShowYellowGrid(true);
-        //     animateYellowGrid();
-        //   }
-
-        //   if (!numGridTriggered.current && scrollY + screenHeight >= numGridY.current) {
-        //     numGridTriggered.current = true;
-        //     setShowNumGrid(true);
-        //     animateNumGrid();
-        //   }
-        // }}
         onScroll={RNAnimated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }
@@ -394,7 +369,7 @@ const HomePage = () => {
           <AosView animation="fade" delay={100} scrollY={scrollY}>
             <View style={styles.slideshowWrapper}>
               <View style={[styles.slideshowContainer, { width: slideWidth }]}>
-                <FlatList
+                {/* <FlatList
                   ref={flatListRef}
                   data={covers}
                   keyExtractor={(_, i) => String(i)}
@@ -427,7 +402,36 @@ const HomePage = () => {
                       resizeMode="cover"
                     />
                   )}
-                />
+                /> */}
+                <ScrollView
+                  ref={slideshowRef}
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate="fast"
+                  scrollEnabled
+                  onMomentumScrollEnd={(e) => {
+                    const index = Math.round(e.nativeEvent.contentOffset.x / (slideWidth + 16));
+                    setActiveSlide(index);
+                    if (slideTimer.current) clearInterval(slideTimer.current);
+                    slideTimer.current = setInterval(() => {
+                      setActiveSlide((prev) => {
+                        const next = (prev + 1) % covers.length;
+                        slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
+                        return next;
+                      });
+                    }, slideInt);
+                  }}
+                >
+                  {covers.map((item, i) => (
+                    <Image
+                      key={String(i)}
+                      source={item}
+                      style={{ width: slideWidth, height: slideHeight }}
+                      resizeMode="cover"
+                    />
+                  ))}
+                </ScrollView>
                 <View style={styles.dots}>
                   {covers.map((_, i) => (
                     <Pressable key={i} onPress={() => goToSlide(i)}>
@@ -507,26 +511,17 @@ const HomePage = () => {
             </View>
             <View style={styles.carouselWrapper}>
               <View style={styles.carouselContainer}>
-                <Pressable
-                  onPress={() => handleScroll("left")}
-                  disabled={scrollNum === 0}
-                  style={styles.arrowBtn}
-                >
-                  <MaterialIcons name="keyboard-arrow-left" size={32} color={scrollNum === 0 ? "#9CA3AF" : "#000"} />
-                </Pressable>
                 <View style={[styles.carouselViewport, { width: carouselCardWidth }]}>
-                  <FlatList
+                  {/* <FlatList
                     ref={partnerListRef}
                     data={partners}
                     horizontal
                     pagingEnabled
-                    // decelerationRate='fast'
                     showsHorizontalScrollIndicator={false}
                     keyExtractor={(_, i) => String(i)}
+                    style={styles.carouselShadow}
                     onMomentumScrollEnd={(e) => {
-                      const index = Math.round(
-                        e.nativeEvent.contentOffset.x / carouselCardWidth
-                      );
+                      const index = Math.round(e.nativeEvent.contentOffset.x / carouselCardWidth);
                       setScrollNum(index);
                     }}
                     getItemLayout={(_, index) => ({
@@ -538,18 +533,15 @@ const HomePage = () => {
                       <View style={{ width: carouselCardWidth }}>
                         <View style={[styles.partnerImgWrapper, { width: carouselCardWidth }]}>
                           <Image
-                            source={ typeof partner.img === "string" ? { uri: partner.img } : partner.img }
+                            source={typeof partner.img === "string" ? { uri: partner.img } : partner.img}
                             style={styles.partnerImg}
                             resizeMode="cover"
                           />
                         </View>
                         <View style={styles.tags}>
                           {partner.tags.map((tag: string) => (
-                            <View
-                              key={tag}
-                              style={[ styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles] ]}
-                            >
-                              <Text style={[ styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles] ]}>{tag}</Text>
+                            <View key={tag} style={[styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles]]}>
+                              <Text style={[styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles]]}>{tag}</Text>
                             </View>
                           ))}
                         </View>
@@ -559,22 +551,72 @@ const HomePage = () => {
                         </View>
                       </View>
                     )}
-                  />
+                  /> */}
+                  <ScrollView
+                    ref={carouselRef}
+                    horizontal
+                    pagingEnabled
+                    showsHorizontalScrollIndicator={false}
+                    style={styles.carouselShadow}
+                    onMomentumScrollEnd={(e) => {
+                      const index = Math.round(e.nativeEvent.contentOffset.x / carouselCardWidth);
+                      setScrollNum(index);
+                    }}
+                  >
+                    {partners.map((partner, i) => (
+                      <View key={String(i)} style={{ width: carouselCardWidth }}>
+                        <View style={[styles.partnerImgWrapper, { width: carouselCardWidth }]}>
+                          <Image
+                            source={typeof partner.img === "string" ? { uri: partner.img } : partner.img}
+                            style={styles.partnerImg}
+                            resizeMode="cover"
+                          />
+                        </View>
+                        <View style={styles.tags}>
+                          {partner.tags.map((tag: string) => (
+                            <View key={tag} style={[styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles]]}>
+                              <Text style={[styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles]]}>{tag}</Text>
+                            </View>
+                          ))}
+                        </View>
+                        <View style={styles.subTitle}>
+                          <Text style={styles.partnerTitle}>{partner.title}</Text>
+                          <Text style={styles.partnerDesc}>{partner.desc}</Text>
+                        </View>
+                      </View>
+                    ))}
+                  </ScrollView>
+
+                  {/* Arrows overlaid on top of the image */}
+                  <Pressable
+                    onPress={() => handleScroll("left")}
+                    disabled={scrollNum === 0}
+                    style={[
+                      styles.arrowBtnOverlay,
+                      scrollNum === 0 ? styles.disabledArrow : null,
+                      { left: -4 }
+                    ]}
+                  >
+                    <MaterialIcons name="keyboard-arrow-left" size={38} color="#fff" />
+                  </Pressable>
+
+                  <Pressable
+                    onPress={() => handleScroll("right")}
+                    disabled={scrollNum >= maxScrollSteps}
+                    style={[
+                      styles.arrowBtnOverlay,
+                      scrollNum >= maxScrollSteps ? styles.disabledArrow : null,
+                      { right: 4 }
+                    ]}
+                  >
+                    <MaterialIcons name="keyboard-arrow-right" size={38} color="#fff" />
+                  </Pressable>
                 </View>
-                <Pressable
-                  onPress={() => handleScroll("right")}
-                  disabled={scrollNum >= maxScrollSteps}
-                  style={[styles.arrowBtn, scrollNum >= maxScrollSteps && styles.disabledArrow ]}
-                >
-                  <MaterialIcons name="keyboard-arrow-right" size={36} color={scrollNum >= maxScrollSteps ? "#9CA3AF" : "#000"} />
-                </Pressable>
               </View>
+
               <View style={styles.carouselDots}>
                 {Array.from({ length: maxScrollSteps + 1 }).map((_, i) => (
-                  <View
-                    key={i}
-                    style={[styles.carouselDot, scrollNum === i && styles.carouselDotActive]}
-                  />
+                  <View key={i} style={[styles.carouselDot, scrollNum === i && styles.carouselDotActive]} />
                 ))}
               </View>
             </View>
@@ -743,6 +785,13 @@ const styles = StyleSheet.create({
     marginTop: 6,
     marginHorizontal: 20,
     marginBottom: 16,
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 10,
+    zIndex: 1,
   },
   slideshowContainer: {
     borderRadius: 14,
@@ -780,6 +829,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: "space-between",
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   redLeft: {
     flexDirection: 'column',
@@ -817,7 +873,7 @@ const styles = StyleSheet.create({
     gap: 8,
 
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
@@ -837,6 +893,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: "space-between",
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   avatarRow: {
     flexDirection: 'row',
@@ -890,7 +953,14 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     flexDirection: 'column',
     paddingVertical: 8,
-    width: '32%'
+    width: '32%',
+
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   bigNum: {
     alignSelf: 'center',
@@ -917,7 +987,16 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   carouselViewport: {
+    position: 'relative',
     overflow: "hidden",
+  },
+  carouselShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
   partnerImgWrapper: {
     width: '100%',
@@ -929,6 +1008,17 @@ const styles = StyleSheet.create({
   partnerImg: {
     width: '100%',
     height: '100%',
+  },
+  arrowBtnOverlay: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -56,
+    width: 38,
+    height: 38,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 100,
   },
   tags: {
     flexDirection: "row",
@@ -971,6 +1061,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: 8,
+    marginTop: 6,
   },
   carouselDot: {
     width: 7,
@@ -1035,5 +1126,12 @@ const styles = StyleSheet.create({
   timelineImg: {
     width: '100%',
     height: 180,
+    
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 10,
+    zIndex: 1,
   },
 });

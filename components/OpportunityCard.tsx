@@ -3,10 +3,13 @@
  *  Severe:
  *    Fix links / router push
  *    PeopleIcon
+ *    group-detail router.push
  */
 
 import { getProfilePictureSource, removeCarpoolUser } from '@/api';
 import * as Theme from '@/constants/theme';
+import { useSignupHandlers } from '@/hooks/useSignupHandlers';
+import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity, Organization, User } from '@/types';
 import { calculateEndTime } from '@/utils/timeUtils';
 import Octicons from '@expo/vector-icons/Octicons';
@@ -15,24 +18,23 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Calendar1, Clock } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
   signedUpStudents: User[];
-  allOrgs: Organization[];
-  currentUser: User | null;
-  onSignUp?: (opportunityId: number) => void;
-  onUnSignUp?: (opportunityId: number, opportunityDate?: string, opportunityTime?: string) => void;
+  // allOrgs: Organization[];
+  // currentUser: User | null;
+  // onSignUp?: (opportunityId: number) => void;
+  // onUnSignUp?: (opportunityId: number, opportunityDate?: string, opportunityTime?: string) => void;
   isUserSignedUp: boolean;
-  onExternalSignup?: (opportunity: Opportunity) => void; // Add callback for external signup
-  onExternalUnsignup?: (opportunity: Opportunity) => void; // Add callback for external unsignup
+  onExternalSignup?: (opportunity: Opportunity) => void;
+  onExternalUnsignup?: (opportunity: Opportunity) => void;
   showPopup?: (
     title: string,
     message: string,
     type: 'success' | 'info' | 'warning' | 'error'
-  ) => void
+  ) => void;
 }
 
 const PeopleIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -66,19 +68,17 @@ const Avatar = ({ user }: { user: User }) => {
 const OpportunityCard: React.FC<OpportunityCardProps> = ({
   opportunity,
   signedUpStudents,
-  allOrgs,
-  currentUser,
-  onSignUp,
-  onUnSignUp,
+  // allOrgs,
+  // currentUser,
+  // onSignUp,
+  // onUnSignUp,
   isUserSignedUp,
   onExternalSignup,
   onExternalUnsignup,
-  showPopup
+  showPopup,
 }) => {
-
-  // console.log('address:', opportunity.address);
-  // console.log('opportunity:', opportunity);
-
+  const { organizations: allOrgs, currentUser } = useUserStore();
+  const { handleSignUp: onSignUp, handleUnSignUp: onUnSignUp } = useSignupHandlers();
 
   const queryClient = useQueryClient();
   const [pressedStudentId, setPressedStudentId] = useState<number | null>(null);
@@ -100,7 +100,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   const isUserHost = currentUser ? opportunity.host_id === currentUser.id : false;
 
   const handleButtonPress = async () => {
-    if (!currentUser) router.push(`../sign-up`);
+    if (!currentUser) router.push(`/SignUpPage`);
 
     if (currentUser && isUserSignedUp) {
       if (opportunity.allow_carpool) {
@@ -140,12 +140,11 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   
   const handleCardPress = () => {
     if (!currentUser) {
-        router.push(`../sign-up`);
-        return;
+      router.push(`/SignUpPage`);
+      return;
     }
-
-    router.push(`/opportunity/${opportunity.id}`);
-    };
+    router.push(`/OpportunityDetailPage?id=${opportunity.id}`);
+  };
 
   const topOrgs = useMemo(() => {
     const orgCounts: { [key: number]: number } = {};
@@ -165,7 +164,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
 
   const visibilityOrgs = useMemo(() => {
     if (!Array.isArray(opportunity.visibility) || opportunity.visibility.length === 0)
-      return [] as Organization[];
+      return null;
     return allOrgs
       .filter((org) => opportunity.visibility.includes(org.id))
       .sort((a, b) => a.name.localeCompare(b.name));
@@ -206,6 +205,15 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
 		typeof img === 'string' && img.startsWith('http')
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
+
+  // if (!currentUser || allOrgs.length === 0) {
+  if (allOrgs.length === 0) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color="#C8102E" />
+      </View>
+    );
+  }
 
   return (
     <Pressable
@@ -267,13 +275,13 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
           <View style={styles.slotsLabel}>
             {signedUpStudents.length > 0 ? (
               <View style={styles.participants}>
-                {signedUpStudents.slice(0, 10).map((student, index) => {
+                {signedUpStudents.slice(0, 5).map((student, index) => {
                   return (
                     <View
                       key={student.id}
                       style={[
                         styles.avatarContainer,
-                        { zIndex: 100 - index, marginLeft: index === 0 ? 0 : -10 },
+                        (index !== 5 && index !== signedUpStudents.length-1) && { marginRight: -13 },
                       ]}
                     >
                       <Pressable onPress={() => handleProfilePress(student.id)}>
@@ -282,22 +290,29 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
                     </View>
                   );
                 })}
-                {signedUpStudents.length > 10 && (
-                  <View style={styles.moreParticipants}>+{signedUpStudents.length - 10}</View>
+                {signedUpStudents.length > 5 && (
+                  <View style={styles.moreParticipants}>
+                    <Text style={styles.moreParticipantsTxt}>+{signedUpStudents.length - 5}</Text>
+                  </View>
                 )}
-                <Text style={{ color: '#374151', marginLeft: 8 }}>{signedUpStudents.length} / {opportunity.total_slots} signed up</Text>
+                <Text style={{ color: '#374151', fontSize: 12, marginLeft: 6 }}>{signedUpStudents.length} / {opportunity.total_slots} signed up</Text>
               </View>
             ) : (
-              <Text style={styles.firstSignup}>Be the first to sign up! +5 bonus points</Text>
+              <Text style={styles.firstSignup}>Be the first to sign up!</Text>
             )}
           </View>
-          <View style={ styles.slots }>
+          <View style={[
+                styles.slots,
+                (availableSlots > 0)
+                  ? { backgroundColor: 'rgb(54, 188, 103, 0.2)' }
+                  : { backgroundColor: 'rgb(156, 163, 175, 0.2)' },
+                ]}>
             <Text
               style={[
                 styles.slotsText,
-                (availableSlots > 0 || isUserSignedUp)
+                (availableSlots > 0)
                   ? { color: '#16a34a' }
-                  : { color: Theme.cornellRed },
+                  : { color: 'rgb(94, 99, 106)' },
                 ]}>
               {availableSlots} slot{availableSlots === 1 ? '' : 's'} left
             </Text>
@@ -314,7 +329,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 <Pressable
                   key={org.id}
                   data-pressable-org="true"
-                  onPress={() => router.push(`../group-detail/${org.id}`)}
+                  onPress={() => router.push(`/GroupDetailPage?id=${org.id}`)}
                   style={styles.orgTag}
                 >
                   <Text>{org.name}</Text>
@@ -323,7 +338,8 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
             </View>
           </View>
         )}
-        {Array.isArray(opportunity.visibility) && opportunity.visibility.length > 0 && (
+        
+        {visibilityOrgs && (
           <View style={styles.visibleTo}>
             <Text style={styles.visibleToText}>Visible to:</Text>
             <View style={styles.orgVisTagContainer}>
@@ -513,7 +529,6 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   slots: {
-    backgroundColor: 'rgb(54, 188, 103, 0.2)',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 16,
@@ -531,31 +546,35 @@ const styles = StyleSheet.create({
     width: 32,
     borderRadius: 9999,
     backgroundColor: '#e5e7eb',
-    color: '#4b5563',
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1,
+    // borderColor: '#d4d4d4',
+    borderColor: 'white',
+  },
+  moreParticipantsTxt: {
+    color: '#4b5563',
     fontSize: 12,
     fontWeight: '600',
-    borderWidth: 2,
-    borderColor: 'white',
   },
   firstSignup: {
     color: '#999fab',
     textAlign: 'center',
-    height: 32,
-    marginBottom: 16,
+    marginLeft: 16,
     borderRadius: 8,
     fontSize: 14,
   },
   avatarContainer: {
     width: 32,
     height: 32,
+    // marginRight: -13,
   },
   avatar: {
     height: 32,
     width: 32,
     borderRadius: 9999,
     borderWidth: 2,
+    // borderColor: '#d4d4d4',
     borderColor: 'white',
   },
   topOrgs: {
@@ -588,7 +607,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 4,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 10,
     alignItems: 'center',
   },

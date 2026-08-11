@@ -34,7 +34,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -44,11 +44,19 @@
         }
       ],
       "@react-native-community/datetimepicker",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-mail-composer"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c8506249-bfd3-4ebb-8c1d-b3f51d427b3a"
+      }
+    },
+    "owner": "elisapan"
   }
 }

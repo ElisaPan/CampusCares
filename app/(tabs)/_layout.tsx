@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
-import React, { useEffect } from 'react';
+import React from 'react';
 
-import { getOrgs } from '@/api';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -14,10 +13,7 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const theme = Colors[colorScheme ?? 'light'];
 
-  const { setOrganizations } = useUserStore();
-  useEffect(() => {
-    getOrgs().then(setOrganizations).catch(console.error);
-  }, []);
+  const { currentUser } = useUserStore();
 
   return (
     <Tabs
@@ -25,10 +21,7 @@ export default function TabLayout() {
         tabBarActiveTintColor: theme.tabIconSelected,
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarButton: HapticTab,
-        tabBarStyle: {
-          paddingTop: 12,
-          // height: 0,
-        },
+        tabBarStyle: currentUser ? { paddingTop: 10, height: 70 } : { display: 'none' },
       }}
     >
       <Tabs.Screen
@@ -46,19 +39,44 @@ export default function TabLayout() {
         }}
       />
 
+      {currentUser &&
+        <Tabs.Screen
+          name="ProfilePage"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color }) => (
+              <MaterialIcons
+                name="person"
+                size={28}
+                color={color}
+              />
+            ),
+            headerShown: false
+          }}
+        />
+      }
+
       <Tabs.Screen
-        name="GroupsPage"
+        name="OpportunityDetailPage"
         options={{
-          // title: 'Groups',
-          // tabBarIcon: ({ color }) => (
-          //   <MaterialIcons
-          //     name="groups"
-          //     size={28}
-          //     color={color}
-          //   />
-          // ),
-          // headerShown: false
-          href: null
+          href: null,
+          headerShown: false
+        }}
+      />
+
+      <Tabs.Screen
+        name="MultiOppDetailPage"
+        options={{
+          href: null,
+          headerShown: false
+        }}
+      />
+
+      <Tabs.Screen
+        name="UserProfile"
+        options={{
+          href: null,
+          headerShown: false
         }}
       />
 
@@ -75,21 +93,6 @@ export default function TabLayout() {
           // ),
           // headerShown: false
           href: null
-        }}
-      />
-
-      <Tabs.Screen
-        name="ProfilePage"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <MaterialIcons
-              name="person"
-              size={28}
-              color={color}
-            />
-          ),
-          headerShown: false
         }}
       />
 
