@@ -8,6 +8,7 @@ interface PopupMessage {
   message: string;
   type: 'success' | 'info' | 'warning' | 'error';
   opportunityId?: number;
+  onClose?: () => void;
 }
 
 interface UserStore {
@@ -25,7 +26,7 @@ interface UserStore {
   setAllOpps: (opps: (Opportunity | MultiOpp)[]) => void;
   addOpp: (opp: Opportunity | MultiOpp) => void;
   popup: PopupMessage;
-  showPopup: (title: string, message: string, type?: 'success' | 'info' | 'warning' | 'error', opportunityId?: number) => void;
+  showPopup: (title: string, message: string, type?: 'success' | 'info' | 'warning' | 'error', opportunityId?: number, onClose?: () => void) => void;
   closePopup: () => void;
   showCarpoolPopup: number | null;
   setShowCarpoolPopup: (id: number | null) => void;
@@ -52,10 +53,10 @@ export const useUserStore = create<UserStore>((set) => ({
   setAllOpps: (opps) => set({ allOpps: opps }),
   addOpp: (opp) => set((state) => ({ allOpps: [...state.allOpps, opp] })),
   popup: { isOpen: false, title: '', message: '', type: 'info' },
-  showPopup: (title, message, type = 'info', opportunityId) =>
-    set({ popup: { isOpen: true, title, message, type, opportunityId } }),
+  showPopup: (title, message, type = 'info', opportunityId, onClose) =>
+    set({ popup: { isOpen: true, title, message, type, opportunityId, onClose } }),
   closePopup: () =>
-    set((state) => ({ popup: { ...state.popup, isOpen: false } })),
+    set((state) => ({ popup: { ...state.popup, isOpen: false, onClose: undefined } })),
   showCarpoolPopup: null,
   setShowCarpoolPopup: (id) => set({ showCarpoolPopup: id }),
   friendshipsData: null,
