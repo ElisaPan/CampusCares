@@ -240,9 +240,12 @@ export const getUserByEmail = async (email: string, token?: string): Promise<Use
       if (!res.ok) {
         return null;
       }
-
-      const response: User = await res.json();
-      return response;
+      const raw = await res.json();
+      const user: User = {
+        ...raw,
+        organizationIds: (raw.organizations || []).map((org: any) => org.id) || [],
+      };
+      return user;
     }
 
     // --- Fallback: no token provided ---

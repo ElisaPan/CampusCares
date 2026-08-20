@@ -46,6 +46,8 @@ export default function RootLayout() {
       getMultiOpps(),
       getUsers(),
     ]).then(([orgs, opps, multiopps, students]) => {
+        console.log('raw students from getUsers:', JSON.stringify(students.find(s => s.id === 4)));
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 

@@ -58,6 +58,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
   const isCurrentUser = USE_MOCKS ? true : profileUser?.id === currentUser?.id;
   const userSignups = safeSignups.filter((s) => s.userId === profileUser?.id);
   const userOrgs = safeOrganizations.filter((g) => profileUser?.organizationIds?.includes(g.id));
+  console.log("orgs: "+safeOrganizations)
+  console.log("user orgs: "+userOrgs)
+  console.log("org Ids: "+profileUser?.organizationIds)
+  console.log('profileUser:', profileUser?.id, profileUser?.name, profileUser?.organizationIds);
   
   const key = `${profileUser?.id}-${profileUser?._lastUpdate ?? 'no-update'}`;
 
