@@ -14,14 +14,15 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
-import { getProfilePictureSource, updateUser } from '@/api';
-import { FriendshipStatus, User } from '@/types';
+import { getProfilePictureSource, getUser, updateUser } from '@/api';
+import { FriendshipStatus, Organization, User } from '@/types';
 import { useLocalSearchParams } from 'expo-router';
 
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { mockOpportunities, mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
+import { useGroups } from '@/hooks/useGroups';
 import { useProfilePicture } from '@/hooks/useProfilePicture';
 import { useUserStore } from '@/hooks/useUserStore';
 import { isOpportunity } from '@/utils/isOpp';
@@ -32,8 +33,9 @@ interface ProfilePageProps {
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
-  const { friendshipsData, students, signups, organizations, currentUser, setCurrentUser, clearCurrentUser, updateCurrentUser, allOpps } = useUserStore();
+  const { friendshipsData, students, setStudents, signups, organizations, currentUser, setCurrentUser, clearCurrentUser, updateCurrentUser, allOpps } = useUserStore();
   const { getFriendsForUser, handleAcceptFriendRequest, handleRejectFriendRequest, handleRemoveFriend, handleSendFriendRequest, checkFriendshipStatus, loadUserFriendships } = useFriendships();
+  const { getOrgsForUser } = useGroups();
   const { updateProfilePicture } = useProfilePicture();
 
   const router = useRouter();
@@ -57,12 +59,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
 
   const isCurrentUser = USE_MOCKS ? true : profileUser?.id === currentUser?.id;
   const userSignups = safeSignups.filter((s) => s.userId === profileUser?.id);
-  const userOrgs = safeOrganizations.filter((g) => profileUser?.organizationIds?.includes(g.id));
-  console.log("orgs: "+safeOrganizations)
-  console.log("user orgs: "+userOrgs)
-  console.log("org Ids: "+profileUser?.organizationIds)
-  console.log('profileUser:', profileUser?.id, profileUser?.name, profileUser?.organizationIds);
-  
+
   const key = `${profileUser?.id}-${profileUser?._lastUpdate ?? 'no-update'}`;
 
   const profileUserPoints = profileUser?.points || 0;
@@ -109,6 +106,37 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
   };
     loadFriends();
   }, [profileUser?.id, friendshipsData]);
+
+  // Update orgs
+  const [userOrgs, setUserOrgs] = useState<Organization[]>([]);
+  const [loadingOrgs, setLoadingOrgs] = useState(false);
+
+  useEffect(() => {
+    const loadOrgs = async () => {
+      if (!profileUser?.id) return;
+      setLoadingOrgs(true);
+      try {
+        const fullUser = await getUser(profileUser.id);
+        const orgIds = fullUser.organizationIds ?? [];
+        const matchedOrgs = organizations.filter((org) => orgIds.includes(org.id) );
+        setUserOrgs(matchedOrgs);
+      } catch (error) {
+        setUserOrgs([]);
+      } finally {
+        setLoadingOrgs(false);
+      }
+    };
+    loadOrgs();
+  }, [profileUser?.id, organizations, profileUser?.organizationIds]);
+
+  // Update userorgs when user.interests changes
+  useEffect(() => {
+    if (parsedId === null || !profileUser?.id) return;
+    getUser(profileUser.id).then((fresh) => {
+      setStudents(students.map((s) => (s.id === fresh.id ? fresh : s)));
+    }).catch(() => {});
+  }, [parsedId, profileUser?.id]);
+
 
   // Update selectedInterests when user.interests changes
   useEffect(() => {
@@ -389,7 +417,11 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
             >
               {profileUser.name}'s Organizations
             </Text>
-            {userOrgs.length > 0 ? (
+            {loadingOrgs ? (
+              <Text style={styles.smallText}>Loading...</Text>
+            ) : userOrgs.length === 0 ? (
+              <Text style={styles.smallText}>{profileUser.name} hasn't joined any organizations yet.</Text>
+            ) : (
               <View style={styles.orgList}>
                 {userOrgs.map((org, i) => (
                   <View
@@ -403,8 +435,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
                   </View>
                 ))}
               </View>
-            ) : (
-              <Text style={styles.smallText}>No organizations added yet.</Text>
             )}
             {isCurrentUser && (
               <Pressable

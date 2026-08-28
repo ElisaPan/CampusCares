@@ -4,6 +4,7 @@ import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, Friends
 
 // A helper for making Acucaresbackend.onrender.comPI requests.
 const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
+console.log("API BASE URL:", ENDPOINT_URL);
 
 // Helper to get Firebase token
 const getFirebaseToken = async (): Promise<string | null> => {
@@ -122,6 +123,7 @@ const request = async (endpoint: string, options: RequestInit = {}) => {
 
 // Authenticated request helper that includes Firebase token
 const authenticatedRequest = async (endpoint: string, options: RequestInit = {}) => {
+  console.log("ACTUAL REQUEST URL:", `${ENDPOINT_URL}${endpoint}`);
   const token = await getFirebaseToken();
   const { headers, ...restOptions } = options;
 
@@ -157,36 +159,62 @@ export const loginTest = async (userId: number) => {
 }
 
 // --- Users ---
+// Transform user to match our User interface
+export const transformUser = (user: any): User => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  profile_image: user.profile_image,
+  photoURL: user.profile_image || null,
+  interests: user.interests || [],
+  friendIds: user.friends || [],
+  organizationIds: (user.organizations || []).map((org: any) => org.id) || [],
+  admin: user.admin || false,
+  gender: user.gender,
+  graduationYear: user.graduation_year,
+  academicLevel: user.academic_level,
+  major: user.major,
+  birthday: user.birthday,
+  points: user.points || 0,
+  registration_date: user.registration_date,
+  phone: user.phone,
+  car_seats: user.car_seats || 0,
+  bio: user.bio,
+  carpool_waiver_signed: user.carpool_waiver_signed,
+  subscribed: user.subscribed,
+  heard_about: user.heard_about || ''
+})
+
 // Get all users data - now requires authentication and returns full user data
 export const getUsers = async (): Promise<User[]> => {
   const response = await authenticatedRequest('/users');
   const users = response.users || [];
-
-  // Transform each user to match our User interface
-  return users.map((user: any) => ({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    profile_image: user.profile_image,
-    photoURL: user.profile_image || null,
-    interests: user.interests || [],
-    friendIds: user.friends || [],
-    organizationIds: (user.organizations || []).map((org: any) => org.id) || [],
-    admin: user.admin || false,
-    gender: user.gender,
-    graduationYear: user.graduation_year,
-    academicLevel: user.academic_level,
-    major: user.major,
-    birthday: user.birthday,
-    points: user.points || 0,
-    registration_date: user.registration_date,
-    phone: user.phone,
-    car_seats: user.car_seats || 0,
-    bio: user.bio,
-    carpool_waiver_signed: user.carpool_waiver_signed,
-    subscribed: user.subscribed,
-    heard_about: user.heard_about || ''
-  }));
+  return users.map(transformUser);
+  // // Transform each user to match our User interface
+  // return users.map((user: any) => ({
+  //   id: user.id,
+  //   name: user.name,
+  //   email: user.email,
+  //   profile_image: user.profile_image,
+  //   photoURL: user.profile_image || null,
+  //   interests: user.interests || [],
+  //   friendIds: user.friends || [],
+  //   organizationIds: (user.organizations || []).map((org: any) => org.id) || [],
+  //   admin: user.admin || false,
+  //   gender: user.gender,
+  //   graduationYear: user.graduation_year,
+  //   academicLevel: user.academic_level,
+  //   major: user.major,
+  //   birthday: user.birthday,
+  //   points: user.points || 0,
+  //   registration_date: user.registration_date,
+  //   phone: user.phone,
+  //   car_seats: user.car_seats || 0,
+  //   bio: user.bio,
+  //   carpool_waiver_signed: user.carpool_waiver_signed,
+  //   subscribed: user.subscribed,
+  //   heard_about: user.heard_about || ''
+  // }));
 };
 
 /**
@@ -241,11 +269,7 @@ export const getUserByEmail = async (email: string, token?: string): Promise<Use
         return null;
       }
       const raw = await res.json();
-      const user: User = {
-        ...raw,
-        organizationIds: (raw.organizations || []).map((org: any) => org.id) || [],
-      };
-      return user;
+      return transformUser(raw);
     }
 
     // --- Fallback: no token provided ---
@@ -567,16 +591,29 @@ export const getAcceptedFriendships = async (userId: number): Promise<User[]> =>
 
 // --- Organization Registration ---
 export const registerForOrg = (data: { user_id: number; organization_id: number }) =>
-  authenticatedRequest('/register-org', {
+  {console.log("registerForOrg URL:", `${ENDPOINT_URL}/register-org`);
+  console.log("registerForOrg body:", data);
+  return authenticatedRequest('/register-org', {
     method: 'POST',
     body: JSON.stringify(data),
-  });
+  });}
 
 export const unregisterFromOrg = (data: { user_id: number; organization_id: number }) =>
   authenticatedRequest('/unregister-org', {
     method: 'POST',
     body: JSON.stringify(data),
   });
+
+// Get accepted friendships for a user
+export const getUserOrgs = async (userId: number): Promise<Number[]> => {
+  try {
+    const result = await authenticatedRequest(`/users/${userId}/orgs`);
+    return result
+  } catch (error) {
+    console.warn(`API: Orgs endpoint not available yet: ${error}`);
+    return [];
+  }
+};
 
 // --- Firebase Authentication ---
 export const verifyFirebaseToken = async (token: string) => {

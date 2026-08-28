@@ -14,7 +14,6 @@
 import * as api from '@/api';
 import { signInWithGoogleIdToken, signOut } from '@/firebase-config';
 import { useUserStore } from '@/hooks/useUserStore';
-import { User } from '@/types';
 import { registerForPushNotifications } from '@/utils/registerForPushNotifications';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Google from 'expo-auth-session/providers/google';
@@ -141,10 +140,13 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
   const handleLoginTest = async (id: number) => {
     try {
       const res = await api.loginTest(id);
-      console.log('Response status:', res.status, res.ok);
-      const data: User = await res.json();
-      console.log('Setting user:', data);
+      const raw = await res.json();
+      const data = api.transformUser(raw);
       setCurrentUser(data);
+      // console.log('Response status:', res.status, res.ok);
+      // const data: User = await res.json();
+      // console.log('Setting user:', data);
+      // setCurrentUser(data);
       router.replace(`/(tabs)/OpportunitiesPage`);
     } catch (err) {
       console.error(err);

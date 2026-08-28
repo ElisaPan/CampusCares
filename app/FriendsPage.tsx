@@ -44,7 +44,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
-      const loadFriends = async () => {
+    const loadFriends = async () => {
       setLoadingFriends(true);
       try {
         if (!profileUser) {
@@ -64,8 +64,8 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
         setLoadingFriends(false);
       }
     };
-      loadFriends();
-    }, [profileUser?.id]);
+    loadFriends();
+  }, [profileUser?.id]);
 
   const Friend = ({ user }: { user: User }) => (
     <Pressable

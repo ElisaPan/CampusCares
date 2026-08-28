@@ -6,8 +6,9 @@ import { Alert } from 'react-native';
 
 export function useGroups() {
   const { currentUser, organizations, setCurrentUser, setStudents, students } = useUserStore();
-
+  
   const joinOrg = useCallback(async (orgId: number) => {
+    console.log("JOIN BUTTON PRESSED:", orgId);
     if (orgId === 15 && !currentUser?.admin) {
       Alert.alert('Not allowed', 'CampusCares organization is only joinable to team members.');
       return;
@@ -18,10 +19,23 @@ export function useGroups() {
     const orgName = org?.name || 'this organization';
 
     try {
+      console.log(
+        "BEFORE:",
+        currentUser.organizationIds
+      );
+      
       await api.registerForOrg({ user_id: currentUser.id, organization_id: orgId });
 
       const updatedUser = await api.getUser(currentUser.id);
-      console.log('updatedUser.organizationIds:', updatedUser.organizationIds);
+      console.log(
+        "AFTER:",
+        updatedUser.organizationIds
+      );
+      console.log("JOINED ORG:", orgId);
+      console.log(
+        "BACKEND RETURNED ORGANIZATIONS:",
+        updatedUser.organizationIds
+      );
       
       setCurrentUser(updatedUser);
       setStudents(students.map((s) => (s.id === currentUser.id ? updatedUser : s)));
@@ -30,7 +44,7 @@ export function useGroups() {
     } catch (e: any) {
       Alert.alert('Error', `Error joining organization: ${e.message}`);
     }
-  }, [currentUser, organizations, students]);
+  }, [currentUser, organizations, students, setCurrentUser, setStudents]);
 
   const leaveOrg = useCallback(async (orgId: number) => {
     if (!currentUser || !currentUser.organizationIds || !currentUser.organizationIds.includes(orgId)) return;
@@ -62,7 +76,7 @@ export function useGroups() {
     } catch (e: any) {
       Alert.alert('Error', `Error leaving organization: ${e.message}`);
     }
-  }, [currentUser, organizations, students]);
+  }, [currentUser, organizations, students, setCurrentUser, setStudents ]);
 
   const refreshOrganizations = async () => {
     const orgs = await api.getOrgs();
@@ -93,5 +107,15 @@ export function useGroups() {
     }
   };
 
-  return { joinOrg, leaveOrg, refreshOrganizations, createOrg };
+  const getOrgsForUser = useCallback(async (userId: number): Promise<Number[]> => {
+      try {
+        const orgs = await api.getUserOrgs(userId);
+        return orgs;
+      } catch (error) {
+        console.error('Error fetching orgs for user:', error);
+        return [];
+      }
+    }, []);
+
+  return { joinOrg, leaveOrg, refreshOrganizations, createOrg, getOrgsForUser };
 }
