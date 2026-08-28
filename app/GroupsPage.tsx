@@ -20,14 +20,16 @@ import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, StyleSheet, T
 
 const GroupsPage = () => {
   const { organizations: allOrgs, currentUser, setCurrentUser, setStudents, students } = useUserStore();
-  const { joinOrg, leaveOrg, refreshOrganizations, createOrg } = useGroups();
+  const { joinOrg, leaveOrg, refreshOrganizations, createOrg, getOrgsForUser } = useGroups();
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newOrgType, setNewOrgType] = useState<OrganizationType | ''>('');
   const [showTypePicker, setShowTypePicker] = useState(false);
   const [newOrgDescription, setNewOrgDescription] = useState('');
-
+  
+  const isJoined = (orgId: number) => currentUser?.organizationIds?.includes(orgId) ?? false;
+  
   // Filter organizations based on search term
   const filteredOrgs = useMemo(() => {
     if (!searchTerm.trim()) return allOrgs;
@@ -109,7 +111,7 @@ const GroupsPage = () => {
                 <Text style={styles.resultsHeader}>Found organizations:</Text>
                 <View style={styles.resultsList}>
                   {filteredOrgs.map((org) => {
-                    const isMember = currentUser.organizationIds?.includes(org.id);
+                    const joined = isJoined(org.id);
                     return (
                       <Pressable
                         key={org.id}
@@ -122,7 +124,7 @@ const GroupsPage = () => {
                           </Text>
                           <Text style={styles.orgType}>{org.type}</Text>
                         </View>
-                        {isMember ? (
+                        {joined ? (
                           <View style={styles.memberBtns}>
                             <Text style={styles.joined}>Joined ✓</Text>
                             <Pressable
@@ -169,7 +171,7 @@ const GroupsPage = () => {
               {allOrgs
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map((org) => {
-                  const isMember = currentUser.organizationIds?.includes(org.id);
+                  const joined = isJoined(org.id);
                   return (
                     <Pressable
                       key={org.id}
@@ -182,7 +184,7 @@ const GroupsPage = () => {
                         </Text>
                         <Text style={styles.orgType}>{org.type}</Text>
                       </View>
-                      {isMember ? (
+                      {joined ? (
                         <View style={styles.memberBtns}>
                           <Text style={styles.joined}>Joined ✓</Text>
                           <Pressable

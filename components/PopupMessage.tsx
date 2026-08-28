@@ -1,11 +1,16 @@
+import * as Clipboard from 'expo-clipboard';
 import React from 'react';
 import {
+  Alert,
   Modal,
   Pressable,
+  Share,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+const APP_BASE_URL = 'https://campuscares.us';
 
 interface PopupMessageProps {
   isOpen: boolean;
@@ -44,24 +49,29 @@ const TYPE_STYLES = {
 };
 
 const onInvite = async (opportunityId: number) => {
-  const inviteLink = `${window.location.origin}/opportunities/${opportunityId}`;
+  const inviteLink = `${APP_BASE_URL}/opportunities/${opportunityId}`;
   const message =
-    `Join me in volunteering with CampusCares!\n\nI just signed up for this opportunity and thought you might want to come serve with me.\n\nSign up here:
-    ${inviteLink}`;
+    `Join me in volunteering with CampusCares!\n\nI just signed up for this opportunity and thought you might want to come serve with me.\n\nSign up here:\n${inviteLink}`;
 
   try {
-    if (navigator.share) {
-      await navigator.share({
-        title: "Serve with me on CampusCares!",
-        text: message,
-        // url: inviteLink
-      });
-    } else {
-      await navigator.clipboard.writeText(inviteLink);
-      alert("Invite link copied!");
+    const result = await Share.share({
+      message,
+      title: 'Serve with me on CampusCares!',
+      // url: inviteLink, // iOS only — adds a separate URL field; often redundant with message
+    });
+
+    if (result.action === Share.dismissedAction) {
+      // user cancelled the share sheet — no action needed
+      return;
     }
   } catch (err) {
-    console.error("Share failed:", err);
+    // Fallback: copy to clipboard if Share fails for some reason
+    try {
+      await Clipboard.setStringAsync(inviteLink);
+      Alert.alert('Invite link copied!');
+    } catch {
+      Alert.alert('Error', 'Failed to share or copy invite link.');
+    }
   }
 };
 

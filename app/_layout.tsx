@@ -2,7 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
@@ -46,6 +46,8 @@ export default function RootLayout() {
       getMultiOpps(),
       getUsers(),
     ]).then(([orgs, opps, multiopps, students]) => {
+        console.log('raw students from getUsers:', JSON.stringify(students.find(s => s.id === 4)));
+        
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
@@ -61,6 +63,11 @@ export default function RootLayout() {
       })
       .catch(console.error)
   }, []);
+
+  const handlePopupClose = useCallback(() => {
+    popup.onClose?.();
+    closePopup();
+  }, [popup.onClose, closePopup]);
   
   return (
     <CloneOpportunityProvider>
@@ -88,7 +95,7 @@ export default function RootLayout() {
                 message={popup.message}
                 type={popup.type}
                 opportunityId={popup.opportunityId}
-                onClose={closePopup}
+                onClose={handlePopupClose}
               />
             </View>
           </View>

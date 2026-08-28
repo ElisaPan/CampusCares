@@ -42,16 +42,17 @@ export function useSignupHandlers(
       setAllOpps([...updatedOpps, ...multiopps]);
 
       const opportunity = await api.getOpportunity(opportunityId);
-      if (opportunity.allow_carpool) {
-        setShowCarpoolPopup(opportunity.id);
-      } else {
-        showPopup?.(
-          'Thank you for signing up!',
-          'Thank you for signing up for this opportunity. The event host may reach out to you with further details. Please arrive at the listed address at the designated time. Thank you for serving!\n\nInvite friends to serve with you!',
-          'success',
-          opportunityId
-        );
-      }
+      showPopup?.(
+        'Thank you for signing up!',
+        'Thank you for signing up for this opportunity. The event host may reach out to you with further details. Please arrive at the listed address at the designated time. Thank you for serving!\n\nInvite friends to serve with you!',
+        'success',
+        opportunityId,
+        () => {
+          if (opportunity.allow_carpool) {
+            setShowCarpoolPopup(opportunity.id);
+          }
+        }
+      );
     } catch (e: any) {
       console.error('Error in handleSignUp:', e);
       setSignups(signups.filter((s) => !(s.userId === currentUser.id && s.opportunityId === opportunityId)));
