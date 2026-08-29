@@ -221,7 +221,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
         <Text style={styles.headerTxt}>Opportunities</Text>
         <Text style={styles.headerSubtxt}>Impact the Ithaca community</Text>
       </View>
-      <View style={styles.headerRight}>
+      {/* <View style={styles.headerRight}>
         {user && (
           <View style={{ marginLeft: 4 }}>
             <Pressable
@@ -232,7 +232,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
             </Pressable>
           </View>
         )}
-      </View>
+      </View> */}
     </View>
   );
 
@@ -279,9 +279,9 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           ) : feedItems.length === 0 ? (
             <View style={styles.loadedView}>
               <Text style={styles.noOpps}>There are currently no opportunities.</Text>
-              {currentUser && 
+              {/* {currentUser && 
                 <Text style={styles.noOppsDesc}>Please click 'Create Opportunity' if you would like to propose an opportunity.</Text>
-              }
+              } */}
             </View>
           ) : null
         }

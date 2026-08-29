@@ -34,11 +34,10 @@ Notifications.setNotificationHandler({
 
 export default function RootLayout() {
   useNotificationObserver();
-  const { popup, closePopup } = useUserStore();
-
   const colorScheme = useColorScheme();
-
+  const { popup, closePopup } = useUserStore();
   const { setOrganizations, setAllOpps, setStudents } = useUserStore();
+
   useEffect(() => {
     Promise.all([
       getOrgs(),
