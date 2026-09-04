@@ -369,40 +369,6 @@ const HomePage = () => {
           <AosView animation="fade" delay={100} scrollY={scrollY}>
             <View style={styles.slideshowWrapper}>
               <View style={[styles.slideshowContainer, { width: slideWidth }]}>
-                {/* <FlatList
-                  ref={flatListRef}
-                  data={covers}
-                  keyExtractor={(_, i) => String(i)}
-                  horizontal
-                  pagingEnabled
-                  showsHorizontalScrollIndicator={false}
-                  decelerationRate='fast'
-                  scrollEnabled
-                  onMomentumScrollEnd={(e) => {
-                    const index = Math.round(e.nativeEvent.contentOffset.x / (slideWidth + 16));
-                    setActiveSlide(index);
-                    if (slideTimer.current) clearInterval(slideTimer.current);
-                    slideTimer.current = setInterval(() => {
-                      setActiveSlide((prev) => {
-                        const next = (prev + 1) % covers.length;
-                        flatListRef.current?.scrollToIndex({ index: next, animated: true });
-                        return next;
-                      });
-                    }, slideInt);
-                  }}
-                  getItemLayout={(_, index) => ({
-                    length: slideWidth,
-                    offset: slideWidth * index,
-                    index,
-                  })}
-                  renderItem={({ item }) => (
-                    <Image
-                      source={item}
-                      style={{ width: slideWidth, height: slideHeight }}
-                      resizeMode="cover"
-                    />
-                  )}
-                /> */}
                 <ScrollView
                   ref={slideshowRef}
                   horizontal
@@ -512,46 +478,6 @@ const HomePage = () => {
             <View style={styles.carouselWrapper}>
               <View style={styles.carouselContainer}>
                 <View style={[styles.carouselViewport, { width: carouselCardWidth }]}>
-                  {/* <FlatList
-                    ref={partnerListRef}
-                    data={partners}
-                    horizontal
-                    pagingEnabled
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={(_, i) => String(i)}
-                    style={styles.carouselShadow}
-                    onMomentumScrollEnd={(e) => {
-                      const index = Math.round(e.nativeEvent.contentOffset.x / carouselCardWidth);
-                      setScrollNum(index);
-                    }}
-                    getItemLayout={(_, index) => ({
-                      length: carouselCardWidth,
-                      offset: carouselCardWidth * index,
-                      index,
-                    })}
-                    renderItem={({ item: partner }) => (
-                      <View style={{ width: carouselCardWidth }}>
-                        <View style={[styles.partnerImgWrapper, { width: carouselCardWidth }]}>
-                          <Image
-                            source={typeof partner.img === "string" ? { uri: partner.img } : partner.img}
-                            style={styles.partnerImg}
-                            resizeMode="cover"
-                          />
-                        </View>
-                        <View style={styles.tags}>
-                          {partner.tags.map((tag: string) => (
-                            <View key={tag} style={[styles.tag, tagStyles[tags[tag] as keyof typeof tagStyles]]}>
-                              <Text style={[styles.tagTxt, tagTxtStyles[tags[tag] as keyof typeof tagTxtStyles]]}>{tag}</Text>
-                            </View>
-                          ))}
-                        </View>
-                        <View style={styles.subTitle}>
-                          <Text style={styles.partnerTitle}>{partner.title}</Text>
-                          <Text style={styles.partnerDesc}>{partner.desc}</Text>
-                        </View>
-                      </View>
-                    )}
-                  /> */}
                   <ScrollView
                     ref={carouselRef}
                     horizontal
@@ -626,7 +552,7 @@ const HomePage = () => {
           <AosView animation="fade" delay={100} scrollY={scrollY}>
             <View style={styles.header}>
               <Text style={styles.pageHeader}>READY TO MAKE A DIFFERENCE?</Text>
-              <Text style={styles.pageSubheader}>Join our community of volunteers and start giving back to the Ithaca community in just four steps.</Text>
+              <Text style={[styles.pageSubheader, { marginHorizontal: 14 }]}>Join our community of volunteers and start giving back to the Ithaca community in just four steps.</Text>
             </View>
           </AosView>
           <View style={styles.timeline}>

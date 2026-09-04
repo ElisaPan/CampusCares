@@ -12,16 +12,10 @@ export default function Index() {
     useState<FirebaseUser | null | undefined>(undefined);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (user) => {
-      setFirebaseUser(user);
-    });
-  }, []);
-
-  useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log('Firebase auth state:', user ? user.email : 'no user');
       setFirebaseUser(user);
     });
-
     return unsubscribe;
   }, []);
 

@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
 
-import { getCurrentOpportunities, getMultiOpps, getOrgs, getUsers } from '@/api';
+import { getCurrentOpportunities, getMultiOpps } from '@/api';
 import PopupMessage from '@/components/PopupMessage';
 import { CloneOpportunityProvider } from "@/context/CloneOpportunityContext";
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -15,9 +15,9 @@ import { useUserStore } from '@/hooks/useUserStore';
 import * as Notifications from 'expo-notifications';
 import { useNotificationObserver } from '../hooks/useNotificationObserver';
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+// export const unstable_settings = {
+//   anchor: '(tabs)',
+// };
 
 const queryClient = new QueryClient();
 
@@ -38,30 +38,42 @@ export default function RootLayout() {
   const { popup, closePopup } = useUserStore();
   const { setOrganizations, setAllOpps, setStudents } = useUserStore();
 
-  useEffect(() => {
-    Promise.all([
-      getOrgs(),
-      getCurrentOpportunities(),
-      getMultiOpps(),
-      getUsers(),
-    ]).then(([orgs, opps, multiopps, students]) => {
-        console.log('raw students from getUsers:', JSON.stringify(students.find(s => s.id === 4)));
+  // useEffect(() => {
+  //   Promise.all([
+  //     getOrgs(),
+  //     getCurrentOpportunities(),
+  //     getMultiOpps(),
+  //     getUsers(),
+  //   ]).then(([orgs, opps, multiopps, students]) => {
+  //       console.log('raw students from getUsers:', JSON.stringify(students.find(s => s.id === 4)));
         
+  //       const today = new Date();
+  //       today.setHours(0, 0, 0, 0);
+
+  //       const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
+  //       const upcomingMultiopps = multiopps.filter((m) =>
+  //         m.opportunities?.some((o) => new Date(o.date) >= today)
+  //       );
+  //       // console.log('Fetch took', Date.now() - start, 'ms');
+  //       // console.log('opps count:', opps.length, 'multiopps count:', multiopps.length);
+  //       setOrganizations(orgs);
+  //       setAllOpps([...upcomingOpps, ...upcomingMultiopps]);
+  //       setStudents(students);
+  //     })
+  //     .catch(console.error)
+  // }, []);
+  useEffect(() => {
+    Promise.all([getCurrentOpportunities(), getMultiOpps()])
+      .then(([opps, multiopps]) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-
         const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
-        const upcomingMultiopps = multiopps.filter((m) =>
-          m.opportunities?.some((o) => new Date(o.date) >= today)
-        );
-        // console.log('Fetch took', Date.now() - start, 'ms');
-        // console.log('opps count:', opps.length, 'multiopps count:', multiopps.length);
-        setOrganizations(orgs);
-        setAllOpps([...upcomingOpps, ...upcomingMultiopps]);
-        setStudents(students);
+        setAllOpps([...upcomingOpps, ...multiopps]);
       })
-      .catch(console.error)
-  }, []);
+      .catch((err) => {
+        console.error('Failed to fetch current opportunities:', err.message, err);
+      })
+    } , []);
 
   const handlePopupClose = useCallback(() => {
     popup.onClose?.();
@@ -76,7 +88,6 @@ export default function RootLayout() {
             <View style={styles.content}>
               <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                <Stack.Screen name="UserProfile" options={{ headerShown: false }} />
                 <Stack.Screen name="AboutUs" options={{ headerShown: false }} />
                 <Stack.Screen name="GroupsPage" options={{ headerShown: false }} />
                 <Stack.Screen name="MyOpportunitiesPage" options={{ headerShown: false }} />

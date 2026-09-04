@@ -837,7 +837,6 @@ export const getCurrentOpportunities = async (): Promise<Opportunity[]> => {
         carpool_id: opp.carpool_id !== undefined ? opp.carpool_id : null
       };
     });
-
     return transformedOpportunities;
   } catch (error) {
     console.error('Error fetching opportunities:', error);

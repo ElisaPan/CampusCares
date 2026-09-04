@@ -44,7 +44,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { setCurrentUser } = useUserStore();
+  const { setCurrentUser, setOrganizations, setStudents, allOpps, setAllOpps } = useUserStore();
 
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
@@ -107,6 +107,17 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
             if (exists) {
               const existingUser = await api.getUserByEmail(email, token);
               setCurrentUser(existingUser);
+
+              const [orgs, opps, multiopps, students] = await Promise.all([
+                api.getOrgs(),
+                api.getCurrentOpportunities(),
+                api.getMultiOpps(),
+                api.getUsers(),
+              ]);
+              setOrganizations(orgs);
+              setStudents(students);
+              setAllOpps([...opps, ...multiopps]);
+
               const pushToken = await registerForPushNotifications();
               if (pushToken) {
                 await api.savePushToken(pushToken); // add this endpoint to your backend
@@ -143,10 +154,19 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
       const raw = await res.json();
       const data = api.transformUser(raw);
       setCurrentUser(data);
-      // console.log('Response status:', res.status, res.ok);
-      // const data: User = await res.json();
-      // console.log('Setting user:', data);
-      // setCurrentUser(data);
+      
+      // Now fetch the authenticated data
+      const [orgs, opps, multiopps, students] = await Promise.all([
+        api.getOrgs(),
+        api.getCurrentOpportunities(),
+        api.getMultiOpps(),
+        api.getUsers(),
+      ]);
+      setOrganizations(orgs);
+      setStudents(students);
+      setAllOpps([...opps, ...multiopps]);
+      
+      router.replace('/(tabs)');
       router.replace(`/(tabs)/OpportunitiesPage`);
     } catch (err) {
       console.error(err);
@@ -359,6 +379,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   loginContact: {
+    marginTop: 20,
     fontSize: 12,
     color: '#666',
     textAlign: 'center',

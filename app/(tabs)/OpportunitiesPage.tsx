@@ -9,7 +9,7 @@
  *    Redesign page title formatting
  */
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
@@ -19,7 +19,6 @@ import OpportunityCard from '@/components/OpportunityCard';
 import PublicHeader from '@/components/PublicHeaderComponent';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
-import { mockMultiOpps, mockOpportunities } from '@/data/initialData';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, User } from '@/types';
@@ -61,11 +60,13 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   const { showCarpoolPopup, setShowCarpoolPopup, showPopup, currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   const [oppsLoading, setOppsLoading] = useState(true);
+
+  useEffect(() => {
+    setOppsLoading(allOpps.length === 0);
+  }), [allOpps];
   
   const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
   const multiopps = allOpps.filter(isMultiOpp);
-
-  const USE_MOCKS = false;
 
   const params = useLocalSearchParams<{ id?: string | string[] }>();
   const rawId = Array.isArray(params.id) ? params.id[0] : params.id;
@@ -76,9 +77,6 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       ? students?.find((s) => s.id === parsedId)
       : currentUser;
   
-  const userOpportunities = USE_MOCKS ? mockOpportunities : opportunities;
-  const userMultiOpps = USE_MOCKS ? mockMultiOpps : multiopps;
-
   const [showExternalSignupModal, setShowExternalSignupModal] = useState(false);
   const [showExternalUnsignupModal, setShowExternalUnsignupModal] = useState(false);
   const [selectedOpportunity, setSelectedOpportunity] = useState<Opportunity | null>(null);
@@ -98,72 +96,79 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   }, [currentUser, opportunities, signups]);
 
   const feedItems = useMemo((): FeedItem[] => {
-    const now = new Date();
+    try {
+      const now = new Date();
 
-    // Filter standalone opps (approved, upcoming, visible, not part of a multiopp)
-    const standaloneOpps = (userOpportunities ?? []).map((opp) => {
-      const [year, month, day] = opp.date.split('-').map(Number);
-      const localDate = new Date(year, month - 1, day);
-      const [hours, minutes] = opp.time.split(':').map(Number);
-      const fullDateTime = new Date(year, month - 1, day, hours, minutes);
-      return { ...opp, localDate, fullDateTime };
-    })
-    .filter((opp) => {
-      if (!opp.approved) return false;
-      if (opp.fullDateTime.getTime() < now.getTime()) return false;
-      // if (currentUser && opp.involved_users?.includes(currentUser)) return true;
-      // if ((opp.total_slots - Number(opp.involved_users?.length)) === 0) return false;
-      if (opp.multiopp) return false;
-      if (!opp.visibility || opp.visibility.length === 0) return true;
-      if (!currentUser) return false;
-      if (currentUser.admin) return true;
-      const userOrgIds = currentUser.organizationIds || [];
-      return opp.visibility.some((orgId) => userOrgIds.includes(orgId));
-    });
+      // Filter standalone opps (approved, upcoming, visible, not part of a multiopp)
+      const standaloneOpps = (opportunities ?? []).map((opp) => {
+        const [year, month, day] = opp.date.split('-').map(Number);
+        const localDate = new Date(year, month - 1, day);
+        const [hours, minutes] = opp.time.split(':').map(Number);
+        const fullDateTime = new Date(year, month - 1, day, hours, minutes);
+        return { ...opp, localDate, fullDateTime };
+      })
+      .filter((opp) => {
+        if (!opp.approved) return false;
+        if (opp.multiopp) return false;
+        if (!currentUser) return true;
+        if (opp.fullDateTime.getTime() < now.getTime()) return false;
+        if (!opp.visibility || opp.visibility.length === 0) return true;
+        if (currentUser.admin) return true;
+        const userOrgIds = currentUser.organizationIds || [];
+        return opp.visibility.some((orgId) => userOrgIds.includes(orgId));
+      });
 
-    // Filter visible multiopps (excluding invisible ones set by admin)
-    const invisibleSet = new Set(invisibleMultioppIds);
-    const visibleMultiOpps = (userMultiOpps ?? []).filter((m) => {
-      if (invisibleSet.has(m.id)) return false;
-      if (!m.visibility || m.visibility.length === 0) return true;
-      if (!currentUser) return false;
-      if (currentUser.admin) return true;
-      const userOrgIds = currentUser.organizationIds || [];
-      return m.visibility.some((orgId) => userOrgIds.includes(orgId));
-    });
+      // Filter visible multiopps (excluding invisible ones set by admin)
+      const invisibleSet = new Set(invisibleMultioppIds);
+      const visibleMultiOpps = (multiopps ?? []).filter((m) => {
+        if (invisibleSet.has(m.id)) return false;
+        if (!currentUser) return true;
+        const hasUpcoming = (m.opportunities ?? []).some(
+          (o) => new Date(o.date).getTime() >= now.getTime()
+        );
+        if (!hasUpcoming) return false;
+        if (!m.visibility || m.visibility.length === 0) return true;
+        if (currentUser.admin) return true;
+        const userOrgIds = currentUser.organizationIds || [];
+        return m.visibility.some((orgId) => userOrgIds.includes(orgId));
+      });
 
-    // Build position lookup from feedOrder — key: `${is_multiopp}-${id}`
-    const positionMap = new Map<string, number>(
-      (feedOrder ?? []).map((item, index) => [`${item.is_multiopp}-${item.id}`, index])
-    );
+      // Build position lookup from feedOrder — key: `${is_multiopp}-${id}`
+      const positionMap = new Map<string, number>(
+        (feedOrder ?? []).map((item, index) => [`${item.is_multiopp}-${item.id}`, index])
+      );
 
-    const oppItems: FeedItem[] = standaloneOpps.map((opp) => ({ kind: 'opp', data: opp }));
-    const multiItems: FeedItem[] = visibleMultiOpps.map((m) => ({ kind: 'multiopp', data: m }));
+      const oppItems: FeedItem[] = standaloneOpps.map((opp) => ({ kind: 'opp', data: opp }));
+      const multiItems: FeedItem[] = visibleMultiOpps.map((m) => ({ kind: 'multiopp', data: m }));
 
-    return [...oppItems, ...multiItems].sort((a, b) => {
-      const keyA = `${a.kind === 'multiopp'}-${a.data.id}`;
-      const keyB = `${b.kind === 'multiopp'}-${b.data.id}`;
-      const posA = positionMap.get(keyA) ?? Infinity;
-      const posB = positionMap.get(keyB) ?? Infinity;
-      if (posA !== posB) return posA - posB;
+      return [...oppItems, ...multiItems].sort((a, b) => {
+        const keyA = `${a.kind === 'multiopp'}-${a.data.id}`;
+        const keyB = `${b.kind === 'multiopp'}-${b.data.id}`;
+        const posA = positionMap.get(keyA) ?? Infinity;
+        const posB = positionMap.get(keyB) ?? Infinity;
+        if (posA !== posB) return posA - posB;
 
-      // Fallback: chronological by next upcoming date
-      const getNextDate = (item: FeedItem): number => {
-        if (item.kind === 'opp') {
-          return (item.data as typeof standaloneOpps[0]).fullDateTime.getTime();
-        }
-        // For multiopps, find the next upcoming occurrence
-        const multiOpp = item.data as MultiOpp;
-        const upcoming = (multiOpp.opportunities ?? [])
-          .map((o) => new Date(o.date).getTime())
-          .filter((t) => t >= now.getTime())
-          .sort((a, b) => a - b);
-        return upcoming[0] ?? Infinity; // no upcoming dates → sort to end
-      };
-
-      return getNextDate(a) - getNextDate(b);
-    });
-  }, [userOpportunities, userMultiOpps, currentUser, feedOrder, invisibleMultioppIds]);
+        // Fallback: chronological by next upcoming date
+        const getNextDate = (item: FeedItem): number => {
+          if (item.kind === 'opp') {
+            return (item.data as typeof standaloneOpps[0]).fullDateTime.getTime();
+          }
+          // For multiopps, find the next upcoming occurrence
+          const multiOpp = item.data as MultiOpp;
+          const upcoming = (multiOpp.opportunities ?? [])
+            .map((o) => new Date(o.date).getTime())
+            .filter((t) => t >= now.getTime())
+            .sort((a, b) => a - b);
+          return upcoming[0] ?? Infinity; // no upcoming dates → sort to end
+        };
+        return getNextDate(a) - getNextDate(b);
+      });
+    }
+    catch (err) {
+      console.error("feedItems THREW:", err);
+      return [];
+    }
+  }, [opportunities, multiopps, currentUser, feedOrder, invisibleMultioppIds, allOpps]);
   
   const handleExternalSignup = (opportunity: Opportunity) => {
     setSelectedOpportunity(opportunity);
@@ -236,9 +241,8 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     </View>
   );
 
-  const Footer = ({ oppsLoading }: { oppsLoading: boolean }) => (
+  const Footer = () => (
     <>
-      
       <Text style={styles.termsFooter}>
         Click here to see our{" "}
         <Text
@@ -270,7 +274,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           : `opp-${item.data.id}`
         }
         ListHeaderComponent={<Header user={currentUser}/>}
-        ListFooterComponent={<Footer oppsLoading={oppsLoading}/>}
+        ListFooterComponent={<Footer/>}
         ListEmptyComponent={
           oppsLoading ? (
             <View style={styles.loadingView}>
@@ -292,7 +296,7 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
                 <MultiOppCard
                   key={`multiopp-${item.data.id}`}
                   multiopp={item.data}
-                  opportunitiesData={userOpportunities}
+                  opportunitiesData={opportunities}
                   onExternalSignup={handleExternalSignup}
                   onExternalUnsignup={handleExternalUnsignup}
                 />
