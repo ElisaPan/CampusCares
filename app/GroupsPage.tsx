@@ -274,41 +274,23 @@ const GroupsPage = () => {
                         <Text style={{ fontSize: 20, color: '#6B7280' }}>✕</Text>
                       </Pressable>
                     </View>
-                    {/* <FlatList
-                      data={organizationTypes}
-                      keyExtractor={(item) => item}
-                      renderItem={({ item }) => (
-                        <Pressable
-                          style={[
-                            styles.pickerOption,
-                            newOrgType === item && styles.pickerOptionSelected,
-                          ]}
-                          onPress={() => {
-                            setNewOrgType(item as OrganizationType);
-                            setShowTypePicker(false);
-                          }}
-                        >
-                          <Text style={styles.pickerOptionTxt}>{item}</Text>
-                          {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
-                        </Pressable>
-                      )}
-                    /> */}
                     { organizationTypes && organizationTypes.length > 0 && (
                       organizationTypes.map((item) => {
                         return (
                           <Pressable
-                          style={[
-                            styles.pickerOption,
-                            newOrgType === item && styles.pickerOptionSelected,
-                          ]}
-                          onPress={() => {
-                            setNewOrgType(item as OrganizationType);
-                            setShowTypePicker(false);
-                          }}
-                        >
-                          <Text style={styles.pickerOptionTxt}>{item}</Text>
-                          {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
-                        </Pressable>
+                            key={item}
+                            style={[
+                              styles.pickerOption,
+                              newOrgType === item && styles.pickerOptionSelected,
+                            ]}
+                            onPress={() => {
+                              setNewOrgType(item as OrganizationType);
+                              setShowTypePicker(false);
+                            }}
+                          >
+                            <Text style={styles.pickerOptionTxt}>{item}</Text>
+                            {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
+                          </Pressable>
                         )
                       })
                     )}

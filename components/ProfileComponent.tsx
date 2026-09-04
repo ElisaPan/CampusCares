@@ -33,7 +33,7 @@ interface ProfilePageProps {
 }
 
 const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
-  const { friendshipsData, students, setStudents, signups, organizations, currentUser, setCurrentUser, clearCurrentUser, updateCurrentUser, allOpps } = useUserStore();
+  const { friendshipsData, students, setStudents, signups, organizations, currentUser, setCurrentUser, clearCurrentUser, updateCurrentUser, allOpps, setOrganizations } = useUserStore();
   const { getFriendsForUser, handleAcceptFriendRequest, handleRejectFriendRequest, handleRemoveFriend, handleSendFriendRequest, checkFriendshipStatus, loadUserFriendships } = useFriendships();
   const { getOrgsForUser } = useGroups();
   const { updateProfilePicture } = useProfilePicture();
@@ -118,7 +118,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       try {
         const fullUser = await getUser(profileUser.id);
         const orgIds = fullUser.organizationIds ?? [];
+        console.log('organizationIds:', fullUser.organizationIds);
         const matchedOrgs = organizations.filter((org) => orgIds.includes(org.id) );
+        console.log('matchedOrgs:', matchedOrgs);
         setUserOrgs(matchedOrgs);
       } catch (error) {
         setUserOrgs([]);
@@ -227,6 +229,8 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
     try {
       await signOut();
       clearCurrentUser();
+      setOrganizations([]);
+      setStudents([]);
       router.replace(`/HomePage`);
     } catch (error) {
       console.error('Logout failed:', error);
