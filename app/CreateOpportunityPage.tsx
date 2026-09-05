@@ -152,18 +152,7 @@ const transformOpportunityFromBackend = (opp: any): Opportunity | MultiOpp => {
   } as Opportunity;
 };
 
-
-interface CreateOpportunityPageProps {
-  // opportunities: Opportunity[];
-  // allOpps: (Opportunity | MultiOpp)[];
-  // setAllOpps: (allOpps: (Opportunity | MultiOpp)[] | ((prev: (Opportunity | MultiOpp)[]) => (Opportunity | MultiOpp)[])) => void;
-}
-
-const CreateOpportunityPage: React.FC<CreateOpportunityPageProps> = ({
-  // setAllOpps,
-  // allOpps,
-  // opportunities,
-}) => {
+const CreateOpportunityPage: React.FC = () => {
   const { setAllOpps, allOpps, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, organizations } = useUserStore();
 
   const USE_MOCKS = false;

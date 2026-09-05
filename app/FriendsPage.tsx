@@ -10,15 +10,7 @@ import { mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
 
-interface FriendsPageProps {
-  // handleFriendRequest: (toUserId: number) => void;
-  // handleRemoveFriend: (friendId: number) => void;
-  // friendshipsData: FriendshipsResponse | null;
-  // checkFriendshipStatus: (otherUserId: number) => Promise<FriendshipStatus>;
-  // getFriendsForUser: (userId: number) => Promise<User[]>;
-}
-
-const FriendsPage: React.FC<FriendsPageProps> = (props) => {
+const FriendsPage: React.FC = () => {
   const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students } = useUserStore();
   const { getFriendsForUser, checkFriendshipStatus, handleAcceptFriendRequest, handleRejectFriendRequest, handleRemoveFriend } = useFriendships();
 
@@ -65,7 +57,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
       }
     };
     loadFriends();
-  }, [profileUser?.id]);
+  }, [profileUser?.id, friendshipsData]);
 
   const Friend = ({ user }: { user: User }) => (
     <Pressable
@@ -89,7 +81,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
       { isEditing && (
         <Pressable
           style={styles.followButton}
-          onPress={() => handleRemoveFriend}
+          onPress={() => handleRemoveFriend(user.id)}
         >
           <Text style={styles.followButtonText}>Remove</Text>
         </Pressable>

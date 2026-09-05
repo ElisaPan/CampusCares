@@ -21,15 +21,7 @@ import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleS
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 
-interface GroupDetailPageProps {
-  // joinOrg: (orgId: number) => void;
-  // leaveOrg: (orgId: number) => void;
-}
-
-const GroupDetailPage: React.FC<GroupDetailPageProps> = ({
-  // joinOrg,
-  // leaveOrg,
-}) => {
+const GroupDetailPage: React.FC = () => {
   const { students: allUsers, allOpps, organizations: allOrgs, currentUser, signups } = useUserStore();
   const { joinOrg, leaveOrg } = useGroups();
 

@@ -5,17 +5,7 @@ import { router } from "expo-router";
 import React, { useEffect } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-interface NotificationsPageProps {
-  // friendshipsData: FriendshipsResponse | null;
-  // allUsers: User[];
-  // handleRequestResponse: (requestId: number, response: 'accepted' | 'declined') => void;
-}
-
-const NotificationsPage: React.FC<NotificationsPageProps> = ({
-  // friendshipsData,
-  // allUsers,
-  // handleRequestResponse,
-}) => {
+const NotificationsPage: React.FC = () => {
   const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students: allUsers } = useUserStore();
   const { handleRequestResponse, loadUserFriendships } = useFriendships();
 

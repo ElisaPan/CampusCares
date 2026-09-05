@@ -55,6 +55,7 @@ export function useFriendships() {
 
   // Remove friend
   const handleRemoveFriend = async (friendId: number) => {
+    console.log("Trying to remove friend")
     if (!currentUser) return;
     try {
       await api.removeFriend(currentUser.id, friendId);
