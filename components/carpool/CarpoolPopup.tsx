@@ -25,7 +25,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
   setShowPopup,
 }) => {
   const closePopup = () => setShowPopup(null);
-  const { currentUser, allOpps } = useUserStore();
+  const { currentUser, allOpps, setWaitlisted } = useUserStore();
   const opportunity = allOpps.find((o) => o.id === Number(opportunityId));
 
   if (!opportunity || !('carpool_id' in opportunity) || !opportunity.carpool_id) {
@@ -34,6 +34,45 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
   }
 
   const carpoolId = opportunity.carpool_id;
+
+  const handleGetRidePress = async () => {
+    if (!carpoolId || !currentUser) return;
+
+    try {
+      const rides = await getRides(Number(carpoolId));
+
+      if (rides.length === 0) {
+        Alert.alert(
+          'No rides available',
+          'There are no rides for this opportunity yet. Would you like to be notified when one is created?',
+          [
+            { text: 'No thanks', style: 'cancel' },
+            {
+              text: 'Notify me',
+              onPress: async () => {
+                try {
+                  await requestRideNotification(Number(carpoolId), currentUser.id);
+                  setWaitlisted(Number(carpoolId), true);
+                  Alert.alert('Got it', "We'll notify you when a ride is created.");
+                } catch (e: any) {
+                  Alert.alert('Error', e.message);
+                }
+              },
+            },
+          ]
+        );
+        return;
+      }
+
+      closePopup();
+      router.push({
+        pathname: '/carpool/[id]',
+        params: { id: opportunityId.toString(), mode: 'rider' },
+      });
+    } catch (error: any) {
+      Alert.alert('Error', 'Failed to check for available rides.');
+    }
+  };
 
   return (
     <Modal
@@ -65,41 +104,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
           <View style={styles.modalActions}>
             <Pressable
               style={styles.redBtn}
-              onPress={async () => {
-                closePopup();
-                try {
-                  const rides = await getRides(Number(carpoolId));
-                  if (rides.length === 0) {
-                    Alert.alert(
-                      'No rides available',
-                      'There are no rides for this opportunity yet. Would you like to be notified when one is created?',
-                      [
-                        { text: 'No thanks', style: 'cancel' },
-                        {
-                          text: 'Notify me',
-                          onPress: async () => {
-                            try {
-                              await requestRideNotification(Number(carpoolId), currentUser!.id);
-                              Alert.alert('Got it', "We'll notify you when a ride is created.");
-                            } catch (e: any) {
-                              Alert.alert('Error', e.message);
-                            }
-                          },
-                        },
-                      ]
-                    )
-                  }
-                  router.push({
-                  pathname: "/carpool/[id]",
-                  params: {
-                    id: opportunityId.toString(),
-                    mode: "rider",
-                  },
-                })
-                } catch (error: any) {
-                  Alert.alert('Error', 'Failed to check for available rides.')
-                }
-              }}
+              onPress={handleGetRidePress}
             >
               <Text style={styles.redBtnText}>
                 <Text style={styles.bold}>GET</Text> a ride

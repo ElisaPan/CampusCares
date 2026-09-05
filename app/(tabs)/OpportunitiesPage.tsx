@@ -25,37 +25,13 @@ import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, User } from '@/types';
 import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
 
 interface OpportunitiesPageProps {
-  // students: User[];
-  // signups: SignUp[];
-  // handleSignUp?: (opportunityId: number) => void;
-  // handleUnSignUp?: (
-  //   opportunityId: number,
-  //   opportunityDate?: string,
-  //   opportunityTime?: string
-  // ) => Promise<boolean>;
-  // currentUserSignupsSet?: Set<number>;
   feedOrder: FeedOrderItem[];
   invisibleMultioppIds: number[];
-  // showCarpoolPopup?: number | null;
-  // setShowCarpoolPopup?: React.Dispatch<React.SetStateAction<number | null>>;
-  // showPopup?: (
-  //   title: string,
-  //   message: string,
-  //   type: 'success' | 'info' | 'warning' | 'error'
-  // ) => void;
 }
 
 const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
-  // students,
-  // signups,
-  // handleSignUp,
-  // handleUnSignUp,
-  // currentUserSignupsSet,
   feedOrder,
   invisibleMultioppIds,
-  // showCarpoolPopup,
-  // setShowCarpoolPopup,
-  // showPopup,
 }) => {
   const { showCarpoolPopup, setShowCarpoolPopup, showPopup, currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();

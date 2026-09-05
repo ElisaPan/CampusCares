@@ -49,23 +49,7 @@ import * as Clipboard from "expo-clipboard";
 import * as MailComposer from "expo-mail-composer";
 import { router, useLocalSearchParams } from 'expo-router';
 
-interface OpportunityDetailPageProps {
-  // handleSignUp: (opportunityId: number) => void;
-  // handleUnSignUp: (
-  //   opportunityId: number,
-  //   opportunityDate?: string,
-  //   opportunityTime?: string
-  // ) => Promise<boolean>;
-  // currentUserSignupsSet: Set<number>;
-  // allTimeMyOpps: Opportunity[];
-}
-
-const OpportunityDetailPage: React.FC<OpportunityDetailPageProps> = ({
-  // handleSignUp,
-  // handleUnSignUp,
-  // currentUserSignupsSet,
-  // allTimeMyOpps,
-}) => {
+const OpportunityDetailPage: React.FC = () => {
   const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps, showCarpoolPopup, setShowCarpoolPopup } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   
