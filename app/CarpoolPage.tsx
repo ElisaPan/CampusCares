@@ -34,7 +34,7 @@ interface CarpoolPageProps {
 }
 
 const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
-  const { currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students } = useUserStore();
+  const { waitlistedCarpoolIds, setWaitlisted, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students } = useUserStore();
 
   const USE_MOCKS = false;
   
@@ -45,8 +45,6 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   const profileUser = USE_MOCKS ? mockUsers[0] : currentUser;
   
   const mockOpportunity = mockOpportunities.find((o) => o.id === parsedId);
-
-  const [onWaitlist, setOnWaitlist] = useState(false);
 
   const [showRiderForm, setShowRiderForm] = useState(false);
   const [selectedRideId, setSelectedRideId] = useState('');
@@ -68,6 +66,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   const opportunity = USE_MOCKS ? mockOpportunity : backendOpportunity;
 
   const carpoolId = opportunity?.carpool_id;
+  const onWaitlist = waitlistedCarpoolIds.includes(Number(carpoolId));
 
   const { data: backendRides, isLoading: ridesLoading } = useQuery<Ride[]>({
     queryKey: ['rides', carpoolId],
@@ -90,11 +89,10 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
 
   useEffect(() => {
     if (!currentUser || !carpoolId) return;
-
     checkWaitlistStatus(Number(carpoolId), currentUser.id)
-      .then(setOnWaitlist)
-      .catch(() => setOnWaitlist(false));
-  }, [currentUser?.id, carpoolId, isDriver]);
+      .then((waitlisted) => setWaitlisted(Number(carpoolId), waitlisted))
+      .catch(() => {});
+  }, [currentUser?.id, carpoolId]);
 
   // Logic to get the time/date
   const dateObj = new Date(opportunity?.date ?? '');
@@ -133,7 +131,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
 
   const onAddRide = () => {
     setShowDriverPopup(true);
-    setOnWaitlist(false);
+    setWaitlisted(Number(carpoolId), false);
   }
 
   const onRemoveRide = async (id: string) => {
@@ -160,46 +158,27 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     }
   };
 
-  const handleWaitlistPress = async () =>{
+  const handleWaitlistPress = async () => {
     if (!carpoolId || !currentUser) return;
 
     if (onWaitlist) {
+      setWaitlisted(Number(carpoolId), false);
       try {
         await cancelRideNotificationRequest(Number(carpoolId), currentUser.id);
-        setOnWaitlist(false);
       } catch (e: any) {
+        setWaitlisted(Number(carpoolId), true);
         Alert.alert('Error', e.message);
       }
-      return;
-    }
-
-    try {
-      const rides = await getRides(Number(carpoolId))
-      if (rides.length === 0) {
-        Alert.alert(
-          'No rides available',
-          'There are no rides for this opportunity yet. Would you like to be notified when one is created?',
-          [
-            { text: 'No thanks', style: 'cancel' },
-            {
-              text: 'Notify me',
-              onPress: async () => {
-                try {
-                  await requestRideNotification(Number(carpoolId), currentUser.id);
-                  setOnWaitlist(true);
-                } catch (e: any) {
-                  Alert.alert('Error', e.message);
-                }
-              },
-            },
-          ]
-        );
-        return;
+    } else {
+      setWaitlisted(Number(carpoolId), true);
+      try {
+        await requestRideNotification(Number(carpoolId), currentUser.id);
+      } catch (e: any) {
+        setWaitlisted(Number(carpoolId), false);
+        Alert.alert('Error', e.message);
       }
-    } catch (error: any) {
-      Alert.alert('Error', 'Failed to check for available rides.');
     }
-  }
+  };
 
   const sendTextToSignedUpUsers = (phoneNumbers: string[]) => {
     const separator = Platform.OS === 'ios' ? ',' : ';';

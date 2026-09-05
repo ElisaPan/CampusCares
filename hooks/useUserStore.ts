@@ -33,8 +33,9 @@ interface UserStore {
   friendshipsData: FriendshipsResponse | null;
   setFriendshipsData: (data: FriendshipsResponse | null) => void;
   currentUserSignupsSet: Set<number>;
+  waitlistedCarpoolIds: number[];
+  setWaitlisted: (carpoolId: number, isWaitlisted: boolean) => void;
 }
-
 export const useUserStore = create<UserStore>((set) => ({
   currentUser: null,
   setCurrentUser: (user) => set({ currentUser: user }),
@@ -62,4 +63,11 @@ export const useUserStore = create<UserStore>((set) => ({
   friendshipsData: null,
   setFriendshipsData: (data) => set({ friendshipsData: data }),
   currentUserSignupsSet: new Set<number>(),
+  waitlistedCarpoolIds: [],
+  setWaitlisted: (carpoolId, isWaitlisted) =>
+    set((state) => ({
+      waitlistedCarpoolIds: isWaitlisted
+        ? [...state.waitlistedCarpoolIds, carpoolId]
+        : state.waitlistedCarpoolIds.filter((id) => id !== carpoolId),
+    })),
 }));

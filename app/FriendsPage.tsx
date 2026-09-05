@@ -2,7 +2,7 @@ import { User } from '@/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
@@ -108,7 +108,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
   if (!profileUser) return <Text>User not found</Text>;
   
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Pressable
         style={styles.backWrapper}
         onPress={() => router.back()}
@@ -151,7 +151,7 @@ const FriendsPage: React.FC<FriendsPageProps> = (props) => {
         ) : (
           <Text>{profileUser.name} hasn't added any friends yet.</Text>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -159,6 +159,7 @@ export default FriendsPage;
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 24,
   },
   loadingView: {
