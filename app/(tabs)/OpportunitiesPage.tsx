@@ -86,9 +86,9 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       .filter((opp) => {
         if (!opp.approved) return false;
         if (opp.multiopp) return false;
-        if (!currentUser) return true;
         if (opp.fullDateTime.getTime() < now.getTime()) return false;
         if (!opp.visibility || opp.visibility.length === 0) return true;
+        if (!currentUser) return true;
         if (currentUser.admin) return true;
         const userOrgIds = currentUser.organizationIds || [];
         return opp.visibility.some((orgId) => userOrgIds.includes(orgId));
@@ -98,12 +98,12 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
       const invisibleSet = new Set(invisibleMultioppIds);
       const visibleMultiOpps = (multiopps ?? []).filter((m) => {
         if (invisibleSet.has(m.id)) return false;
-        if (!currentUser) return true;
         const hasUpcoming = (m.opportunities ?? []).some(
           (o) => new Date(o.date).getTime() >= now.getTime()
         );
         if (!hasUpcoming) return false;
         if (!m.visibility || m.visibility.length === 0) return true;
+        if (!currentUser) return true;
         if (currentUser.admin) return true;
         const userOrgIds = currentUser.organizationIds || [];
         return m.visibility.some((orgId) => userOrgIds.includes(orgId));

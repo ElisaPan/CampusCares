@@ -65,11 +65,11 @@ const styles = StyleSheet.create({
   headerBtns: {
     flexDirection: "row",
     gap: 8,
-    marginRight: 6,
+    marginRight: 8,
   },
   loginBtn: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: Theme.cornellRed,
     borderRadius: 9999,
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   },
   loginTxt: {
     color: Theme.cornellRed,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
   },
   signUpBtn: {
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   },
   signUpTxt: {
     color: "white",
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "700",
   }
 

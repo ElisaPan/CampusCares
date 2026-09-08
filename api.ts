@@ -375,19 +375,29 @@ export const registerUser = async (
 };
 
 // for push notifications
-export const savePushToken = async (pushToken: string) => {
+export const savePushToken = async (pushToken: string, userId: number) => {
   const user = auth.currentUser;
-  if (!user) return;
-  const token = await user.getIdToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
 
-  return fetch(`${ENDPOINT_URL}/save-push-token`, {
+  if (user) {
+    const token = await user.getIdToken();
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${ENDPOINT_URL}/api/save-push-token`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ pushToken }),
+    headers,
+    body: JSON.stringify({ user_id: userId, push_token: pushToken }),
   });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.message || 'Failed to save push token');
+  }
+
+  return response.json();
 };
 
 // Get all user emails - returns array of email strings

@@ -38,30 +38,6 @@ export default function RootLayout() {
   const { popup, closePopup } = useUserStore();
   const { setOrganizations, setAllOpps, setStudents } = useUserStore();
 
-  // useEffect(() => {
-  //   Promise.all([
-  //     getOrgs(),
-  //     getCurrentOpportunities(),
-  //     getMultiOpps(),
-  //     getUsers(),
-  //   ]).then(([orgs, opps, multiopps, students]) => {
-  //       console.log('raw students from getUsers:', JSON.stringify(students.find(s => s.id === 4)));
-        
-  //       const today = new Date();
-  //       today.setHours(0, 0, 0, 0);
-
-  //       const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
-  //       const upcomingMultiopps = multiopps.filter((m) =>
-  //         m.opportunities?.some((o) => new Date(o.date) >= today)
-  //       );
-  //       // console.log('Fetch took', Date.now() - start, 'ms');
-  //       // console.log('opps count:', opps.length, 'multiopps count:', multiopps.length);
-  //       setOrganizations(orgs);
-  //       setAllOpps([...upcomingOpps, ...upcomingMultiopps]);
-  //       setStudents(students);
-  //     })
-  //     .catch(console.error)
-  // }, []);
   useEffect(() => {
     Promise.all([getCurrentOpportunities(), getMultiOpps()])
       .then(([opps, multiopps]) => {
