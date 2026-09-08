@@ -120,7 +120,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
 
               const pushToken = await registerForPushNotifications();
               if (pushToken) {
-                await api.savePushToken(pushToken); // add this endpoint to your backend
+                await api.savePushToken(pushToken, Number(existingUser?.id));
               }
               router.replace(`/(tabs)/OpportunitiesPage`);
             } else {

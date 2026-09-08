@@ -35,7 +35,6 @@ import grace from '@/public/team_pic/grace.jpeg';
 import lee from '@/public/team_pic/lee.png';
 import scott from '@/public/team_pic/scott.png';
 
-
 import AosView from '@/components/AOSView';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
@@ -44,6 +43,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Pressable, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
+
 
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -319,13 +319,6 @@ const HomePage = () => {
       <View style={styles.headerShadow}>
         <PublicHeader />
       </View>
-      {/* <Button
-        title="Test Push Token"
-        onPress={async () => {
-          const token = await registerForPushNotifications();
-          console.log('Push token:', token);
-        }}
-      /> */}
       <RNAnimated.ScrollView
         style={styles.container}
         onScroll={RNAnimated.event(
