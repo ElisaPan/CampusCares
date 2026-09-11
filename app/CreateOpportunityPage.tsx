@@ -177,15 +177,6 @@ const CreateOpportunityPage: React.FC = () => {
     [allOpps]
   );
 
-  if (!sourceOrganizations) return <Text>Organizations not found</Text>;
-  if (!user) {
-    return (
-      <View style={styles.loadingView}>
-        <ActivityIndicator size='large' color={Theme.cornellRed} />
-      </View>
-    )
-  }
-
   const queryClient = useQueryClient();
   const isSingleOpportunity = ( opp: Opportunity | MultiOpp ): opp is Opportunity => {
     return !("isMultiOpp" in opp && opp.isMultiOpp);
@@ -420,11 +411,11 @@ const CreateOpportunityPage: React.FC = () => {
       formDataToSend.append('total_slots', formData.total_slots.toString());
       formDataToSend.append('nonprofit', formData.nonprofit);
       formDataToSend.append('host_org_id', String(formData.host_org_id));
-      formDataToSend.append('host_user_id', user.id.toString());
+      formDataToSend.append('host_user_id', String(user?.id.toString()));
       formDataToSend.append('address', formData.address);
       formDataToSend.append('allow_carpool', String(formData.allow_carpool))
       formDataToSend.append('points', formData.duration.toString());
-      formDataToSend.append('approved', user.admin ? 'true' : 'false');
+      formDataToSend.append('approved', user?.admin ? 'true' : 'false');
 
       // Add redirect URL if provided
       if (formData.redirect_url.trim()) {
@@ -466,7 +457,7 @@ const CreateOpportunityPage: React.FC = () => {
 
       const isSingleOpp = !isRecurring;
 
-      if (user.admin) {
+      if (user?.admin) {
         const approvedOpp = { ...transformedOpp, approved: true };
         if (isSingleOpp) {
           // setOpportunities((prev) => [approvedOpp as Opportunity, ...prev]);
@@ -529,6 +520,15 @@ const CreateOpportunityPage: React.FC = () => {
     }
     setDaysOfWeek(updated);
   };
+
+  if (!sourceOrganizations) return <Text>Organizations not found</Text>;
+  if (!user) {
+    return (
+      <View style={styles.loadingView}>
+        <ActivityIndicator size='large' color={Theme.cornellRed} />
+      </View>
+    )
+  }
 
 
   return (
