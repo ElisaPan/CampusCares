@@ -10,7 +10,7 @@
  */
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Linking, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Linking, Modal, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import { Header as MainHeader } from '@/components/HeaderComponent';
@@ -33,13 +33,20 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
   feedOrder,
   invisibleMultioppIds,
 }) => {
-  const { showCarpoolPopup, setShowCarpoolPopup, showPopup, currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
+  const { refreshOppsData, showCarpoolPopup, setShowCarpoolPopup, showPopup, currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   const [oppsLoading, setOppsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     setOppsLoading(allOpps.length === 0);
   }), [allOpps];
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await refreshOppsData();
+    setRefreshing(false);
+  };
   
   const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
   const multiopps = allOpps.filter(isMultiOpp);
@@ -248,6 +255,9 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           item.kind === 'multiopp'
           ? `multiopp-${item.data.id}`
           : `opp-${item.data.id}`
+        }
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
         ListHeaderComponent={<Header user={currentUser}/>}
         ListFooterComponent={<Footer/>}

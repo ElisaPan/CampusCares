@@ -1,4 +1,5 @@
 // store/useUserStore.ts
+import { getCurrentOpportunities, getMultiOpps } from '@/api';
 import { FriendshipsResponse, MultiOpp, Opportunity, Organization, SignUp, User } from '@/types';
 import { create } from 'zustand';
 
@@ -35,8 +36,10 @@ interface UserStore {
   currentUserSignupsSet: Set<number>;
   waitlistedCarpoolIds: number[];
   setWaitlisted: (carpoolId: number, isWaitlisted: boolean) => void;
+  refreshOppsData: () => Promise<void>;
 }
-export const useUserStore = create<UserStore>((set) => ({
+
+export const useUserStore = create<UserStore>((set, get) => ({
   currentUser: null,
   setCurrentUser: (user) => set({ currentUser: user }),
   updateCurrentUser: (updates) =>
@@ -70,4 +73,25 @@ export const useUserStore = create<UserStore>((set) => ({
         ? [...state.waitlistedCarpoolIds, carpoolId]
         : state.waitlistedCarpoolIds.filter((id) => id !== carpoolId),
     })),
+  refreshOppsData: async () => {
+    const { currentUser, setAllOpps } = get();
+    try {
+      // if (currentUser) {
+        // const [orgs, opps, multiopps, students] = await Promise.all([
+        //   getOrgs(), getCurrentOpportunities(), getMultiOpps(), getUsers(),
+        // ]);
+        // set({ organizations: orgs, students, allOpps: [...opps, ...multiopps] });
+      // } else {
+        Promise.all([getCurrentOpportunities(), getMultiOpps()])
+          .then(([opps, multiopps]) => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
+            setAllOpps([...upcomingOpps, ...multiopps]);
+          })
+      // }
+    } catch (e) {
+      console.error('Failed to refresh app data:', e);
+    }
+  },
 }));

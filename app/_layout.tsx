@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { AppState, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
 
@@ -36,7 +36,38 @@ export default function RootLayout() {
   useNotificationObserver();
   const colorScheme = useColorScheme();
   const { popup, closePopup } = useUserStore();
-  const { setOrganizations, setAllOpps, setStudents } = useUserStore();
+  const { refreshOppsData, currentUser, setAllOpps } = useUserStore();
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        refreshOppsData();
+      }
+    });
+    return () => subscription.remove();
+  }, [currentUser?.id]);
+
+  // const refreshOppsData = async () => {
+  //   try {
+  //     if (currentUser) {
+  //       const [orgs, opps, multiopps, students] = await Promise.all([
+  //         getOrgs(),
+  //         getCurrentOpportunities(),
+  //         getMultiOpps(),
+  //         getUsers(),
+  //       ]);
+  //       setOrganizations(orgs);
+  //       setStudents(students);
+  //       setAllOpps([...opps, ...multiopps]);
+  //     } else {
+  //       const opps = await getCurrentOpportunities();
+  //       const multiopps = await getMultiOpps();
+  //       setAllOpps([...opps, ...multiopps]);
+  //     }
+  //   } catch (e) {
+  //     console.error('Failed to refresh app data:', e);
+  //   }
+  // };
 
   useEffect(() => {
     Promise.all([getCurrentOpportunities(), getMultiOpps()])
