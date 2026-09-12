@@ -232,7 +232,14 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
           style={{ textDecorationLine: 'underline', color: '#374151' }}
           onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
         >
-          Terms of Service and Privacy Policy
+          Terms of Service
+        </Text>
+        {" "}and{" "}
+        <Text
+          style={{ textDecorationLine: 'underline', color: '#374151' }}
+          onPress={() => Linking.openURL("https://www.campuscares.us/privacy_policy.pdf")}
+        >
+          Privacy Policy
         </Text>
         .
       </Text>
