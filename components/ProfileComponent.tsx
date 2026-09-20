@@ -8,7 +8,7 @@
  *    Fix service journal link (See my opportunities)
  */
 
-import { signOut } from '@/firebase-config';
+import { deleteUser as deleteFirebaseUser, signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -249,9 +249,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       );
     });
     if (!confirmed) return;
-    
+
     try {
       await deleteUser(id);
+      await deleteFirebaseUser();
       clearCurrentUser();
       setOrganizations([]);
       setStudents([]);

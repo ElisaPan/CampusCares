@@ -6,6 +6,7 @@ import { initializeApp } from 'firebase/app';
 import {
   onAuthStateChanged as fbOnAuthStateChanged,
   User as FirebaseAuthUser,
+  deleteUser as firebaseDeleteUser,
   GoogleAuthProvider as FirebaseGoogleAuthProvider,
   signOut as firebaseSignOut,
   getReactNativePersistence,
@@ -117,3 +118,13 @@ export const signOut = async () => {
     throw new Error(error.message || 'Sign-out failed');
   }
 };
+
+export const deleteUser = async () => {
+  const user = auth.currentUser;
+  if (!user) return;
+  try {
+    await firebaseDeleteUser(user);
+  } catch (error: any) {
+      await firebaseSignOut(auth);
+    }
+  }
