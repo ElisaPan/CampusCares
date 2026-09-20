@@ -374,6 +374,11 @@ export const registerUser = async (
   })) as User;
 };
 
+export const deleteUser = (id: number): Promise<void> =>
+  authenticatedRequest(`/users/${id}`, {
+    method: 'DELETE',
+});
+
 // for push notifications
 export const savePushToken = async (pushToken: string, userId: number) => {
   const user = auth.currentUser;

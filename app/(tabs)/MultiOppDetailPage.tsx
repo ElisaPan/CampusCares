@@ -456,6 +456,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
               alt={multiopp.name}
               style={styles.headerImg}
             />
+            <View style={ styles.overlay }/>
             <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}>
               <LinearGradient
                 colors={[ "rgba(0,0,0,0.6)", "transparent" ]}
@@ -465,12 +466,12 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
               />
             </View>
             <View style={styles.headerTextWrapper}>
-              <Text style={styles.headerName}>{multiopp.name}</Text>
+              <Text style={styles.headerName} numberOfLines={multiopp.host_org_name ? 2 : 3}>{multiopp.name}</Text>
               {multiopp.nonprofit && (
-                <Text style={styles.headerNonprof}>{multiopp.nonprofit}</Text>
+                <Text style={styles.headerNonprof} numberOfLines={1}>{multiopp.nonprofit}</Text>
               )}
               {multiopp.host_org_name && (
-                <Text style={styles.headerHost}>Hosted by {multiopp.host_org_name}</Text>
+                <Text style={styles.headerHost} numberOfLines={1}>Hosted by {multiopp.host_org_name}</Text>
               )}
               {activeCurrentUser?.admin && !isUserHost && (
                 <View>
@@ -849,6 +850,10 @@ const styles = StyleSheet.create({
     height: 256,
     resizeMode: 'cover',
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
   headerTextWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -867,10 +872,9 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   headerNonprof: {
-    fontSize: 24,
-    lineHeight: 32,
+    color: 'rgb(255, 255, 255, 0.95)',
+    fontSize: 20,
     fontWeight: '600',
-    color: 'rgb(255, 255, 255, 0.9)',
 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
@@ -879,10 +883,11 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   headerHost: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 16,
     fontWeight: '600',
     color: 'rgb(255, 255, 255, 0.8)',
+
+    marginTop: 8,
 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },

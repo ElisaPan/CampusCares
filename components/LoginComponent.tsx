@@ -25,13 +25,6 @@ import { ActivityIndicator, Animated, Image, Linking, Pressable, ScrollView, Sty
 
 WebBrowser.maybeCompleteAuthSession();
 
-// interface LoginProps {
-//   onGoogleSignIn: () => void;
-//   error: string | null;
-//   isLoading: boolean;
-//   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-//   mode: string;
-// }
 interface LoginProps {
   mode: 'login' | 'sign-up';
 }
