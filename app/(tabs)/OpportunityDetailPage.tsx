@@ -725,6 +725,7 @@ const OpportunityDetailPage: React.FC = () => {
               alt={opportunity.name}
               style={styles.headerImg}
             />
+            <View style={ styles.overlay } />
             <View style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0 }}>
               <LinearGradient
                 colors={[ "rgba(0,0,0,0.6)", "transparent" ]}
@@ -734,12 +735,12 @@ const OpportunityDetailPage: React.FC = () => {
               />
             </View>
             <View style={styles.headerTextWrapper}>
-              <Text style={styles.headerName}>{opportunity.name}</Text>
+              <Text style={styles.headerName} numberOfLines={opportunity.host_org_name ? 2 : 3}>{opportunity.name}</Text>
               {opportunity.nonprofit && (
-                <Text style={styles.headerNonprof}>{opportunity.nonprofit}</Text>
+                <Text style={styles.headerNonprof} numberOfLines={1}>{opportunity.nonprofit}</Text>
               )}
               {opportunity.host_org_name && (
-                <Text style={styles.headerHost}>Hosted by {opportunity.host_org_name}</Text>
+                <Text style={styles.headerHost} numberOfLines={1}>Hosted by {opportunity.host_org_name}</Text>
               )}
               {isUserHost && (
                 <View>
@@ -824,22 +825,10 @@ const OpportunityDetailPage: React.FC = () => {
 
                 {/* Display existing announcements */}
                 {opportunity.comments && opportunity.comments.length > 0 ? (
-                  // <FlatList
-                  //   data={opportunity.comments}
-                  //   keyExtractor={(_, index) => index.toString()}
-                  //   scrollEnabled={false}
-                  //   renderItem={({ item:comment }) => (
-                  //     <View style={styles.announceDisplay}>
-                  //       <Text style={styles.commentTxt}>{comment}</Text>
-                  //       <Text style={styles.commentLabel}>Host</Text>
-                  //     </View>
-                  //   )}
-                  // />
                   opportunity.comments.map((comment) => {
                     return(
                       <View style={styles.announceDisplay}>
                         <Text style={styles.commentTxt}>{comment}</Text>
-                        <Text style={styles.commentLabel}>Host</Text>
                       </View>
                     )
                   })
@@ -1696,6 +1685,10 @@ const styles = StyleSheet.create({
     height: 256,
     resizeMode: 'cover',
   },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
   headerTextWrapper: {
     position: 'absolute',
     bottom: 0,
@@ -1714,9 +1707,8 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   headerNonprof: {
-    color: 'rgb(255, 255, 255, 0.9)',
-    fontSize: 24,
-    lineHeight: 32,
+    color: 'rgb(255, 255, 255, 0.95)',
+    fontSize: 20,
     fontWeight: '600',
 
     shadowColor: "#000",
@@ -1726,10 +1718,11 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   headerHost: {
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 16,
     fontWeight: '600',
     color: 'rgb(255, 255, 255, 0.8)',
+
+    marginTop: 8,
 
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
@@ -1766,6 +1759,7 @@ const styles = StyleSheet.create({
   headerSignUp: {
     width: 140,
     marginTop: 18,
+    marginBottom: -10,
     alignItems: 'center',
     verticalAlign: 'middle',
     borderRadius: 8,

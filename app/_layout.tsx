@@ -1,4 +1,3 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -90,7 +89,7 @@ export default function RootLayout() {
   return (
     <CloneOpportunityProvider>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        {/* <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}> */}
           <View style={styles.container}>
             <View style={styles.content}>
               <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
@@ -117,7 +116,7 @@ export default function RootLayout() {
             </View>
           </View>
           <StatusBar style="auto" />
-        </ThemeProvider>
+        {/* </ThemeProvider> */}
       </QueryClientProvider>
     </CloneOpportunityProvider>
   );

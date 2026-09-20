@@ -18,7 +18,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Calendar1, Clock } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface OpportunityCardProps {
   opportunity: Opportunity;
@@ -206,14 +206,8 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
 
-  // if (!currentUser || allOrgs.length === 0) {
-  if (allOrgs.length === 0) {
-    return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#C8102E" />
-      </View>
-    );
-  }
+  const truncate = (str: string | null | undefined, max: number) =>
+    !str ? '' : str.length > max ? str.slice(0, max).trimEnd() + '…' : str;
 
   return (
     <Pressable
@@ -236,8 +230,8 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
         </View>
         <View style={styles.headerTextWrapper}>
           <View style={styles.leftHeader}>
-            <Text style={styles.orgName}>{opportunity.nonprofit || 'Community Organization'}</Text>
-            <Text style={styles.oppName}>{opportunity.name}</Text>
+            <Text style={styles.orgName}>{truncate((opportunity.nonprofit || 'Community Organization'), 25)}</Text>
+            <Text style={styles.oppName}>{truncate(opportunity.name, 22)}</Text>
           </View>
           <View style={styles.rightHeader}>
             <Text style={styles.oppPoints}>{opportunity.points} PTS</Text>
@@ -444,6 +438,7 @@ const styles = StyleSheet.create({
   },
   rightHeader: {
     alignSelf: 'center',
+    marginRight: -18,
   },
   headerText: {
     letterSpacing: 0.8,
@@ -624,8 +619,8 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   visibleTo: {
-      marginTop: 'auto',
-      marginBottom: 4
+    marginTop: 'auto',
+    marginBottom: 10,
   },
   visibleToText: {
       alignItems: 'center',

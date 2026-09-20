@@ -12,6 +12,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Modal, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
+import { getFeedOrder } from '@/api';
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import MultiOppCard from '@/components/MultiOppCard';
@@ -21,26 +22,27 @@ import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
-import { FeedItem, FeedOrderItem, MultiOpp, Opportunity, User } from '@/types';
+import { FeedItem, FeedOrderItem, FeedOrderResponse, MultiOpp, Opportunity, User } from '@/types';
 import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
+import { useQuery } from '@tanstack/react-query';
 
-interface OpportunitiesPageProps {
-  feedOrder: FeedOrderItem[];
-  invisibleMultioppIds: number[];
-}
-
-const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
-  feedOrder,
-  invisibleMultioppIds,
-}) => {
+const OpportunitiesPage: React.FC = () => {
   const { refreshOppsData, showCarpoolPopup, setShowCarpoolPopup, showPopup, currentUserSignupsSet, students, setStudents, setSignups, allOpps, organizations: allOrgs, setOrganizations, currentUser, setAllOpps, setCurrentUser, updateCurrentUser, clearCurrentUser, signups } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
   const [oppsLoading, setOppsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const { data: feedOrderResponse } = useQuery<FeedOrderResponse>({
+    queryKey: ['feedOrder'],
+    queryFn: getFeedOrder,
+    enabled: !!currentUser,
+  });
+  const feedOrder: FeedOrderItem[] = feedOrderResponse?.order ?? [];
+  const invisibleMultioppIds: number[] = feedOrderResponse?.invisible_multiopps ?? [];
+
   useEffect(() => {
     setOppsLoading(allOpps.length === 0);
-  }), [allOpps];
+  }, [allOpps]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -77,6 +79,18 @@ const OpportunitiesPage: React.FC<OpportunitiesPageProps> = ({
     });
     return currentUserSignupsSet;
   }, [currentUser, opportunities, signups]);
+
+  // const feedItems = useMemo(
+  //   () =>
+  //     buildFeedItems({
+  //       opportunities,
+  //       multiopps,
+  //       currentUser,
+  //       feedOrder,
+  //       invisibleMultioppIds,
+  //     }),
+  //   [opportunities, multiopps, currentUser, feedOrder, invisibleMultioppIds]
+  // );
 
   const feedItems = useMemo((): FeedItem[] => {
     try {

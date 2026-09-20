@@ -70,6 +70,8 @@ const Avatar = ({ user }: { user: User }) => {
 	);
 };
 
+const truncate = (str: string | null | undefined, max: number) =>
+	!str ? '' : str.length > max ? str.slice(0, max).trimEnd() + '…' : str;
 
 const MultiOppCard: React.FC<MultiOppCardProps> = ({
   multiopp,
@@ -148,8 +150,8 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 					/>
 				</View>
 				<View style={styles.headerTextWrapper}>
-					<Text style={styles.orgName}>{multiopp.nonprofit || 'Community Organization'}</Text>
-					<Text style={styles.oppName}>{multiopp.name}</Text>					
+					<Text style={styles.orgName}>{truncate((multiopp.nonprofit || 'Community Organization'), 25)}</Text>
+					<Text style={styles.oppName}>{truncate(multiopp.name, 27)}</Text>			
 				</View>
 			</View>
 			<View style={styles.content}>
@@ -512,8 +514,8 @@ const styles = StyleSheet.create({
   },
 	visibleTo: {
 		marginTop: 'auto',
-		marginBottom: 4
-	},
+		marginBottom: 10,
+  },
 	visibleToText: {
 		color: '#1f2937',
 		fontSize: 14,
