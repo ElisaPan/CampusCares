@@ -14,7 +14,7 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
-import { getProfilePictureSource, getUser, updateUser } from '@/api';
+import { deleteUser, getProfilePictureSource, getUser, updateUser } from '@/api';
 import { FriendshipStatus, Organization, User } from '@/types';
 import { useLocalSearchParams } from 'expo-router';
 
@@ -234,6 +234,30 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       router.replace(`/HomePage`);
     } catch (error) {
       console.error('Logout failed:', error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const confirmed = await new Promise<boolean>((resolve) => {
+      Alert.alert(
+        'Delete account?',
+        "Are you sure you want to delete your account? This action cannot be undone.",
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: 'Delete', style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+    if (!confirmed) return;
+    
+    try {
+      await deleteUser(id);
+      clearCurrentUser();
+      setOrganizations([]);
+      setStudents([]);
+      router.replace(`/HomePage`);
+    } catch (error) {
+      console.error('Delete failed:', error);
     }
   };
 
@@ -457,7 +481,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
               <View style={styles.emailCard}>
                 <View>
                   <View style={styles.leftEmailCard}>
-                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>Email newsletter</Text>
+                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>Email Newsletter</Text>
                     <Text style={{ fontSize: 14, color: "#767676", marginTop: 6 }}>Get notified about upcoming opportunities</Text>
                   </View>
                 </View>
@@ -496,7 +520,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
                 onPress={handleLogout}
                 style={[styles.footerBtn, {backgroundColor: '#e5e7eb', paddingVertical: 8,}]} 
               >
-                <Text style={styles.footerText}>Log out</Text>
+                <Text style={styles.footerText}>Log Out</Text>
+              </Pressable>
+              <Pressable
+                onPress={() => handleDelete(Number(currentUser?.id))}
+                style={styles.deleteBtn} 
+              >
+                <Text style={styles.deleteTxt}>Delete Account</Text>
               </Pressable>
             </View>
           )}
@@ -804,5 +834,18 @@ const styles = StyleSheet.create({
   footerText: {
     fontWeight: '700',
     textAlign: 'center',
+  },
+  deleteBtn: {
+    width: '100%',
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  deleteTxt: {
+    fontWeight: '500',
+    textAlign: 'center',
+    color: '#FCA5A5',
   },
 })
