@@ -11,7 +11,7 @@
 import { deleteUser as deleteFirebaseUser, signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
 import { deleteUser, getProfilePictureSource, getUser, updateUser } from '@/api';
@@ -88,6 +88,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
   const [focusedBio, setFocusedBio] = useState(false);
   const [savingBio, setSavingBio] = useState(false);
   const [localUser, setLocalUser] = useState(profileUser);
+
+  const scrollRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [currentUser?.id]);
+
 
   // Update friends
   useEffect(() => {
@@ -272,7 +279,10 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       <View style={styles.header}>
         <MainHeader />
       </View>
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.container}
+        ref={scrollRef}
+      >
         <View style={styles.page}>
           {/* User info */}
           <View style={styles.centerAlignCard}>

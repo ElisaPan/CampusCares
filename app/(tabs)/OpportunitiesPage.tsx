@@ -8,8 +8,8 @@
  *  Low
  *    Redesign page title formatting
  */
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Modal, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { getFeedOrder } from '@/api';
@@ -32,6 +32,8 @@ const OpportunitiesPage: React.FC = () => {
   const [oppsLoading, setOppsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  const listRef = useRef<FlatList>(null);
+
   const { data: feedOrderResponse } = useQuery<FeedOrderResponse>({
     queryKey: ['feedOrder'],
     queryFn: getFeedOrder,
@@ -39,10 +41,16 @@ const OpportunitiesPage: React.FC = () => {
   });
   const feedOrder: FeedOrderItem[] = feedOrderResponse?.order ?? [];
   const invisibleMultioppIds: number[] = feedOrderResponse?.invisible_multiopps ?? [];
-
+  
   useEffect(() => {
     setOppsLoading(allOpps.length === 0);
   }, [allOpps]);
+
+  useFocusEffect(
+    useCallback(() => {
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    }, [])
+  );
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -269,6 +277,7 @@ const OpportunitiesPage: React.FC = () => {
       <FlatList
         style={styles.oppsGrid}
         data={feedItems}
+        ref={listRef}
         numColumns={1}
         key={1}
         contentContainerStyle={{ padding: 16 }}

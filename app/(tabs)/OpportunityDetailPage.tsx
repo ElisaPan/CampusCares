@@ -41,7 +41,7 @@ import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 import { MaterialIcons } from '@expo/vector-icons';
@@ -123,6 +123,9 @@ const OpportunityDetailPage: React.FC = () => {
   const [showTransferHost, setShowTransferHost] = useState(false);
   const [selectedTransferUserId, setSelectedTransferUserId] = useState<number | ''>('');
   const [isTransferringHost, setIsTransferringHost] = useState(false);
+
+  // Page scroll
+  const scrollRef = useRef<ScrollView>(null);
 
   const signedUpStudents = opportunity?.involved_users
     ? opportunity.involved_users.filter((user) => user.registered === true)
@@ -618,6 +621,10 @@ const OpportunityDetailPage: React.FC = () => {
   };
 
   useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [opportunity?.id]);
+
+  useEffect(() => {
     if (!userLookupName.trim()) {
       setUserLookupResults([]);
       return;
@@ -711,8 +718,8 @@ const OpportunityDetailPage: React.FC = () => {
   return (
     <ScrollView
       style={styles.container}
-      // StickyHeaderComponent={MainHeader}
       stickyHeaderIndices={[0]}
+      ref={scrollRef}
     >
       <View style={styles.mainHeader}>
         <MainHeader />

@@ -31,7 +31,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 interface MultiOppDetailPageProps {
@@ -94,6 +94,9 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     redirect_url: multiopp?.redirect_url || '',
     allow_carpool: initAllowCarpool
   });
+
+  // Page scroll
+  const scrollRef = useRef<ScrollView>(null);
 
   const startOfToday = useMemo(() => {
     const d = new Date();
@@ -224,6 +227,11 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       );
     });
   };
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ y: 0, animated: false });
+  }, [multiopp?.id]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -443,6 +451,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     <ScrollView
       style={styles.container}
       stickyHeaderIndices={[0]}
+      ref={scrollRef}
     >
       <View style={styles.mainHeader}>
         <MainHeader />
