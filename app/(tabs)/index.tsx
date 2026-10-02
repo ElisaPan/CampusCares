@@ -22,20 +22,27 @@ export default function Index() {
       if (user) {
         try {
           const token = await user.getIdToken();
-          const existingUser = await getUserByEmail(user.email!, token);
-          if (existingUser) {
-            setCurrentUser(existingUser); // just use the closure variable — no hook call here
+          // const existingUser = await getUserByEmail(user.email!, token);
+          // if (existingUser) {
+          //   setCurrentUser(existingUser);
 
-            const [orgs, opps, multiopps, students] = await Promise.all([
-              getOrgs(),
-              getCurrentOpportunities(),
-              getMultiOpps(),
-              getUsers(),
-            ]);
-            setOrganizations(orgs);
-            setStudents(students);
-            setAllOpps([...opps, ...multiopps]);
+          // const [orgs, opps, multiopps, students] = await Promise.all([
+          const [existingUser, opps, multiopps] = await Promise.all([
+            getUserByEmail(user.email!, token),
+            // getOrgs(),
+            getCurrentOpportunities(),
+            getMultiOpps(),
+            // getUsers(),
+          ]);
+          if (existingUser) {
+            setCurrentUser(existingUser);
           }
+          // setOrganizations(orgs);
+          // setStudents(students);
+          setAllOpps([...opps, ...multiopps]);
+          getOrgs().then(setOrganizations).catch((e) => console.error(e));
+          getUsers().then(setStudents).catch((e) => console.error(e));
+          // }
         } catch (e) {
           console.error('Failed to restore user session:', e);
         }
