@@ -140,11 +140,20 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
       setIsLoading(false);
     }
   }, [response]);
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const timeout = setTimeout(() => setIsLoading(false), 15000);
+    return () => clearTimeout(timeout);
+  }, [isLoading]);
   
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setError(null);
     setIsLoading(true);
-    promptAsync();
+    const result = await promptAsync();
+    if (result.type !== 'success') {
+      setIsLoading(false);
+    }
   };
 
   const handleLoginTest = async (id: number) => {

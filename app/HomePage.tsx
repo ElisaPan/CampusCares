@@ -74,7 +74,7 @@ const HomePage = () => {
 
   const goToSlide = useCallback((index: number) => {
     const next = index % covers.length;
-    slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
+    slideshowRef.current?.scrollTo({ x: next * slideWidth, animated: true });
     setActiveSlide(next);
   }, [covers.length, slideWidth]);
 
@@ -82,7 +82,7 @@ const HomePage = () => {
     slideTimer.current = setInterval(() => {
       setActiveSlide((prev) => {
         const next = (prev + 1) % covers.length;
-        slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
+        slideshowRef.current?.scrollTo({ x: next * (slideWidth), animated: true });
         return next;
       });
     }, slideInt);
@@ -175,7 +175,7 @@ const HomePage = () => {
         ? Math.max(0, scrollNum - 1)
         : Math.min(partners.length - 1, scrollNum + 1);
 
-    carouselRef.current?.scrollTo({ x: next * (carouselCardWidth + 16), animated: true });
+    carouselRef.current?.scrollTo({ x: next * (carouselCardWidth), animated: true });
     setScrollNum(next);
   };
   
@@ -370,13 +370,13 @@ const HomePage = () => {
                   decelerationRate="fast"
                   scrollEnabled
                   onMomentumScrollEnd={(e) => {
-                    const index = Math.round(e.nativeEvent.contentOffset.x / (slideWidth + 16));
+                    const index = Math.round(e.nativeEvent.contentOffset.x / slideWidth);
                     setActiveSlide(index);
                     if (slideTimer.current) clearInterval(slideTimer.current);
                     slideTimer.current = setInterval(() => {
                       setActiveSlide((prev) => {
                         const next = (prev + 1) % covers.length;
-                        slideshowRef.current?.scrollTo({ x: next * (slideWidth + 16), animated: true });
+                        slideshowRef.current?.scrollTo({ x: next * slideWidth, animated: true });
                         return next;
                       });
                     }, slideInt);
