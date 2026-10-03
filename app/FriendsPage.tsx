@@ -5,6 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
+import { TopFade } from '@/components/TopFade';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
@@ -100,50 +101,53 @@ const FriendsPage: React.FC = () => {
   if (!profileUser) return <Text>User not found</Text>;
   
   return (
-    <ScrollView style={styles.container}>
-      <Pressable
-        style={styles.backWrapper}
-        onPress={() => router.back()}
-      >
-        <MaterialIcons name='chevron-left' size={18} color='#374151' />
-        <Text style={styles.backTxt}>Back to Profile</Text>
-      </Pressable>
-      <View style={styles.pageTop}>
-        <Text style={styles.pageTitle}>Friends</Text>
-        { !isEditing ? (
-          <Pressable
-            onPress={() => setIsEditing(true)}
-            style={styles.editBtn}
-          >
-            <Text style={styles.editBtnTxt}>Edit</Text>
-          </Pressable>
-        ) : (
-          <Pressable
-            onPress={() => setIsEditing(false)}
-            style={styles.cancelEditBtn}
-          >
-            <Text style={styles.cancelEditBtnTxt}>Done</Text>
-          </Pressable>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <Pressable
+          style={styles.backWrapper}
+          onPress={() => router.back()}
+        >
+          <MaterialIcons name='chevron-left' size={18} color='#374151' />
+          <Text style={styles.backTxt}>Back to Profile</Text>
+        </Pressable>
+        <View style={styles.pageTop}>
+          <Text style={styles.pageTitle}>Friends</Text>
+          { !isEditing ? (
+            <Pressable
+              onPress={() => setIsEditing(true)}
+              style={styles.editBtn}
+            >
+              <Text style={styles.editBtnTxt}>Edit</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => setIsEditing(false)}
+              style={styles.cancelEditBtn}
+            >
+              <Text style={styles.cancelEditBtnTxt}>Done</Text>
+            </Pressable>
+          )}
+        </View>
+        
+        {loadingFriends ? (
+          <Text>Loading friends...</Text>
+          ) : profileUserFriends.length > 0 ? (
+            // <FlatList
+            //   data={profileUserFriends}
+            //   keyExtractor={(friend) => friend.id.toString()}
+            //   renderItem={({ item }) => (
+            //     <Friend user={item} />
+            //   )}
+            // />
+            profileUserFriends.map((friend) => (
+              <Friend key={friend.id.toString()} user={friend} />
+            ))
+          ) : (
+            <Text>{profileUser.name} hasn't added any friends yet.</Text>
         )}
-      </View>
-      
-      {loadingFriends ? (
-        <Text>Loading friends...</Text>
-        ) : profileUserFriends.length > 0 ? (
-          // <FlatList
-          //   data={profileUserFriends}
-          //   keyExtractor={(friend) => friend.id.toString()}
-          //   renderItem={({ item }) => (
-          //     <Friend user={item} />
-          //   )}
-          // />
-          profileUserFriends.map((friend) => (
-            <Friend key={friend.id.toString()} user={friend} />
-          ))
-        ) : (
-          <Text>{profileUser.name} hasn't added any friends yet.</Text>
-      )}
-    </ScrollView>
+      </ScrollView>
+      <TopFade />
+    </View>
   );
 }
 
@@ -171,7 +175,7 @@ const styles = StyleSheet.create({
   },
   backTxt: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   pageTop: {

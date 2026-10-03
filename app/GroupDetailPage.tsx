@@ -18,6 +18,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { TopFade } from '@/components/TopFade';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 
@@ -185,119 +186,122 @@ const GroupDetailPage: React.FC = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View>
-        <Pressable
-          style={styles.backWrapper}
-          onPress={() => router.back()}
-        >
-          <MaterialIcons name='chevron-left' size={18} color='#374151' />
-          <Text style={styles.backTxt}>Back</Text>
-        </Pressable>
-      </View>
-      <View style={styles.card}>
-        <Text style={styles.orgName}>{org.name}</Text>
-        <Text style={styles.orgType}>{org.type}</Text>
-        
-        {/* Organization Description */}
-        {org.description && (
-          <View style={{ marginBottom: 12 }}>
-            <Text style={styles.orgDesc}>
-              {showFullDescription
-                ? formatDescription(org.description)
-                : formatDescription(org.description, 3)}
-            </Text>
-            {showFullDescription && (
-              <Pressable
-                onPress={() => setShowFullDescription(false)}
-                style={styles.seeMoreDesc}
-              >
-                See less
-              </Pressable>
-            )}
-          </View>
-        )}
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <View>
+          <Pressable
+            style={styles.backWrapper}
+            onPress={() => router.back()}
+          >
+            <MaterialIcons name='chevron-left' size={18} color='#374151' />
+            <Text style={styles.backTxt}>Back</Text>
+          </Pressable>
+        </View>
+        <View style={styles.card}>
+          <Text style={styles.orgName}>{org.name}</Text>
+          <Text style={styles.orgType}>{org.type}</Text>
+          
+          {/* Organization Description */}
+          {org.description && (
+            <View style={{ marginBottom: 12 }}>
+              <Text style={styles.orgDesc}>
+                {showFullDescription
+                  ? formatDescription(org.description)
+                  : formatDescription(org.description, 3)}
+              </Text>
+              {showFullDescription && (
+                <Pressable
+                  onPress={() => setShowFullDescription(false)}
+                  style={styles.seeMoreDesc}
+                >
+                  See less
+                </Pressable>
+              )}
+            </View>
+          )}
 
-        {/* Organization Stats */}
-        <View style={styles.statsList}>
-          <View style={[styles.statCol, { marginLeft: -12 }]}>
-            <View style={styles.statRow}>
-              <Ionicons name="globe-outline" size={20} color={'#EAB308'} />
-              <Text style={styles.statValue}>{orgTotalPoints.toLocaleString()}</Text>
+          {/* Organization Stats */}
+          <View style={styles.statsList}>
+            <View style={[styles.statCol, { marginLeft: -12 }]}>
+              <View style={styles.statRow}>
+                <Ionicons name="globe-outline" size={20} color={'#EAB308'} />
+                <Text style={styles.statValue}>{orgTotalPoints.toLocaleString()}</Text>
+              </View>
+              <Text style={styles.statLabel}>Total Points</Text>
             </View>
-            <Text style={styles.statLabel}>Total Points</Text>
-          </View>
-          <View style={styles.statCol}>
-            <View style={styles.statRow}>
-              <MaterialDesignIcons name="account-group-outline" size={20} color="#3B82F6" />
-              <Text style={styles.statValue}>{memberCount}</Text>
+            <View style={styles.statCol}>
+              <View style={styles.statRow}>
+                <MaterialDesignIcons name="account-group-outline" size={20} color="#3B82F6" />
+                <Text style={styles.statValue}>{memberCount}</Text>
+              </View>
+              <Text style={styles.statLabel}>Members</Text>
             </View>
-            <Text style={styles.statLabel}>Members</Text>
-          </View>
-          <View style={styles.statCol}>
-            <View style={styles.statRow}>
-              <FontAwesome6 name="chart-simple" size={18} color="#22C55E" />
-              <Text style={styles.statValue}>#{orgRank}</Text>
+            <View style={styles.statCol}>
+              <View style={styles.statRow}>
+                <FontAwesome6 name="chart-simple" size={18} color="#22C55E" />
+                <Text style={styles.statValue}>#{orgRank}</Text>
+              </View>
+              <Text style={styles.statLabel}>Rank in {org.type}</Text>
             </View>
-            <Text style={styles.statLabel}>Rank in {org.type}</Text>
           </View>
+
+          {/* User Buttons */}
+          <Pressable
+            onPress={() => (isMember ? leaveOrg(org.id) : joinOrg(org.id))}
+            style={[
+              styles.memberBtn,
+              { backgroundColor: isMember ? '#DC2626' : '#16A34A' }
+            ]}
+          >
+            <Text style={styles.memberBtnTxt}>{isMember ? 'Leave Organization' : 'Join Organization'}</Text>
+          </Pressable>
+
+          {/* Admin Unapprove Button */}
+          {currentUser.admin && org.approved !== false && (
+            <Pressable
+              onPress={handleUnapproveOrganization}
+              style={styles.adminUnapprove}
+            >
+              <Text style={styles.unapproveTxt}>Unapprove Organization</Text>
+            </Pressable>
+          )}
         </View>
 
-        {/* User Buttons */}
-        <Pressable
-          onPress={() => (isMember ? leaveOrg(org.id) : joinOrg(org.id))}
-          style={[
-            styles.memberBtn,
-            { backgroundColor: isMember ? '#DC2626' : '#16A34A' }
-          ]}
-        >
-          <Text style={styles.memberBtnTxt}>{isMember ? 'Leave Organization' : 'Join Organization'}</Text>
-        </Pressable>
-
-        {/* Admin Unapprove Button */}
-        {currentUser.admin && org.approved !== false && (
-          <Pressable
-            onPress={handleUnapproveOrganization}
-            style={styles.adminUnapprove}
-          >
-            <Text style={styles.unapproveTxt}>Unapprove Organization</Text>
-          </Pressable>
-        )}
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionHeader}>Members ({memberCount})</Text>
-        {memberCount > 0 ? (
-          <View style={styles.membersList}>
-            {members.length > 0 ? (
-              members
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((member) => (
-                  <Pressable
-                    key={member.id}
-                    onPress={() => router.push(`/UserProfile?id=${member.id}`)}
-                    style={styles.memberWrapper}
-                  >
-                    <Image
-                      source={getProfilePictureSource(member.profile_image, member.photoURL)}
-                      alt={member.name}
-                      style={styles.memberImg}
-                    />
-                    <Text style={styles.memberName}>{member.name}</Text>
-                  </Pressable>
-                ))
-            ) : (
-              <Text style={styles.smallGray}>
-                Member list not available, but {memberCount} member{memberCount !== 1 ? 's' : ''}{' '}
-                exist{memberCount !== 1 ? '' : 's'}.
-              </Text>
-            )}
-          </View>
-        ) : (
-          <Text style={styles.smallGray}>This organization has no members yet.</Text>
-        )}
-      </View>
-    </ScrollView>
+        <View style={styles.card}>
+          <Text style={styles.sectionHeader}>Members ({memberCount})</Text>
+          {memberCount > 0 ? (
+            <View style={styles.membersList}>
+              {members.length > 0 ? (
+                members
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((member) => (
+                    <Pressable
+                      key={member.id}
+                      onPress={() => router.push(`/UserProfile?id=${member.id}`)}
+                      style={styles.memberWrapper}
+                    >
+                      <Image
+                        source={getProfilePictureSource(member.profile_image, member.photoURL)}
+                        alt={member.name}
+                        style={styles.memberImg}
+                      />
+                      <Text style={styles.memberName}>{member.name}</Text>
+                    </Pressable>
+                  ))
+              ) : (
+                <Text style={styles.smallGray}>
+                  Member list not available, but {memberCount} member{memberCount !== 1 ? 's' : ''}{' '}
+                  exist{memberCount !== 1 ? '' : 's'}.
+                </Text>
+              )}
+            </View>
+          ) : (
+            <Text style={styles.smallGray}>This organization has no members yet.</Text>
+          )}
+        </View>
+      </ScrollView>
+      <TopFade />
+    </View>
   );
 };
 
@@ -325,7 +329,7 @@ const styles = StyleSheet.create({
   },
   backTxt: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   card: {
