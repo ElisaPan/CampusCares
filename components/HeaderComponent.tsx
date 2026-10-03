@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 9999,
     marginTop: 40,
-    marginLeft: 5,
+    marginLeft: 10,
   },
   notifBtn: {
     marginTop: 57,

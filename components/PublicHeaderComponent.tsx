@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 9999,
-    marginLeft: 5,
+    marginLeft: 10,
   },
   headerBtns: {
     flexDirection: "row",
