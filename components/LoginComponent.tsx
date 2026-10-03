@@ -101,21 +101,27 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               const existingUser = await api.getUserByEmail(email, token);
               setCurrentUser(existingUser);
 
-              const [orgs, opps, multiopps, students] = await Promise.all([
-                api.getOrgs(),
+              //const [orgs, opps, multiopps, students] = await Promise.all([
+              const [opps, multiopps] = await Promise.all([
+                // api.getOrgs(),
                 api.getCurrentOpportunities(),
                 api.getMultiOpps(),
-                api.getUsers(),
+                // api.getUsers(),
               ]);
-              setOrganizations(orgs);
-              setStudents(students);
+              // setOrganizations(orgs);
+              // setStudents(students);
               setAllOpps([...opps, ...multiopps]);
+
+              router.replace(`/(tabs)/OpportunitiesPage`);
 
               const pushToken = await registerForPushNotifications();
               if (pushToken) {
                 await api.savePushToken(pushToken, Number(existingUser?.id));
               }
-              router.replace(`/(tabs)/OpportunitiesPage`);
+              
+              api.getOrgs().then(setOrganizations).catch(() => {});
+              api.getUsers().then(setStudents).catch(() => {});
+
             } else {
               router.push(`/RegisterPage`);
             }
@@ -149,18 +155,21 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
       setCurrentUser(data);
       
       // Now fetch the authenticated data
-      const [orgs, opps, multiopps, students] = await Promise.all([
-        api.getOrgs(),
-        api.getCurrentOpportunities(),
-        api.getMultiOpps(),
-        api.getUsers(),
-      ]);
-      setOrganizations(orgs);
-      setStudents(students);
+      //const [orgs, opps, multiopps, students] = await Promise.all([
+        const [opps, multiopps] = await Promise.all([
+          // api.getOrgs(),
+          api.getCurrentOpportunities(),
+          api.getMultiOpps(),
+          // api.getUsers(),
+        ]);
+        // setOrganizations(orgs);
+        // setStudents(students);
       setAllOpps([...opps, ...multiopps]);
       
-      router.replace('/(tabs)');
       router.replace(`/(tabs)/OpportunitiesPage`);
+
+      api.getOrgs().then(setOrganizations).catch(() => {});
+      api.getUsers().then(setStudents).catch(() => {});
     } catch (err) {
       console.error(err);
     }
@@ -276,11 +285,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'center',
     marginTop: 30,
+    marginBottom: 12,
     gap: 4,
   },
   backTxt: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   page: {

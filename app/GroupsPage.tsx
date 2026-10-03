@@ -7,6 +7,7 @@
  *  Low
  *    -
  */
+import { TopFade } from '@/components/TopFade';
 import * as Theme from '@/constants/theme';
 import { useGroups } from '@/hooks/useGroups';
 import { useUserStore } from '@/hooks/useUserStore';
@@ -61,56 +62,117 @@ const GroupsPage = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      <View>
-        <Pressable
-          style={styles.backWrapper}
-          onPress={() => router.back()}
-        >
-          <MaterialIcons name='chevron-left' size={18} color='#374151' />
-          <Text style={styles.backTxt}>Back</Text>
-        </Pressable>
-      </View>
-      <View style={styles.card}>
-        {/* Header */}
-        <View style={styles.sectionWrapper}>
-          <Text style={styles.headerTitle}>
-            Manage Organizations
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            Find and join organizations, or create new ones to expand your impact.
-          </Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <View>
+          <Pressable
+            style={styles.backWrapper}
+            onPress={() => router.back()}
+          >
+            <MaterialIcons name='chevron-left' size={18} color='#374151' />
+            <Text style={styles.backTxt}>Back</Text>
+          </Pressable>
         </View>
+        <View style={styles.card}>
+          {/* Header */}
+          <View style={styles.sectionWrapper}>
+            <Text style={styles.headerTitle}>
+              Manage Organizations
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              Find and join organizations, or create new ones to expand your impact.
+            </Text>
+          </View>
 
-        {/* Search Section */}
-        <View style={styles.sectionWrapper}>
-          <Text style={styles.searchTitle}>
-            Search for organizations
-          </Text>
-          <View style={{ position: 'relative' }}>
-            <View style={styles.searchContainer}>
-              <TextInput
-                value={searchTerm}
-                onChangeText={setSearchTerm}
-                placeholder="Type your organization name..."
-                placeholderTextColor="#9CA3AF"
-                style={styles.searchInput}
-              />
-              <View style={styles.searchIcon}>
-                <Ionicons name="search" size={28} color={'#9CA3AF'} />
+          {/* Search Section */}
+          <View style={styles.sectionWrapper}>
+            <Text style={styles.searchTitle}>
+              Search for organizations
+            </Text>
+            <View style={{ position: 'relative' }}>
+              <View style={styles.searchContainer}>
+                <TextInput
+                  value={searchTerm}
+                  onChangeText={setSearchTerm}
+                  placeholder="Type your organization name..."
+                  placeholderTextColor="#9CA3AF"
+                  style={styles.searchInput}
+                />
+                <View style={styles.searchIcon}>
+                  <Ionicons name="search" size={28} color={'#9CA3AF'} />
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        {/* Search Results */}
-        {searchTerm.trim() && (
-          <View style={styles.sectionWrapper}>
-            {filteredOrgs.length > 0 ? (
-              <View style={styles.resultsCard}>
-                <Text style={styles.resultsHeader}>Found organizations:</Text>
-                <View style={styles.resultsList}>
-                  {filteredOrgs.map((org) => {
+          {/* Search Results */}
+          {searchTerm.trim() && (
+            <View style={styles.sectionWrapper}>
+              {filteredOrgs.length > 0 ? (
+                <View style={styles.resultsCard}>
+                  <Text style={styles.resultsHeader}>Found organizations:</Text>
+                  <View style={styles.resultsList}>
+                    {filteredOrgs.map((org) => {
+                      const joined = isJoined(org.id);
+                      return (
+                        <Pressable
+                          key={org.id}
+                          style={styles.orgCard}
+                          onPress={() => router.push(`/GroupDetailPage?id=${org.id}`)}
+                        >
+                          <View style={{ flex: 1 }}>
+                            <Text style={styles.orgName}>
+                              {org.name}
+                            </Text>
+                            <Text style={styles.orgType}>{org.type}</Text>
+                          </View>
+                          {joined ? (
+                            <View style={styles.memberBtns}>
+                              <Text style={styles.joined}>Joined ✓</Text>
+                              <Pressable
+                                onPress={() => leaveOrg(org.id)}
+                                style={styles.leaveWrapper}
+                              >
+                                <Text style={styles.leaveTxt}>Leave</Text>
+                              </Pressable>
+                            </View>
+                          ) : (
+                            <Pressable
+                              onPress={() => joinOrg(org.id)}
+                              style={styles.joinBtn}
+                            >
+                              <Text style={styles.joinTxt}>Join</Text>
+                            </Pressable>
+                          )}
+                        </Pressable>
+                      )
+                    })}
+                  </View>
+                </View>
+              ) : (
+                <View style={styles.resultsCard}>
+                  <Text style={styles.none}>No organizations found matching "{searchTerm}"</Text>
+                  {!exactMatch && (
+                    <Pressable
+                      onPress={() => setShowCreateForm(true)}
+                      style={styles.createBtn}
+                    >
+                      <Text style={styles.createBtnTxt}>Create new organization: "{searchTerm}"</Text>
+                    </Pressable>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* All Organizations */}
+          <View style={styles.allOrgs}>
+            <Text style={styles.allOrgsHeader}>Browse all organizations</Text>
+            <ScrollView style={styles.allOrgsWrapper}>
+              <View style={{ gap: 8 }}>
+                {allOrgs
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((org) => {
                     const joined = isJoined(org.id);
                     return (
                       <Pressable
@@ -143,204 +205,146 @@ const GroupsPage = () => {
                           </Pressable>
                         )}
                       </Pressable>
-                    )
+                    );
                   })}
-                </View>
               </View>
-            ) : (
-              <View style={styles.resultsCard}>
-                <Text style={styles.none}>No organizations found matching "{searchTerm}"</Text>
-                {!exactMatch && (
-                  <Pressable
-                    onPress={() => setShowCreateForm(true)}
-                    style={styles.createBtn}
-                  >
-                    <Text style={styles.createBtnTxt}>Create new organization: "{searchTerm}"</Text>
-                  </Pressable>
-                )}
-              </View>
-            )}
+            </ScrollView>
           </View>
-        )}
-
-        {/* All Organizations */}
-        <View style={styles.allOrgs}>
-          <Text style={styles.allOrgsHeader}>Browse all organizations</Text>
-          <ScrollView style={styles.allOrgsWrapper}>
-            <View style={{ gap: 8 }}>
-              {allOrgs
-                .sort((a, b) => a.name.localeCompare(b.name))
-                .map((org) => {
-                  const joined = isJoined(org.id);
-                  return (
-                    <Pressable
-                      key={org.id}
-                      style={styles.orgCard}
-                      onPress={() => router.push(`/GroupDetailPage?id=${org.id}`)}
-                    >
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.orgName}>
-                          {org.name}
-                        </Text>
-                        <Text style={styles.orgType}>{org.type}</Text>
-                      </View>
-                      {joined ? (
-                        <View style={styles.memberBtns}>
-                          <Text style={styles.joined}>Joined ✓</Text>
-                          <Pressable
-                            onPress={() => leaveOrg(org.id)}
-                            style={styles.leaveWrapper}
-                          >
-                            <Text style={styles.leaveTxt}>Leave</Text>
-                          </Pressable>
-                        </View>
-                      ) : (
-                        <Pressable
-                          onPress={() => joinOrg(org.id)}
-                          style={styles.joinBtn}
-                        >
-                          <Text style={styles.joinTxt}>Join</Text>
-                        </Pressable>
-                      )}
-                    </Pressable>
-                  );
-                })}
-            </View>
-          </ScrollView>
         </View>
-      </View>
-      <View style={{ alignItems: 'center', marginBottom: 6 }}>
-        <Text style={Theme.themes.termsFooter}>
-          Click here to see our{" "}
-          <Text
-            style={{ textDecorationLine: 'underline', color: '#374151' }}
-            onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
-          >
-            Terms of Service
+        <View style={{ alignItems: 'center', marginBottom: 6 }}>
+          <Text style={Theme.themes.termsFooter}>
+            Click here to see our{" "}
+            <Text
+              style={{ textDecorationLine: 'underline', color: '#374151' }}
+              onPress={() => Linking.openURL("https://www.campuscares.us/terms_of_service.pdf")}
+            >
+              Terms of Service
+            </Text>
+            {" "}and{" "}
+            <Text
+              style={{ textDecorationLine: 'underline', color: '#374151' }}
+              onPress={() => Linking.openURL("https://www.campuscares.us/privacy_policy.pdf")}
+            >
+              Privacy Policy
+            </Text>
+            .
           </Text>
-          {" "}and{" "}
-          <Text
-            style={{ textDecorationLine: 'underline', color: '#374151' }}
-            onPress={() => Linking.openURL("https://www.campuscares.us/privacy_policy.pdf")}
-          >
-            Privacy Policy
-          </Text>
-          .
-        </Text>
-      </View>
-      <Modal
-        visible={showCreateForm}
-        transparent
-        animationType="fade"
-        onRequestClose={() => {
-          setShowCreateForm(false);
-          setNewOrgType('');
-          setNewOrgDescription('');
-        }}
-      >
-        {/* Create Organization Form */}
-        <Pressable
-          style={styles.modalBackdrop}
-          onPress={(event) => {
-            if (event.target === event.currentTarget) {
-              setShowCreateForm(false);
-              setNewOrgType('');
-              setNewOrgDescription('');
-            }
+        </View>
+        <Modal
+          visible={showCreateForm}
+          transparent
+          animationType="fade"
+          onRequestClose={() => {
+            setShowCreateForm(false);
+            setNewOrgType('');
+            setNewOrgDescription('');
           }}
         >
-          <View style={styles.modalBox}>
-            <Text style={styles.modalHeader}>Create "{searchTerm}"</Text>
-            <View style={styles.formSection}>
-              <Text style={styles.formSectionHeader}>
-                Organization Type *
-              </Text>
-              <Pressable
-                onPress={() => setShowTypePicker(true)}
-                style={styles.pickerBtn}
-              >
-                <Text style={[styles.pickerBtnTxt, !newOrgType && { color: '#9CA3AF' }]}>
-                  {newOrgType || 'Select a type...'}
+          {/* Create Organization Form */}
+          <Pressable
+            style={styles.modalBackdrop}
+            onPress={(event) => {
+              if (event.target === event.currentTarget) {
+                setShowCreateForm(false);
+                setNewOrgType('');
+                setNewOrgDescription('');
+              }
+            }}
+          >
+            <View style={styles.modalBox}>
+              <Text style={styles.modalHeader}>Create "{searchTerm}"</Text>
+              <View style={styles.formSection}>
+                <Text style={styles.formSectionHeader}>
+                  Organization Type *
                 </Text>
-                <MaterialDesignIcons name='chevron-down' size={12} color='#6B7280' />
-              </Pressable>
-              <Modal
-                visible={showTypePicker}
-                transparent
-                animationType="slide"
-                onRequestClose={() => setShowTypePicker(false)}
-              >
                 <Pressable
-                  style={styles.pickerBackdrop}
-                  onPress={() => setShowTypePicker(false)}
+                  onPress={() => setShowTypePicker(true)}
+                  style={styles.pickerBtn}
                 >
-                  <Pressable style={styles.pickerSheet} onPress={() => {}}>
-                    <View style={styles.pickerHeader}>
-                      <Text style={styles.pickerHeaderTxt}>Select a type</Text>
-                      <Pressable onPress={() => setShowTypePicker(false)}>
-                        <Text style={{ fontSize: 20, color: '#6B7280' }}>✕</Text>
-                      </Pressable>
-                    </View>
-                    { organizationTypes && organizationTypes.length > 0 && (
-                      organizationTypes.map((item) => {
-                        return (
-                          <Pressable
-                            key={item}
-                            style={[
-                              styles.pickerOption,
-                              newOrgType === item && styles.pickerOptionSelected,
-                            ]}
-                            onPress={() => {
-                              setNewOrgType(item as OrganizationType);
-                              setShowTypePicker(false);
-                            }}
-                          >
-                            <Text style={styles.pickerOptionTxt}>{item}</Text>
-                            {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
-                          </Pressable>
-                        )
-                      })
-                    )}
-                  </Pressable>
+                  <Text style={[styles.pickerBtnTxt, !newOrgType && { color: '#9CA3AF' }]}>
+                    {newOrgType || 'Select a type...'}
+                  </Text>
+                  <MaterialDesignIcons name='chevron-down' size={12} color='#6B7280' />
                 </Pressable>
-              </Modal>
+                <Modal
+                  visible={showTypePicker}
+                  transparent
+                  animationType="slide"
+                  onRequestClose={() => setShowTypePicker(false)}
+                >
+                  <Pressable
+                    style={styles.pickerBackdrop}
+                    onPress={() => setShowTypePicker(false)}
+                  >
+                    <Pressable style={styles.pickerSheet} onPress={() => {}}>
+                      <View style={styles.pickerHeader}>
+                        <Text style={styles.pickerHeaderTxt}>Select a type</Text>
+                        <Pressable onPress={() => setShowTypePicker(false)}>
+                          <Text style={{ fontSize: 20, color: '#6B7280' }}>✕</Text>
+                        </Pressable>
+                      </View>
+                      { organizationTypes && organizationTypes.length > 0 && (
+                        organizationTypes.map((item) => {
+                          return (
+                            <Pressable
+                              key={item}
+                              style={[
+                                styles.pickerOption,
+                                newOrgType === item && styles.pickerOptionSelected,
+                              ]}
+                              onPress={() => {
+                                setNewOrgType(item as OrganizationType);
+                                setShowTypePicker(false);
+                              }}
+                            >
+                              <Text style={styles.pickerOptionTxt}>{item}</Text>
+                              {newOrgType === item && <Text style={{ color: '#2563EB' }}>✓</Text>}
+                            </Pressable>
+                          )
+                        })
+                      )}
+                    </Pressable>
+                  </Pressable>
+                </Modal>
+              </View>
+              <View style={styles.formSection}>
+                <Text style={styles.formSectionHeader}>Description (optional)</Text>
+                <TextInput
+                  value={newOrgDescription}
+                  onChangeText={setNewOrgDescription}
+                  placeholder="Brief description of your organization..."
+                  placeholderTextColor="#9CA3AF"
+                  multiline
+                  numberOfLines={3}
+                  style={styles.descInput}
+                  textAlignVertical="top"
+                />
+              </View>
+              <View style={styles.modalBtns}>
+                <Pressable
+                  disabled={!newOrgType}
+                  onPress={() => handleCreateFromSearch()}
+                  style={styles.createOrgBtn}
+                >
+                  <Text style={styles.createOrgBtnTxt}>Create Organization</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => {
+                    setShowCreateForm(false);
+                    setNewOrgType('');
+                    setNewOrgDescription('');
+                  }}
+                  style={styles.cancelBtn}
+                >
+                  <Text style={styles.cancelBtnTxt}>Cancel</Text>
+                </Pressable>
+              </View>
             </View>
-            <View style={styles.formSection}>
-              <Text style={styles.formSectionHeader}>Description (optional)</Text>
-              <TextInput
-                value={newOrgDescription}
-                onChangeText={setNewOrgDescription}
-                placeholder="Brief description of your organization..."
-                placeholderTextColor="#9CA3AF"
-                multiline
-                numberOfLines={3}
-                style={styles.descInput}
-                textAlignVertical="top"
-              />
-            </View>
-            <View style={styles.modalBtns}>
-              <Pressable
-                disabled={!newOrgType}
-                onPress={() => handleCreateFromSearch()}
-                style={styles.createOrgBtn}
-              >
-                <Text style={styles.createOrgBtnTxt}>Create Organization</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setShowCreateForm(false);
-                  setNewOrgType('');
-                  setNewOrgDescription('');
-                }}
-                style={styles.cancelBtn}
-              >
-                <Text style={styles.cancelBtnTxt}>Cancel</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
-    </ScrollView>
+          </Pressable>
+        </Modal>
+      </ScrollView>
+      <TopFade />
+    </View>
   );
 };
 
@@ -359,7 +363,6 @@ const styles = StyleSheet.create({
     marginTop: 130,
     marginBottom: 280,
   },
-
   backWrapper: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
@@ -370,7 +373,7 @@ const styles = StyleSheet.create({
   },
   backTxt: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   card: {

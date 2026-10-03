@@ -1,3 +1,4 @@
+import { TopFade } from '@/components/TopFade';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -19,74 +20,77 @@ const NotificationsPage: React.FC = () => {
     friendshipsData?.users.filter((user) => user.friendship_status === 'received') ?? [];
 
   return (
-    <ScrollView style={styles.container}>
-      <Pressable
-        style={styles.backWrapper}
-        onPress={() => router.back()}
-      >
-        <MaterialIcons name='chevron-left' size={18} color='#374151' />
-        <Text style={styles.backTxt}>Back</Text>
-      </Pressable>
-      <Text style={styles.pageTitle}>Notifications</Text>
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Friend Requests</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <Pressable
+          style={styles.backWrapper}
+          onPress={() => router.back()}
+        >
+          <MaterialIcons name='chevron-left' size={18} color='#374151' />
+          <Text style={styles.backTxt}>Back</Text>
+        </Pressable>
+        <Text style={styles.pageTitle}>Notifications</Text>
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Friend Requests</Text>
 
-        {receivedRequests.length > 0 ? (
-          <View>
-            {receivedRequests.map((user, index) => (
-              <View
-                key={user.user_id}
-                style={[
-                  styles.requestRow,
-                  // index !== receivedRequests.length - 1 && styles.requestDivider,
-                ]}
-              >
-                <View style={styles.leftSection}>
-                  {user.profile_image ? (
-                    <Image
-                      source={{ uri: user.profile_image }}
-                      style={styles.avatar}
-                    />
-                  ) : (
-                    <View style={styles.avatarFallback}>
-                      <Text style={styles.avatarFallbackText}>
-                        {user.name.charAt(0).toUpperCase()}
-                      </Text>
-                    </View>
-                  )}
+          {receivedRequests.length > 0 ? (
+            <View>
+              {receivedRequests.map((user, index) => (
+                <View
+                  key={user.user_id}
+                  style={[
+                    styles.requestRow,
+                    // index !== receivedRequests.length - 1 && styles.requestDivider,
+                  ]}
+                >
+                  <View style={styles.leftSection}>
+                    {user.profile_image ? (
+                      <Image
+                        source={{ uri: user.profile_image }}
+                        style={styles.avatar}
+                      />
+                    ) : (
+                      <View style={styles.avatarFallback}>
+                        <Text style={styles.avatarFallbackText}>
+                          {user.name.charAt(0).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
 
-                  <Text style={styles.requestName}>{user.name}</Text>
+                    <Text style={styles.requestName}>{user.name}</Text>
+                  </View>
+
+                  <View style={styles.buttonGroup}>
+                    <Pressable
+                      onPress={() => handleRequestResponse(user.user_id, 'accepted')}
+                      style={({ pressed }) => [
+                        styles.confirmButton,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.confirmButtonText}>Confirm</Text>
+                    </Pressable>
+
+                    <Pressable
+                      onPress={() => handleRequestResponse(user.user_id, 'declined')}
+                      style={({ pressed }) => [
+                        styles.deleteButton,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.deleteButtonText}>Delete</Text>
+                    </Pressable>
+                  </View>
                 </View>
-
-                <View style={styles.buttonGroup}>
-                  <Pressable
-                    onPress={() => handleRequestResponse(user.user_id, 'accepted')}
-                    style={({ pressed }) => [
-                      styles.confirmButton,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Text style={styles.confirmButtonText}>Confirm</Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={() => handleRequestResponse(user.user_id, 'declined')}
-                    style={({ pressed }) => [
-                      styles.deleteButton,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Text style={styles.deleteButtonText}>Delete</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <Text style={styles.emptyText}>No new friend requests.</Text>
-        )}
-      </View>
-    </ScrollView>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>No new friend requests.</Text>
+          )}
+        </View>
+      </ScrollView>
+      <TopFade />
+    </View>
   );
 };
 
@@ -107,7 +111,7 @@ const styles = StyleSheet.create({
   },
   backTxt: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   pageTitle: {

@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     marginBottom: -8,
   },
   back:{
-    color: '#4B5563',
+    color: '#374151',
     fontSize: 14,
   },
   waiverContent: {

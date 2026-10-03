@@ -14,12 +14,13 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from "expo-router";
 import { Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { cancelRideNotificationRequest, checkWaitlistStatus, deleteRide, getOpportunity, getProfilePictureSource, getRides, removeRider, requestRideNotification } from '@/api';
 import CarpoolFormPopup from '@/components/carpool/CarpoolFormPopup';
 import DriverFormPopup from '@/components/carpool/DriverFormPopup';
 import WaiverPopup from '@/components/carpool/WaiverPopup';
+import { TopFade } from '@/components/TopFade';
 import { mockOpportunities, mockRides, mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity, Ride } from '@/types';
@@ -205,164 +206,167 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   if (!rides) return <Text>No rides found.</Text>;
 
   return (
-    <View style={styles.container}>
-      <Pressable
-        style={styles.backWrapper}
-        onPress={() => router.push(`/OpportunityDetailPage?id=${opportunityId}`)}
-      >
-        <MaterialIcons name='chevron-left' size={18} color='#374151' />
-        <Text style={styles.backTxt}>Back to {opportunity.name}</Text>
-      </Pressable>
-      <View style={styles.body}>
-        <View style={styles.headerWrapper}>
-          <Text style={styles.header}>Carpool for {opportunity.name}</Text>
-          <View style={styles.mainDetailsWrapper}>
-            <Text style={styles.mainDetails}>{displayTime} - {displayEndTime}  |  {displayDate}</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView style={styles.container}>
+        <Pressable
+          style={styles.backWrapper}
+          onPress={() => router.push(`/OpportunityDetailPage?id=${opportunityId}`)}
+        >
+          <MaterialIcons name='chevron-left' size={18} color='#374151' />
+          <Text style={styles.backTxt}>Back to {opportunity.name}</Text>
+        </Pressable>
+        <View style={styles.body}>
+          <View style={styles.headerWrapper}>
+            <Text style={styles.header}>Carpool for {opportunity.name}</Text>
+            <View style={styles.mainDetailsWrapper}>
+              <Text style={styles.mainDetails}>{displayTime} - {displayEndTime}  |  {displayDate}</Text>
+            </View>
+            {opportunity.address &&
+              <View style={styles.locationWrapper}>
+                <MaterialIcons name='location-on' size={24} color='#6B7280' />
+                <Text style={[styles.location ]}>{opportunity.address}</Text>
+              </View>
+            }
+            {!canUnregister &&
+              <View style={styles.deadline}>
+                <Text style={styles.deadlineTxt}>⚠ Carpool rides are now closed</Text>
+              </View>
+            }
           </View>
-          {opportunity.address &&
-            <View style={styles.locationWrapper}>
-              <MaterialIcons name='location-on' size={24} color='#6B7280' />
-              <Text style={[styles.location ]}>{opportunity.address}</Text>
-            </View>
-          }
-          {!canUnregister &&
-            <View style={styles.deadline}>
-              <Text style={styles.deadlineTxt}>⚠ Carpool rides are now closed</Text>
-            </View>
-          }
-        </View>
-        <View style={styles.content}>
-          {rides.map(ride => {
-            const seatsLeft = ride.driver_seats - ride.riders.length;
-            const totalSlots = [...ride.riders, ...Array.from({ length: seatsLeft })];
-            const shownSlots = totalSlots.slice(0, 4);
-            const extraCount = totalSlots.length - shownSlots.length;
+          <View style={styles.content}>
+            {rides.map(ride => {
+              const seatsLeft = ride.driver_seats - ride.riders.length;
+              const totalSlots = [...ride.riders, ...Array.from({ length: seatsLeft })];
+              const shownSlots = totalSlots.slice(0, 4);
+              const extraCount = totalSlots.length - shownSlots.length;
 
-            const disableJoinRide =
-              isDriver ||
-              !canUnregister ||
-              (isRider && userRide?.id !== ride.id) ||
-              (seatsLeft === 0 && userRide?.id !== ride.id);
+              const disableJoinRide =
+                isDriver ||
+                !canUnregister ||
+                (isRider && userRide?.id !== ride.id) ||
+                (seatsLeft === 0 && userRide?.id !== ride.id);
 
-            return (
-              <View key={ride.id} style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <MaterialIcons name='directions-car-filled' size={50} color='black'/>
-                  <View style={styles.ride}>
-                    <View style={styles.rideHeader}>
-                      <Text style={styles.driverName}>{ride.driver_name}</Text>
-                      {((Number(ride.driver_id) === Number(currentUser?.id)) || currentUser?.admin )&&
-                        <Pressable onPress={() => onRemoveRide(ride.id)} style={{ paddingLeft: 4, marginRight: -16}}>
-                          <Trash2 color='#d2d2d2'size={18}/>
-                        </Pressable>
-                      }
-                    </View>
-                    <View style={styles.riders}>
-                      <View style={styles.slots}>
-                        {shownSlots.map((slot, i) => {
-                          if (i < ride.riders.length) {
-                            const rider = ride.riders[i];
-                            return (
-                              <Pressable
-                                key={rider.id}
-                                onPress={() => { Alert.alert("Rider", rider.name) }}
-                                style={styles.slot}
-                                >
-                                  <Image
-                                    source={getProfilePictureSource( rider.profile_image, rider.photoURL )}
-                                    alt={`${rider.name} pfp`}
-                                    style={styles.riderAvatar}
-                                  />
-                                </Pressable>
-                            )
-                          } else {
-                            return (
-                              <View
-                                key={`empty-${i}`}
-                                style={[ styles.slot, { borderColor: '#d3d3d3' } ]}
-                              />
-                            );
-                          }
-                        })}
-                        {extraCount > 0 && (
-                          <View style={styles.more}>
-                            <Text style={styles.moreTxt}>
-                              +{extraCount}
-                            </Text>
-                          </View>
-                        )}
+              return (
+                <View key={ride.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <MaterialIcons name='directions-car-filled' size={50} color='black'/>
+                    <View style={styles.ride}>
+                      <View style={styles.rideHeader}>
+                        <Text style={styles.driverName}>{ride.driver_name}</Text>
+                        {((Number(ride.driver_id) === Number(currentUser?.id)) || currentUser?.admin )&&
+                          <Pressable onPress={() => onRemoveRide(ride.id)} style={{ paddingLeft: 4, marginRight: -16}}>
+                            <Trash2 color='#d2d2d2'size={18}/>
+                          </Pressable>
+                        }
                       </View>
-                      <Text style={{ color: '#374151' }}>{seatsLeft} Available</Text>
+                      <View style={styles.riders}>
+                        <View style={styles.slots}>
+                          {shownSlots.map((slot, i) => {
+                            if (i < ride.riders.length) {
+                              const rider = ride.riders[i];
+                              return (
+                                <Pressable
+                                  key={rider.id}
+                                  onPress={() => { Alert.alert("Rider", rider.name) }}
+                                  style={styles.slot}
+                                  >
+                                    <Image
+                                      source={getProfilePictureSource( rider.profile_image, rider.photoURL )}
+                                      alt={`${rider.name} pfp`}
+                                      style={styles.riderAvatar}
+                                    />
+                                  </Pressable>
+                              )
+                            } else {
+                              return (
+                                <View
+                                  key={`empty-${i}`}
+                                  style={[ styles.slot, { borderColor: '#d3d3d3' } ]}
+                                />
+                              );
+                            }
+                          })}
+                          {extraCount > 0 && (
+                            <View style={styles.more}>
+                              <Text style={styles.moreTxt}>
+                                +{extraCount}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text style={{ color: '#374151' }}>{seatsLeft} Available</Text>
+                      </View>
                     </View>
                   </View>
+                  <Pressable
+                    onPress={() => onSelectRide(ride.id)}
+                    disabled={seatsLeft == 0 && (!isRider || (isRider && !(userRide.id == ride.id))) || isDriver || (isRider && !(userRide.id == ride.id)) || !canUnregister ? true : false}
+                    style={[
+                      styles.redBtn,
+                      disableJoinRide && styles.disabledJoinBtn,
+                    ]}
+                  >
+                    <Text style={styles.boldWhite}>{isRider && userRide.id == ride.id ? 'Ride Joined ✓' : 'Join Ride'}</Text>
+                  </Pressable>
                 </View>
-                <Pressable
-                  onPress={() => onSelectRide(ride.id)}
-                  disabled={seatsLeft == 0 && (!isRider || (isRider && !(userRide.id == ride.id))) || isDriver || (isRider && !(userRide.id == ride.id)) || !canUnregister ? true : false}
-                  style={[
-                    styles.redBtn,
-                    disableJoinRide && styles.disabledJoinBtn,
-                  ]}
-                >
-                  <Text style={styles.boldWhite}>{isRider && userRide.id == ride.id ? 'Ride Joined ✓' : 'Join Ride'}</Text>
-                </Pressable>
-              </View>
-            )
-          })}
-          <View style={styles.addCard}>
-            <Pressable
-              onPress={onAddRide}
-              disabled={!canUnregister || isDriver || isRider ? true : false}
-              style={[
-                styles.orangeAddBtn,
-                (!canUnregister || isDriver || isRider) && styles.disabledAddBtn,
-              ]}
-            >
-              <Text style={styles.boldWhite}>+ Add Ride</Text>
-            </Pressable>
+              )
+            })}
+            <View style={styles.addCard}>
+              <Pressable
+                onPress={onAddRide}
+                disabled={!canUnregister || isDriver || isRider ? true : false}
+                style={[
+                  styles.orangeAddBtn,
+                  (!canUnregister || isDriver || isRider) && styles.disabledAddBtn,
+                ]}
+              >
+                <Text style={styles.boldWhite}>+ Add Ride</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
-      </View>
 
-      {(onWaitlist || rides.length === 0 ) && (
-        <Pressable
-          onPress={handleWaitlistPress}
-          style={[styles.waitlistBtn, onWaitlist && {opacity: 0.7}]}
-        >
-          { onWaitlist ? (
-            <Text style={styles.waitlistTxt}>Waitlisted — tap to cancel</Text>
-          ) : (
-            <Text style={styles.waitlistTxt}>Notify me when a ride is added</Text>
-          )}
-        </Pressable>
-      )}
+        {(onWaitlist || rides.length === 0 ) && (
+          <Pressable
+            onPress={handleWaitlistPress}
+            style={[styles.waitlistBtn, onWaitlist && {opacity: 0.7}]}
+          >
+            { onWaitlist ? (
+              <Text style={styles.waitlistTxt}>Waitlisted — tap to cancel</Text>
+            ) : (
+              <Text style={styles.waitlistTxt}>Notify me when a ride is added</Text>
+            )}
+          </Pressable>
+        )}
 
-      {showRiderForm &&
-        <CarpoolFormPopup
-          setShowPopup={setShowRiderForm}
-          selectedRideId={selectedRideId}
-          currentUser={profileUser}
-          showPopup={showPopup}
-          carpoolId={carpoolId}
-        />
-      }
+        {showRiderForm &&
+          <CarpoolFormPopup
+            setShowPopup={setShowRiderForm}
+            selectedRideId={selectedRideId}
+            currentUser={profileUser}
+            showPopup={showPopup}
+            carpoolId={carpoolId}
+          />
+        }
 
-      {showDriverPopup && opportunity.carpool_id &&
-        <DriverFormPopup
-          setShowPopup={setShowDriverPopup}
-          currentUser={profileUser}
-          carpoolId={opportunity.carpool_id}
-          showPopup={showPopup}
-        />
-      }
+        {showDriverPopup && opportunity.carpool_id &&
+          <DriverFormPopup
+            setShowPopup={setShowDriverPopup}
+            currentUser={profileUser}
+            carpoolId={opportunity.carpool_id}
+            showPopup={showPopup}
+          />
+        }
 
-      {showWaiverPopup &&
-        <WaiverPopup
-          showWaiverPopup={showWaiverPopup}
-          setShowWaiverPopup={setShowWaiverPopup}
-          opportunityId={opportunityId}
-        />
-      }
+        {showWaiverPopup &&
+          <WaiverPopup
+            showWaiverPopup={showWaiverPopup}
+            setShowWaiverPopup={setShowWaiverPopup}
+            opportunityId={opportunityId}
+          />
+        }
+      </ScrollView>
+      <TopFade />
     </View>
   )
 };
@@ -391,7 +395,7 @@ const styles = StyleSheet.create({
   },
   backTxt: {
     color: '#374151',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '400',
   },
   body: {

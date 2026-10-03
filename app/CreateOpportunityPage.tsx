@@ -1120,14 +1120,17 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   backWrapper: {
-    alignSelf: 'flex-end',
-    marginTop: 34,
-    marginVertical: 8,
-    paddingBottom: 4
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 12,
+    gap: 4,
   },
-  back:{
-    color: '#4B5563',
-    fontSize: 16,
+  back: {
+    color: '#374151',
+    fontSize: 14,
+    fontWeight: '400',
   },
   header: {
     color: '#1F2937',
