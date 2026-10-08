@@ -43,6 +43,7 @@ export default function RegisterPage() {
 
   const handleBackToLogin = async () => {
     await signOut();
+    if (router.canDismiss()) router.dismissAll();
     router.replace('/LoginPage');
   };
 
@@ -111,6 +112,7 @@ export default function RegisterPage() {
         await api.savePushToken(pushToken, Number(newUser.id));
       }
 
+      if (router.canDismiss()) router.dismissAll();
       router.replace('/(tabs)/OpportunitiesPage');
 
       api.getOrgs().then(setOrganizations).catch(() => {});

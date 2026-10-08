@@ -238,6 +238,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       clearCurrentUser();
       setOrganizations([]);
       setStudents([]);
+      if (router.canDismiss()) router.dismissAll();
       router.replace(`/HomePage`);
     } catch (error) {
       console.error('Logout failed:', error);
@@ -263,6 +264,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       clearCurrentUser();
       setOrganizations([]);
       setStudents([]);
+      if (router.canDismiss()) router.dismissAll();
       router.replace(`/HomePage`);
     } catch (error) {
       console.error('Delete failed:', error);

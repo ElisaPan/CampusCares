@@ -15,6 +15,7 @@
 import {
   deleteOpportunity,
   getCurrentOpportunities,
+  getOpportunity,
   registerForOpp,
   unregisterForOpp,
   updateOpportunity,
@@ -32,22 +33,22 @@ import {
 } from '@/types';
 // import AttendanceManager from '@/components/AttendanceManager';
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
+import ShareOpportunity from '@/components/ShareOpportunity';
 import { isOpportunity } from '@/utils/isOpp';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
 
+import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-
-import { MaterialIcons } from '@expo/vector-icons';
-import * as Clipboard from "expo-clipboard";
 import * as MailComposer from "expo-mail-composer";
 import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
 const OpportunityDetailPage: React.FC = () => {
   const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps, showCarpoolPopup, setShowCarpoolPopup } = useUserStore();
@@ -79,7 +80,15 @@ const OpportunityDetailPage: React.FC = () => {
     : currentUserSignupsSet ?? new Set();
 
   const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
-  const opportunity = singleOpportunities.find((o) => o.id === parseInt(id!));
+  const oppFromStore = singleOpportunities.find((o) => o.id === parseInt(id!));
+
+  const { data: fetchedOpp, isError, error } = useQuery({
+    queryKey: ['opportunity', id],
+    queryFn: () => getOpportunity(Number(id)),
+    enabled: !oppFromStore && !Number.isNaN(id),
+    retry: 1,
+  });
+  const opportunity = oppFromStore ?? fetchedOpp;
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -713,6 +722,12 @@ const OpportunityDetailPage: React.FC = () => {
 
   if (!activeCurrentUser) return <Text>Loading...</Text>; 
   
+  if (!opportunity) {
+    return isError
+      ? <Text style={{ marginTop: 100, padding: 20 }}>{`Failed to load: ${String(error)}`}</Text>
+      : <ActivityIndicator />;
+  }
+
   if (!opportunity || !activeCurrentUser) return <Text>Loading...</Text>;
 
   return (
@@ -773,6 +788,9 @@ const OpportunityDetailPage: React.FC = () => {
                 <Text style={styles.headerSignUpText}>{isUserSignedUp ? 'Signed Up ✓' : canSignUp ? 'Sign Up Now' : 'Event Full'}</Text>
               </Pressable>
               
+            </View>
+            <View style={styles.shareWrapper}>
+              <ShareOpportunity item={{ kind: 'opp', id: opportunity.id, name: opportunity.name }} />
             </View>
           </View>
         </View>
@@ -1783,6 +1801,12 @@ const styles = StyleSheet.create({
     color: 'rgb(255, 255, 255)',
     fontWeight: '700',
     fontSize: 16,
+  },
+  shareWrapper: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
   },
   content: {
     flexDirection: 'column',
