@@ -18,6 +18,7 @@ import {
   uploadProfilePicture
 } from '@/api';
 import { Header as MainHeader } from '@/components/HeaderComponent';
+import ShareOpportunity from '@/components/ShareOpportunity';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
@@ -489,6 +490,9 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
                 </View>
               )}
             </View>
+            <View style={styles.shareWrapper}>
+              <ShareOpportunity item={{ kind: 'opp', id: multiopp.id, name: multiopp.name }} />
+            </View>
           </View>
         </View>
         
@@ -917,6 +921,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(37, 99, 235, 0.8)',
     paddingVertical: 4,
     borderRadius: 9999,
+  },
+  shareWrapper: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 10,
   },
   content: {
     flexDirection: 'column',
