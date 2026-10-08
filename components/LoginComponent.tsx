@@ -99,6 +99,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               // setStudents(students);
               setAllOpps([...opps, ...multiopps]);
 
+              if (router.canDismiss()) router.dismissAll();
               router.replace(`/(tabs)/OpportunitiesPage`);
 
               const pushToken = await registerForPushNotifications();
@@ -162,6 +163,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
         // setStudents(students);
       setAllOpps([...opps, ...multiopps]);
       
+      if (router.canDismiss()) router.dismissAll();
       router.replace(`/(tabs)/OpportunitiesPage`);
 
       api.getOrgs().then(setOrganizations).catch(() => {});
