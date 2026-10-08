@@ -49,7 +49,7 @@ const PeopleIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 const TrophyIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <img src="/icons/points-icon.png" alt="Points" className={className || 'h-5 w-5'} />
+  <img src="/icons/points-icon.jpg" alt="Points" className={className || 'h-5 w-5'} />
 );
 
 const Avatar = ({ user }: { user: User }) => {

@@ -39,7 +39,7 @@ export const Header = () => {
 				>
 					<Image
 						style={styles.logo}
-						source={require('@/assets/images/logo.png')}
+						source={require('@/assets/images/logo.jpg')}
 						alt="CampusCaresLogo"
 					/>
 				</Pressable>

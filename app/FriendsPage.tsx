@@ -2,17 +2,16 @@ import { User } from '@/types';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
 import { TopFade } from '@/components/TopFade';
-import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
 
 const FriendsPage: React.FC = () => {
-  const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students } = useUserStore();
+  const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students, studentsLoaded } = useUserStore();
   const { getFriendsForUser, checkFriendshipStatus, handleAcceptFriendRequest, handleRejectFriendRequest, handleRemoveFriend } = useFriendships();
 
   const USE_MOCKS = false;
@@ -28,8 +27,7 @@ const FriendsPage: React.FC = () => {
     [students]
   );
 
-  const baseUser = parsedId !== null ? students?.find((s) => s.id === parsedId) : currentUser;
-  const profileUser = USE_MOCKS ? mockUsers[0] : baseUser;
+  const profileUser = parsedId !== null ? students?.find((s) => s.id === parsedId) : currentUser;
 
   const [profileUserFriends, setProfileUserFriends] = useState<User[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
@@ -40,13 +38,7 @@ const FriendsPage: React.FC = () => {
     const loadFriends = async () => {
       setLoadingFriends(true);
       try {
-        if (!profileUser) {
-          return (
-            <View style={styles.loadingView}>
-              <ActivityIndicator size='large' color={Theme.cornellRed} />
-            </View>
-          )
-        }
+        if (!profileUser) return;
         const friends = USE_MOCKS
           ? mockUsers.filter((u) => profileUser?.friendIds?.includes(u.id))
           : await getFriendsForUser(profileUser.id);
@@ -90,13 +82,14 @@ const FriendsPage: React.FC = () => {
     </Pressable>
   );
 
-  if (isLoading) {
+  if (isLoading || (parsedId !== null && !studentsLoaded)) {
     return (
       <View>
         <Text>Loading profile...</Text>
       </View>
     );
   }
+
 
   if (!profileUser) return <Text>User not found</Text>;
   

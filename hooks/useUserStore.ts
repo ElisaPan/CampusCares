@@ -18,6 +18,7 @@ interface UserStore {
   updateCurrentUser: (updates: Partial<User>) => void;
   clearCurrentUser: () => void;
   students: User[];
+  studentsLoaded: boolean;
   setStudents: (students: User[]) => void;
   signups: SignUp[];
   setSignups: (signups: SignUp[]) => void;
@@ -48,7 +49,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
     })),
   clearCurrentUser: () => set({ currentUser: null }),
   students: [],
-  setStudents: (students) => set({ students }),
+  studentsLoaded: false,
+  setStudents: (students) => set({ students, studentsLoaded: true }),
   signups: [],
   setSignups: (signups) => set({ signups }),
   organizations: [],
