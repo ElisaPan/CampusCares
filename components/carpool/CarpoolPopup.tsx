@@ -92,7 +92,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
 
           <View style={styles.popupIconHeader}>
             <Image
-              source={require("@/assets/icons/carpool_icon.jpg")}
+              source={require("@/assets/icons/carpool_icon.png")}
               style={styles.carpoolIcon}
             />
           </View>

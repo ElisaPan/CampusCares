@@ -1,4 +1,4 @@
-import logoBanner from '@/assets/images/logo-banner.jpg';
+import logoBanner from '@/assets/images/logo-banner.png';
 import { FontAwesome } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';

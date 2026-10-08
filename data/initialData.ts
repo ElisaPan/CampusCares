@@ -39,7 +39,7 @@ export const mockUsers: User[] = [
     name: "Mock User", // Single name property from backend
     email: "mockuser@example.com", // Must be @cornell.edu or @ithaca.edu
     password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
-    profile_image: require('../assets/images/user1pic.jpg'), // Profile image URL from backend
+    profile_image: require('../assets/images/user1pic.jpeg'), // Profile image URL from backend
     photoURL: "https://t3.ftcdn.net/jpg/03/67/46/48/360_F_367464887_f0w1JrL8PddfuH3P2jSPlIGjKU2BI0rn.jpg", // Google/Firebase profile image
     interests: [""],
     friendIds: [2,3],
@@ -67,7 +67,7 @@ export const mockUsers: User[] = [
     name: "Fake Friend", // Single name property from backend
     email: "fakefriend@example.com", // Must be @cornell.edu or @ithaca.edu
     password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
-    profile_image: require('../assets/images/user2pic.jpg'), // Profile image URL from backend
+    profile_image: require('../assets/images/user2pic.jpeg'), // Profile image URL from backend
     photoURL: "https://t4.ftcdn.net/jpg/04/44/53/99/360_F_444539901_2GSnvmTX14LELJ6edPudUsarbcytOEgj.jpg", // Google/Firebase profile image
     interests: [""],
     friendIds: [1],
@@ -95,7 +95,7 @@ export const mockUsers: User[] = [
     name: "Fake Friend 2", // Single name property from backend
     email: "copypaste@example.com", // Must be @cornell.edu or @ithaca.edu
     password: "nopassword", // In a real app, this would be a hash. Storing for simulation.
-    profile_image: require('../assets/images/user3pic.jpg'), // Profile image URL from backend
+    profile_image: require('../assets/images/user3pic.jpeg'), // Profile image URL from backend
     photoURL: "https://img.freepik.com/free-photo/closeup-young-female-professional-making-eye-contact-against-colored-background_662251-651.jpg", // Google/Firebase profile image
     interests: [""],
     friendIds: [1],
@@ -204,7 +204,7 @@ export const mockRides: Ride[] = [
   //       ride_id: "1",
   //       user_id: "2",
   //       pickup_location: "North RPCC",
-  //       profile_image: require('../assets/images/user2pic.jpg'),
+  //       profile_image: require('../assets/images/user2pic.jpeg'),
   //       photoURL: "https://t4.ftcdn.net/jpg/04/44/53/99/360_F_444539901_2GSnvmTX14LELJ6edPudUsarbcytOEgj.jpg",
   //       name: "Fake Friend",
   //       notes: "talks non-stop",
@@ -214,7 +214,7 @@ export const mockRides: Ride[] = [
   //       ride_id: "2",
   //       user_id: "3",
   //       pickup_location: "West Baker Flagpole",
-  //       profile_image: require('../assets/images/user3pic.jpg'),
+  //       profile_image: require('../assets/images/user3pic.jpeg'),
   //       photoURL: "https://img.freepik.com/free-photo/closeup-young-female-professional-making-eye-contact-against-colored-background_662251-651.jpg",
   //       name: "Fake Friend 2",
   //       notes: "doesn't like yappers",
@@ -233,7 +233,7 @@ export const mockRides: Ride[] = [
       //   ride_id: "1",
       //   user_id: "1",
       //   pickup_location: "North RPCC",
-      //   profile_image: require('../assets/images/user1pic.jpg'),
+      //   profile_image: require('../assets/images/user1pic.jpeg'),
       //   photoURL: "https://t3.ftcdn.net/jpg/03/67/46/48/360_F_367464887_f0w1JrL8PddfuH3P2jSPlIGjKU2BI0rn.jpg",
       //   name: "Fake Friend 2",
       //   notes: "doesn't like yappers",
