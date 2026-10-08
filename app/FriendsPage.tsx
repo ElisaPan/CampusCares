@@ -1,11 +1,12 @@
 import { User } from '@/types';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
+import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
+import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
@@ -28,6 +29,7 @@ const FriendsPage: React.FC = () => {
   );
 
   const profileUser = parsedId !== null ? students?.find((s) => s.id === parsedId) : currentUser;
+  const isCurrentUser = profileUser?.id === currentUser?.id;
 
   const [profileUserFriends, setProfileUserFriends] = useState<User[]>([]);
   const [loadingFriends, setLoadingFriends] = useState(false);
@@ -84,43 +86,61 @@ const FriendsPage: React.FC = () => {
 
   if (isLoading || (parsedId !== null && !studentsLoaded)) {
     return (
-      <View>
-        <Text>Loading profile...</Text>
+      <View style={{ flex: 1, padding: 24}}>
+        <BackButton
+          label={`Back to Profile`}
+        />
+        <View style={styles.loadingView}>
+          <ActivityIndicator size="large" color={Theme.cornellRed} />
+        </View>
       </View>
     );
   }
 
-
-  if (!profileUser) return <Text>User not found</Text>;
+  if (!profileUser) {
+    return (
+      <View style={{ flex: 1, padding: 24 }}>
+        <BackButton
+          label={`Back to Profile`}
+        />
+        <Text>User not found</Text>
+      </View>
+    );
+  }
   
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
-        <Pressable
+        {/* <Pressable
           style={styles.backWrapper}
           onPress={() => router.back()}
         >
           <MaterialIcons name='chevron-left' size={18} color='#374151' />
           <Text style={styles.backTxt}>Back to Profile</Text>
-        </Pressable>
-        <View style={styles.pageTop}>
-          <Text style={styles.pageTitle}>Friends</Text>
-          { !isEditing ? (
-            <Pressable
-              onPress={() => setIsEditing(true)}
-              style={styles.editBtn}
-            >
-              <Text style={styles.editBtnTxt}>Edit</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={() => setIsEditing(false)}
-              style={styles.cancelEditBtn}
-            >
-              <Text style={styles.cancelEditBtnTxt}>Done</Text>
-            </Pressable>
-          )}
-        </View>
+        </Pressable> */}
+        <BackButton
+          label={`Back to Profile`}
+        />
+        {isCurrentUser && (
+          <View style={styles.pageTop}>
+            <Text style={styles.pageTitle}>Friends</Text>
+            { !isEditing ? (
+              <Pressable
+                onPress={() => setIsEditing(true)}
+                style={styles.editBtn}
+              >
+                <Text style={styles.editBtnTxt}>Edit</Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={() => setIsEditing(false)}
+                style={styles.cancelEditBtn}
+              >
+                <Text style={styles.cancelEditBtnTxt}>Done</Text>
+              </Pressable>
+            )}
+          </View>
+        )}
         
         {loadingFriends ? (
           <Text>Loading friends...</Text>

@@ -18,6 +18,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
 import * as api from '@/api';
+import BackButton from '@/components/BackButton';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { useUserStore } from '@/hooks/useUserStore';
@@ -534,12 +535,16 @@ const CreateOpportunityPage: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View>
-        <Pressable
+        {/* <Pressable
           onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
           style={styles.backWrapper}
         >
           <Text style={styles.back}>← Back to Opportunities</Text>
-        </Pressable>
+        </Pressable> */}
+        <BackButton
+          onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
+          label={`Back to Opportunities`}
+        />
       </View>
       <View>
         <View style={styles.wrapper}>

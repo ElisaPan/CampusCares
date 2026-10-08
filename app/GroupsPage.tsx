@@ -7,13 +7,13 @@
  *  Low
  *    -
  */
+import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
 import * as Theme from '@/constants/theme';
 import { useGroups } from '@/hooks/useGroups';
 import { useUserStore } from '@/hooks/useUserStore';
 import { OrganizationType, organizationTypes } from '@/types';
 import { Ionicons } from '@expo/vector-icons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
@@ -65,13 +65,14 @@ const GroupsPage = () => {
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
         <View>
-          <Pressable
+          {/* <Pressable
             style={styles.backWrapper}
             onPress={() => router.back()}
           >
             <MaterialIcons name='chevron-left' size={18} color='#374151' />
             <Text style={styles.backTxt}>Back</Text>
-          </Pressable>
+          </Pressable> */}
+          <BackButton />
         </View>
         <View style={styles.card}>
           {/* Header */}

@@ -2,9 +2,9 @@
   "expo": {
     "name": "CampusCares",
     "slug": "CampusCares",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.jpg",
+    "icon": "./assets/icons/logo.png",
     "scheme": "campuscares",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,22 +19,22 @@
       "package": "com.campuscares.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/logo.jpg",
-        "backgroundImage": "./assets/images/logo.png"
+        "foregroundImage": "./assets/icons/logo.png",
+        "backgroundImage": "./assets/icons/logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.jpg"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/logo.png",
+          "image": "./assets/icons/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

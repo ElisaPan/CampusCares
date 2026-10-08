@@ -271,10 +271,11 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
 
   const handleOppClick = async (opp: OppType) => {
     console.log('handleOppClick called for opp:', opp.id, new Date(opp.date));
-    const d = new Date(opp.date);
+    const [year, month, day] = opp.date.split('-').map(Number);
+    const oppDate = new Date(year, month - 1, day);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (d < today) return;
+    if (oppDate < today) return;
 
     try {
       let full = opportunities.find((o) => o.id === opp.id);

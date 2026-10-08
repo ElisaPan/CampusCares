@@ -1,25 +1,12 @@
-/*************
- * TODO:
- *  Severe:
- *    Store existingUser in your RN global state
- *    Home Page
- *    Sign Up Page
- *    Register Page
- *    Router.push('tabs')
- *  High:
- *    Fix env constant
- *  Low
- *    -
- */
 import * as api from '@/api';
 import { signInWithGoogleIdToken, signOut } from '@/firebase-config';
 import { useUserStore } from '@/hooks/useUserStore';
 import { registerForPushNotifications } from '@/utils/registerForPushNotifications';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as Google from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import React, { useEffect, useRef, useState } from 'react';
+import BackButton from './BackButton';
 
 import { ActivityIndicator, Animated, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -120,7 +107,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               }
               
               api.getOrgs().then(setOrganizations).catch(() => {});
-              api.getUsers().then(setStudents).catch(() => {});
+              api.getUsersMinimal().then(setStudents).catch(() => {});
 
             } else {
               router.push(`/RegisterPage`);
@@ -178,7 +165,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
       router.replace(`/(tabs)/OpportunitiesPage`);
 
       api.getOrgs().then(setOrganizations).catch(() => {});
-      api.getUsers().then(setStudents).catch(() => {});
+      api.getUsersMinimal().then(setStudents).catch(() => {});
     } catch (err) {
       console.error(err);
     }
@@ -188,13 +175,14 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
 
   return (
     <ScrollView style={styles.container}>
-      <Pressable
+      {/* <Pressable
         style={styles.backWrapper}
         onPress={() => router.back()}
       >
         <MaterialIcons name='chevron-left' size={18} color='#374151' />
         <Text style={styles.backTxt}>Back</Text>
-      </Pressable>
+      </Pressable> */}
+      <BackButton />
       <Animated.View
         style={[
           styles.page,
@@ -202,7 +190,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
         ]}
       >
         <Image
-          source={require(`@/assets/images/logo.jpg`)}
+          source={require(`@/assets/icons/logo.png`)}
           style={styles.loginLogo}
           resizeMode="contain"
         />
