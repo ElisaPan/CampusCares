@@ -4,7 +4,7 @@
     "slug": "CampusCares",
     "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.png",
+    "icon": "./assets/images/logo.jpg",
     "scheme": "campuscares",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,7 +19,7 @@
       "package": "com.campuscares.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/logo.jpg",
         "backgroundImage": "./assets/images/logo.png"
       },
       "edgeToEdgeEnabled": true,
