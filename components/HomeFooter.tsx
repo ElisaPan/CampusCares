@@ -1,12 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    
- *  High:
- *    Update numbers
- *  Low
- *    -
- */
 import logoBanner from '@/assets/images/logo-banner.jpg';
 import { FontAwesome } from "@expo/vector-icons";
 import * as Linking from "expo-linking";

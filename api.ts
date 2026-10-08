@@ -199,7 +199,7 @@ export const getUsers = async (): Promise<User[]> => {
   //   photoURL: user.profile_image || null,
   //   interests: user.interests || [],
   //   friendIds: user.friends || [],
-  //   organizationIds: (user.organizations || []).map((org: any) => org.id) || [],
+  //   organizationIds: user.organizationIds ?? (user.organizations || []).map((org: any) => org.id),
   //   admin: user.admin || false,
   //   gender: user.gender,
   //   graduationYear: user.graduation_year,

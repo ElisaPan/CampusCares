@@ -1,8 +1,7 @@
+import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { router } from "expo-router";
 import React, { useEffect } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -22,13 +21,14 @@ const NotificationsPage: React.FC = () => {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
-        <Pressable
+        {/* <Pressable
           style={styles.backWrapper}
           onPress={() => router.back()}
         >
           <MaterialIcons name='chevron-left' size={18} color='#374151' />
           <Text style={styles.backTxt}>Back</Text>
-        </Pressable>
+        </Pressable> */}
+        <BackButton />
         <Text style={styles.pageTitle}>Notifications</Text>
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Friend Requests</Text>

@@ -17,6 +17,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { cancelRideNotificationRequest, checkWaitlistStatus, deleteRide, getOpportunity, getProfilePictureSource, getRides, removeRider, requestRideNotification } from '@/api';
+import BackButton from '@/components/BackButton';
 import CarpoolFormPopup from '@/components/carpool/CarpoolFormPopup';
 import DriverFormPopup from '@/components/carpool/DriverFormPopup';
 import WaiverPopup from '@/components/carpool/WaiverPopup';
@@ -208,13 +209,17 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   return (
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
-        <Pressable
+        {/* <Pressable
           style={styles.backWrapper}
           onPress={() => router.push(`/OpportunityDetailPage?id=${opportunityId}`)}
         >
           <MaterialIcons name='chevron-left' size={18} color='#374151' />
           <Text style={styles.backTxt}>Back to {opportunity.name}</Text>
-        </Pressable>
+        </Pressable> */}
+        <BackButton
+          onPress={() => router.push(`/OpportunityDetailPage?id=${opportunityId}`)}
+          label={`Back to ${opportunity.name}`}
+        />
         <View style={styles.body}>
           <View style={styles.headerWrapper}>
             <Text style={styles.header}>Carpool for {opportunity.name}</Text>

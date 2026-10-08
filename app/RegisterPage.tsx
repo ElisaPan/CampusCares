@@ -95,14 +95,15 @@ export default function RegisterPage() {
       setCurrentUser(newUser);
 
       // Populate the rest of the app's data now that we have an authenticated user
-      const [orgs, opps, multiopps, students] = await Promise.all([
-        api.getOrgs(),
+      //const [orgs, opps, multiopps, students] = await Promise.all([
+      const [opps, multiopps] = await Promise.all([
+        // api.getOrgs(),
         api.getCurrentOpportunities(),
         api.getMultiOpps(),
-        api.getUsers(),
+        // api.getUsers(),
       ]);
-      setOrganizations(orgs);
-      setStudents(students);
+      // setOrganizations(orgs);
+      // setStudents(students);
       setAllOpps([...opps, ...multiopps]);
 
       const pushToken = await registerForPushNotifications();
@@ -111,6 +112,9 @@ export default function RegisterPage() {
       }
 
       router.replace('/(tabs)/OpportunitiesPage');
+
+      api.getOrgs().then(setOrganizations).catch(() => {});
+      api.getUsersMinimal().then(setStudents).catch(() => {});
     } catch (e: any) {
       console.error('Registration error:', e);
       setError(e.message || 'Failed to create account. Please try again.');

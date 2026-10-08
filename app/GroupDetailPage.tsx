@@ -12,12 +12,12 @@ import * as Theme from '@/constants/theme';
 import { useGroups } from '@/hooks/useGroups';
 import { useUserStore } from '@/hooks/useUserStore';
 import { isOpportunity } from '@/utils/isOpp';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
@@ -189,13 +189,14 @@ const GroupDetailPage: React.FC = () => {
     <View style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
         <View>
-          <Pressable
+          {/* <Pressable
             style={styles.backWrapper}
             onPress={() => router.back()}
           >
             <MaterialIcons name='chevron-left' size={18} color='#374151' />
             <Text style={styles.backTxt}>Back</Text>
-          </Pressable>
+          </Pressable> */}
+          <BackButton />
         </View>
         <View style={styles.card}>
           <Text style={styles.orgName}>{org.name}</Text>

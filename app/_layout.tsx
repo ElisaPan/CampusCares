@@ -14,6 +14,10 @@ import { useUserStore } from '@/hooks/useUserStore';
 import * as Notifications from 'expo-notifications';
 import { useNotificationObserver } from '../hooks/useNotificationObserver';
 
+import * as SplashScreen from 'expo-splash-screen';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
+
 // export const unstable_settings = {
 //   anchor: '(tabs)',
 // };
@@ -31,7 +35,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export default function RootLayout() {
+export default function RootLayout() {  
   useNotificationObserver();
   const colorScheme = useColorScheme();
   const { popup, closePopup } = useUserStore();
