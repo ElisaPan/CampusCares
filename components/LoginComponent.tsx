@@ -202,7 +202,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
         ]}
       >
         <Image
-          source={require(`@/assets/images/logo.png`)}
+          source={require(`@/assets/images/logo.jpg`)}
           style={styles.loginLogo}
           resizeMode="contain"
         />

@@ -8,32 +8,32 @@
  *  Low
  *    -
  */
-import helpIcon from '@/assets/icons/help.png';
-import locationIcon from '@/assets/icons/location.png';
-import profileCheckIcon from '@/assets/icons/profile-check.png';
-import searchIcon from '@/assets/icons/search.png';
-import childrensGarden from '@/assets/images/childrens-garden.png';
-import cover1 from '@/assets/images/cover1.png';
+import helpIcon from '@/assets/icons/help.jpg';
+import locationIcon from '@/assets/icons/location.jpg';
+import profileCheckIcon from '@/assets/icons/profile-check.jpg';
+import searchIcon from '@/assets/icons/search.jpg';
+import childrensGarden from '@/assets/images/childrens-garden.jpg';
+import cover1 from '@/assets/images/cover1.jpg';
 import cover2 from '@/assets/images/cover2.jpg';
-import cover3 from '@/assets/images/cover3.png';
+import cover3 from '@/assets/images/cover3.jpg';
 import cover4 from '@/assets/images/cover4.jpg';
-import cover5 from '@/assets/images/cover5.png';
+import cover5 from '@/assets/images/cover5.jpg';
 import cover6 from '@/assets/images/cover6.jpg';
-import heartImg from '@/assets/images/heart-img.png';
-import mobilePack from '@/assets/images/mobile-pack.png';
+import heartImg from '@/assets/images/heart-img.jpg';
+import mobilePack from '@/assets/images/mobile-pack.jpg';
 import salvationArmy from '@/assets/images/salvation-army.jpg';
 import secondWind from '@/assets/images/second-wind.jpg';
-import tmBlockMB1 from '@/assets/images/tm-block-mb1.png';
-import tmBlockMB2 from '@/assets/images/tm-block-mb2.png';
-import tmBlock1 from '@/assets/images/tm-block1.png';
-import tmBlock3 from '@/assets/images/tm-block3.png';
+import tmBlockMB1 from '@/assets/images/tm-block-mb1.jpg';
+import tmBlockMB2 from '@/assets/images/tm-block-mb2.jpg';
+import tmBlock1 from '@/assets/images/tm-block1.jpg';
+import tmBlock3 from '@/assets/images/tm-block3.jpg';
 
 import HomeFooter from '@/components/HomeFooter';
 import PublicHeader from '@/components/PublicHeaderComponent';
 import * as Theme from '@/constants/theme';
 import grace from '@/public/team_pic/grace.jpeg';
-import lee from '@/public/team_pic/lee.png';
-import scott from '@/public/team_pic/scott.png';
+import lee from '@/public/team_pic/lee.jpg';
+import scott from '@/public/team_pic/scott.jpg';
 
 import AosView from '@/components/AOSView';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
