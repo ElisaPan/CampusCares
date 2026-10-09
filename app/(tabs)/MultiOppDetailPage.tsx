@@ -21,10 +21,13 @@ import { Header as MainHeader } from '@/components/HeaderComponent';
 import ShareOpportunity from '@/components/ShareOpportunity';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
+import { auth } from '@/firebase-config';
+import { useEnsureUser } from '@/hooks/useEnsureUser';
+import { useMultiOpp } from '@/hooks/useOpportunity';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity as OppType, User } from '@/types';
-import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
+import { isOpportunity } from '@/utils/isOpp';
 import { formatMiniOppTime } from '@/utils/timeUtils';
 
 import { MaterialIcons } from '@expo/vector-icons';
@@ -32,6 +35,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
@@ -64,11 +68,12 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const multioppId = staticId ?? parsedId;
 
   const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
-  const multiopps = useMemo(() => allOpps.filter(isMultiOpp), [allOpps]);
-  const multiopp = useMemo(
-    () => multiopps.find((m) => m.id === multioppId),
-    [multiopps, multioppId]
-  );
+  // const multiopps = useMemo(() => allOpps.filter(isMultiOpp), [allOpps]);
+  // const multiopp = useMemo(
+  //   () => multiopps.find((m) => m.id === multioppId),
+  //   [multiopps, multioppId]
+  // );
+  const { data: multiopp, isError, error } = useMultiOpp(String(multioppId));
   
   const [participantsByOppId, setParticipantsByOppId] = useState<Record<number, User[]>>({});
   const [loadingParticipants, setLoadingParticipants] = useState(false);
@@ -228,6 +233,13 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       );
     });
   };
+
+  const ensureStatus = useEnsureUser();
+  {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!multiopp} ensure=${ensureStatus}`}
+  
+  useEffect(() => {
+    if (multiopp || isError) SplashScreen.hideAsync().catch(() => {});
+  }, [multiopp, isError]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
@@ -491,7 +503,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
               )}
             </View>
             <View style={styles.shareWrapper}>
-              <ShareOpportunity item={{ kind: 'opp', id: multiopp.id, name: multiopp.name }} />
+              <ShareOpportunity item={{ kind: 'multiopp', id: multiopp.id, name: multiopp.name }} />
             </View>
           </View>
         </View>

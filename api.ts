@@ -1399,7 +1399,6 @@ export const getMultiOpps = async (): Promise<MultiOpp[]> => {
         image: multiopp.image ?? null,
         approved: multiopp.approved ?? false,
         host_org_name: multiopp.host_org_name ?? null,
-        host_org_id: multiopp.host_org_id ?? null,
         host_user_id: multiopp.host_user_id ?? null,
         qualifications: multiopp.qualifications ?? [],
         visibility: multiopp.visibility ?? [],
@@ -1413,6 +1412,71 @@ export const getMultiOpps = async (): Promise<MultiOpp[]> => {
     });
   } catch (error) {
     console.error('Error fetching multiopps:', error);
+    throw error;
+  }
+};
+
+export const getMultiOpp = async (id: number): Promise<MultiOpp> => {
+  try {
+    const multiopp = await authenticatedRequest(`/multiopps/${id}`);
+    // Normalize start_date
+    const startDate =
+      typeof multiopp.start_date === 'string'
+        ? multiopp.start_date
+        : multiopp.start_date
+          ? new Date(multiopp.start_date).toISOString()
+          : null;
+
+    // Map miniopps (individual opportunities)
+    const opportunities: Opportunity[] = Array.isArray(multiopp.opportunities)
+      ? multiopp.opportunities.map((opp: any) => ({
+          id: opp.id,
+          date:
+            typeof opp.date === 'string'
+              ? opp.date
+              : new Date(opp.date).toISOString(),
+          duration: opp.duration ?? 0,
+          total_slots: opp.total_slots ?? 10,
+          involved_users: Array.isArray(opp.involved_users)
+            ? opp.involved_users.map((u: any) => ({
+                id: u.id,
+                name: u.name ?? 'Unknown',
+                profile_image: u.profile_image ?? null,
+              }))
+            : [],
+          allow_carpool: opp.allow_carpool,
+        }))
+      : [];
+
+    // Representative time from the first opportunity's ISO date
+    const time =
+      opportunities.length > 0
+        ? new Date(opportunities[0].date).toISOString().substring(11, 16)
+        : null;
+
+    return {
+      id: multiopp.id,
+      name: multiopp.name,
+      description: multiopp.description ?? null,
+      causes: multiopp.causes ?? [],
+      tags: multiopp.tags ?? [],
+      address: multiopp.address ?? '',
+      nonprofit: multiopp.nonprofit ?? null,
+      image: multiopp.image ?? null,
+      approved: multiopp.approved ?? false,
+      host_org_name: multiopp.host_org_name ?? null,
+      host_user_id: multiopp.host_user_id ?? null,
+      qualifications: multiopp.qualifications ?? [],
+      visibility: multiopp.visibility ?? [],
+      date: startDate,
+      time,
+      days_of_week: multiopp.days_of_week ?? [],
+      week_frequency: multiopp.week_frequency ?? null,
+      week_recurrences: multiopp.week_recurrences ?? 4,
+      opportunities,
+    };
+  } catch (error) {
+    console.error(`Error fetching multiopp ${id}:`, error);
     throw error;
   }
 };

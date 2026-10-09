@@ -88,15 +88,10 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               const existingUser = await api.getUserByEmail(email, token);
               setCurrentUser(existingUser);
 
-              //const [orgs, opps, multiopps, students] = await Promise.all([
               const [opps, multiopps] = await Promise.all([
-                // api.getOrgs(),
                 api.getCurrentOpportunities(),
                 api.getMultiOpps(),
-                // api.getUsers(),
               ]);
-              // setOrganizations(orgs);
-              // setStudents(students);
               setAllOpps([...opps, ...multiopps]);
 
               if (router.canDismiss()) router.dismissAll();
@@ -151,16 +146,11 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
       const data = api.transformUser(raw);
       setCurrentUser(data);
       
-      // Now fetch the authenticated data
-      //const [orgs, opps, multiopps, students] = await Promise.all([
+      // Fetch the authenticated data
         const [opps, multiopps] = await Promise.all([
-          // api.getOrgs(),
           api.getCurrentOpportunities(),
           api.getMultiOpps(),
-          // api.getUsers(),
         ]);
-        // setOrganizations(orgs);
-        // setStudents(students);
       setAllOpps([...opps, ...multiopps]);
       
       if (router.canDismiss()) router.dismissAll();

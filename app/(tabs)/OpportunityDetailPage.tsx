@@ -15,7 +15,6 @@
 import {
   deleteOpportunity,
   getCurrentOpportunities,
-  getOpportunity,
   registerForOpp,
   unregisterForOpp,
   updateOpportunity,
@@ -34,6 +33,9 @@ import {
 // import AttendanceManager from '@/components/AttendanceManager';
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import ShareOpportunity from '@/components/ShareOpportunity';
+import { auth } from '@/firebase-config';
+import { useEnsureUser } from '@/hooks/useEnsureUser';
+import { useOpportunity } from '@/hooks/useOpportunity';
 import { isOpportunity } from '@/utils/isOpp';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
 
@@ -41,12 +43,13 @@ import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MailComposer from "expo-mail-composer";
 import { router, useLocalSearchParams } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
@@ -79,16 +82,17 @@ const OpportunityDetailPage: React.FC = () => {
       )
     : currentUserSignupsSet ?? new Set();
 
-  const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
-  const oppFromStore = singleOpportunities.find((o) => o.id === parseInt(id!));
+  // const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
+  // const oppFromStore = singleOpportunities.find((o) => o.id === parseInt(id!));
 
-  const { data: fetchedOpp, isError, error } = useQuery({
-    queryKey: ['opportunity', id],
-    queryFn: () => getOpportunity(Number(id)),
-    enabled: !oppFromStore && !Number.isNaN(id),
-    retry: 1,
-  });
-  const opportunity = oppFromStore ?? fetchedOpp;
+  // const { data: fetchedOpp, isError, error } = useQuery({
+  //   queryKey: ['opportunity', id],
+  //   queryFn: () => getOpportunity(Number(id)),
+  //   enabled: !oppFromStore && !Number.isNaN(id),
+  //   retry: 1,
+  // });
+  // const opportunity = oppFromStore ?? fetchedOpp;
+  const { data: opportunity, isError, error } = useOpportunity(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -629,6 +633,12 @@ const OpportunityDetailPage: React.FC = () => {
     }
   };
 
+  const ensureStatus = useEnsureUser();
+
+  useEffect(() => {
+    if (opportunity || isError) SplashScreen.hideAsync().catch(() => {});
+  }, [opportunity, isError]);
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
   }, [opportunity?.id]);
@@ -720,7 +730,13 @@ const OpportunityDetailPage: React.FC = () => {
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
 
-  if (!activeCurrentUser) return <Text>Loading...</Text>; 
+  if (!activeCurrentUser) {
+    return (
+      <Text style={{ marginTop: 100, padding: 20 }}>
+          {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!opportunity} ensure=${ensureStatus}`}
+      </Text>
+    );
+  }
   
   if (!opportunity) {
     return isError

@@ -72,7 +72,7 @@ export interface MultiOpp {
   id: number;
   name: string;
   date: string; // represents the first date in the opps
-  time: string
+  time: string | null;
   days_of_week: Array<Record<string, DaySlot[]>>;
   week_frequency?: number | null;
   week_recurrences: number;
