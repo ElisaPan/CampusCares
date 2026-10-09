@@ -15,7 +15,6 @@
 import {
   deleteOpportunity,
   getCurrentOpportunities,
-  getOpportunity,
   registerForOpp,
   unregisterForOpp,
   updateOpportunity,
@@ -34,6 +33,7 @@ import {
 // import AttendanceManager from '@/components/AttendanceManager';
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import ShareOpportunity from '@/components/ShareOpportunity';
+import { useOpportunity } from '@/hooks/useOpportunity';
 import { isOpportunity } from '@/utils/isOpp';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
 
@@ -41,7 +41,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker } from "@react-native-picker/picker";
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -79,16 +79,17 @@ const OpportunityDetailPage: React.FC = () => {
       )
     : currentUserSignupsSet ?? new Set();
 
-  const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
-  const oppFromStore = singleOpportunities.find((o) => o.id === parseInt(id!));
+  // const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
+  // const oppFromStore = singleOpportunities.find((o) => o.id === parseInt(id!));
 
-  const { data: fetchedOpp, isError, error } = useQuery({
-    queryKey: ['opportunity', id],
-    queryFn: () => getOpportunity(Number(id)),
-    enabled: !oppFromStore && !Number.isNaN(id),
-    retry: 1,
-  });
-  const opportunity = oppFromStore ?? fetchedOpp;
+  // const { data: fetchedOpp, isError, error } = useQuery({
+  //   queryKey: ['opportunity', id],
+  //   queryFn: () => getOpportunity(Number(id)),
+  //   enabled: !oppFromStore && !Number.isNaN(id),
+  //   retry: 1,
+  // });
+  // const opportunity = oppFromStore ?? fetchedOpp;
+  const { data: opportunity, isError, error } = useOpportunity(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({

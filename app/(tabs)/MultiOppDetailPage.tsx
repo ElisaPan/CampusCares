@@ -21,10 +21,11 @@ import { Header as MainHeader } from '@/components/HeaderComponent';
 import ShareOpportunity from '@/components/ShareOpportunity';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
+import { useMultiOpp } from '@/hooks/useOpportunity';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity as OppType, User } from '@/types';
-import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
+import { isOpportunity } from '@/utils/isOpp';
 import { formatMiniOppTime } from '@/utils/timeUtils';
 
 import { MaterialIcons } from '@expo/vector-icons';
@@ -64,11 +65,12 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const multioppId = staticId ?? parsedId;
 
   const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
-  const multiopps = useMemo(() => allOpps.filter(isMultiOpp), [allOpps]);
-  const multiopp = useMemo(
-    () => multiopps.find((m) => m.id === multioppId),
-    [multiopps, multioppId]
-  );
+  // const multiopps = useMemo(() => allOpps.filter(isMultiOpp), [allOpps]);
+  // const multiopp = useMemo(
+  //   () => multiopps.find((m) => m.id === multioppId),
+  //   [multiopps, multioppId]
+  // );
+  const { data: multiopp, isError, error } = useMultiOpp(String(multioppId));
   
   const [participantsByOppId, setParticipantsByOppId] = useState<Record<number, User[]>>({});
   const [loadingParticipants, setLoadingParticipants] = useState(false);

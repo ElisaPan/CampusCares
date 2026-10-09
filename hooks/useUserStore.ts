@@ -17,6 +17,8 @@ interface UserStore {
   setCurrentUser: (user: User | null) => void;
   updateCurrentUser: (updates: Partial<User>) => void;
   clearCurrentUser: () => void;
+  authReady: boolean;
+  setAuthReady: (v: boolean) => void;
   students: User[];
   studentsLoaded: boolean;
   setStudents: (students: User[]) => void;
@@ -48,6 +50,8 @@ export const useUserStore = create<UserStore>((set, get) => ({
       currentUser: state.currentUser ? { ...state.currentUser, ...updates } : null,
     })),
   clearCurrentUser: () => set({ currentUser: null }),
+  authReady: false,
+  setAuthReady: (v) => set({ authReady: v }),
   students: [],
   studentsLoaded: false,
   setStudents: (students) => set({ students, studentsLoaded: true }),

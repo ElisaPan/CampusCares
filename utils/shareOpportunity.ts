@@ -17,8 +17,6 @@ export async function shareOpportunity(item: Shareable) {
 
 
   try {
-    await Share.share({
-      message: `Check out "${item.name}" on CampusCares! ${url}`,
-    });
+        await Share.share({ message: `${item.name}\nVolunteer with me on CampusCares!\n\n${url}` });
   } catch {}
 }
