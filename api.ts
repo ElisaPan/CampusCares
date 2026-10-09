@@ -1,10 +1,13 @@
-import { ImageSourcePropType } from "react-native";
+import { Image, ImageSourcePropType } from "react-native";
 import { auth } from './firebase-config';
 import { FeedOrderItem, FeedOrderResponse, Friendship, FriendshipStatus, FriendshipsResponse, MiniOpp, MultiOpp, Opportunity, Organization, Ride, User, Waiver } from './types';
 
 // A helper for making Acucaresbackend.onrender.comPI requests.
 const ENDPOINT_URL = process.env.EXPO_PUBLIC_ENDPOINT_URL!;
 console.log("API BASE URL:", ENDPOINT_URL);
+
+const BACKUP_IMAGE_URI = Image.resolveAssetSource(require('@/assets/images/backup.jpeg')).uri;
+
 
 // Helper to get Firebase token
 const getFirebaseToken = async (): Promise<string | null> => {
@@ -719,12 +722,7 @@ export const getOpportunities = async (): Promise<Opportunity[]> => {
         return transformedUser;
       });
 
-      // Use image URL directly from backend (full URLs like "https://imgur.com/a/y0f0Geb")
-      const resolvedImageUrl =
-        opp.image_url ||
-        opp.image ||
-        opp.imageUrl ||
-        'https://campus-cares.s3.us-east-2.amazonaws.com';
+      const resolvedImageUrl = opp.image_url || opp.image || opp.imageUrl || BACKUP_IMAGE_URI;
 
       return {
         id: opp.id,
@@ -813,12 +811,7 @@ export const getCurrentOpportunities = async (): Promise<Opportunity[]> => {
         return transformedUser;
       });
 
-      // Use image URL directly from backend (full URLs like "https://imgur.com/a/y0f0Geb")
-      const resolvedImageUrl =
-        opp.image_url ||
-        opp.image ||
-        opp.imageUrl ||
-        'https://campus-cares.s3.us-east-2.amazonaws.com';
+      const resolvedImageUrl = opp.image_url || opp.image || opp.imageUrl || BACKUP_IMAGE_URI;
 
       return {
         id: opp.id,
@@ -900,9 +893,8 @@ export const getOpportunity = async (id: number): Promise<Opportunity> => {
     }));
 
     // --- Resolve image ---
-    const resolvedImageUrl =
-      opp.image_url || opp.image || opp.imageUrl || 'https://campus-cares.s3.us-east-2.amazonaws.com';
-
+    const resolvedImageUrl = opp.image_url || opp.image || opp.imageUrl || BACKUP_IMAGE_URI;
+    
     // --- Build unified Opportunity object ---
     const transformedOpp: Opportunity = {
       id: opp.id,
@@ -1001,7 +993,7 @@ export const getUnapprovedOpportunities = async (): Promise<Opportunity[]> => {
       }) : [];
 
       // Use image URL directly from backend
-      const resolvedImageUrl = opp.image_url || opp.image || opp.imageUrl || 'https://campus-cares.s3.us-east-2.amazonaws.com';
+      const resolvedImageUrl = opp.image_url || opp.image || opp.imageUrl || BACKUP_IMAGE_URI;
 
       return {
         id: opp.id,

@@ -117,7 +117,7 @@ const OpportunitiesPage: React.FC = () => {
         if (opp.multiopp) return false;
         if (opp.fullDateTime.getTime() < now.getTime()) return false;
         if (!opp.visibility || opp.visibility.length === 0) return true;
-        if (!currentUser) return true;
+        if (!currentUser) return false;
         if (currentUser.admin) return true;
         const userOrgIds = currentUser.organizationIds || [];
         return opp.visibility.some((orgId) => userOrgIds.includes(orgId));
@@ -132,7 +132,7 @@ const OpportunitiesPage: React.FC = () => {
         );
         if (!hasUpcoming) return false;
         if (!m.visibility || m.visibility.length === 0) return true;
-        if (!currentUser) return true;
+        if (!currentUser) return false;
         if (currentUser.admin) return true;
         const userOrgIds = currentUser.organizationIds || [];
         return m.visibility.some((orgId) => userOrgIds.includes(orgId));

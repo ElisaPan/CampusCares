@@ -1,6 +1,7 @@
 import { getUserByEmail } from '@/api';
 import { auth } from '@/firebase-config';
 import { useUserStore } from '@/hooks/useUserStore';
+import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 
 export function useEnsureUser() {
@@ -23,6 +24,7 @@ export function useEnsureUser() {
         const fbUser = auth.currentUser;
         if (!fbUser?.email) {
           setStatus('no-firebase-user');
+          router.replace('/HomePage');
           return;
         }
         if (useUserStore.getState().currentUser) {
