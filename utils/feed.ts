@@ -85,6 +85,13 @@ export const buildFeedItems = ({
     item.kind === 'opp'
       ? (item.data as (typeof standaloneOpps)[0]).fullDateTime.getTime()
       : parseLocalDate(item.data.date).getTime();
+  console.log('[feed]', {
+    hasUser: !!currentUser,
+    restrictedIn:
+      opportunities.filter((o) => o.visibility?.length).length +
+      multiopps.filter((m) => m.visibility?.length).length,
+    restrictedOut: [...oppItems, ...multiItems].filter((i) => i.data.visibility?.length).length,
+  });
     
   return [...oppItems, ...multiItems].sort((a, b) => {
     const posA = positionMap.get(`${a.kind === 'multiopp'}-${a.data.id}`) ?? Infinity;
