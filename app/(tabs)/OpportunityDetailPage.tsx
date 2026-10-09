@@ -33,6 +33,8 @@ import {
 // import AttendanceManager from '@/components/AttendanceManager';
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import ShareOpportunity from '@/components/ShareOpportunity';
+import { auth } from '@/firebase-config';
+import { useEnsureUser } from '@/hooks/useEnsureUser';
 import { useOpportunity } from '@/hooks/useOpportunity';
 import { isOpportunity } from '@/utils/isOpp';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
@@ -631,6 +633,8 @@ const OpportunityDetailPage: React.FC = () => {
     }
   };
 
+  const ensureStatus = useEnsureUser();
+
   useEffect(() => {
     if (opportunity || isError) SplashScreen.hideAsync().catch(() => {});
   }, [opportunity, isError]);
@@ -726,7 +730,13 @@ const OpportunityDetailPage: React.FC = () => {
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
 
-  if (!activeCurrentUser) return <Text>Loading...</Text>; 
+  if (!activeCurrentUser) {
+    return (
+      <Text style={{ marginTop: 100, padding: 20 }}>
+          {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!opportunity} ensure=${ensureStatus}`}
+      </Text>
+    );
+  }
   
   if (!opportunity) {
     return isError

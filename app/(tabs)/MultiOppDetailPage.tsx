@@ -21,6 +21,8 @@ import { Header as MainHeader } from '@/components/HeaderComponent';
 import ShareOpportunity from '@/components/ShareOpportunity';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
+import { auth } from '@/firebase-config';
+import { useEnsureUser } from '@/hooks/useEnsureUser';
 import { useMultiOpp } from '@/hooks/useOpportunity';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
@@ -232,6 +234,9 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     });
   };
 
+  const ensureStatus = useEnsureUser();
+  {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!multiopp} ensure=${ensureStatus}`}
+  
   useEffect(() => {
     if (multiopp || isError) SplashScreen.hideAsync().catch(() => {});
   }, [multiopp, isError]);
