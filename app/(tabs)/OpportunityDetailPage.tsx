@@ -47,6 +47,7 @@ import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MailComposer from "expo-mail-composer";
 import { router, useLocalSearchParams } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
@@ -629,6 +630,10 @@ const OpportunityDetailPage: React.FC = () => {
       setIsUploadingImage(false);
     }
   };
+
+  useEffect(() => {
+    if (opportunity || isError) SplashScreen.hideAsync().catch(() => {});
+  }, [opportunity, isError]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });

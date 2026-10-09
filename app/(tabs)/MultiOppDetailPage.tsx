@@ -33,6 +33,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 
@@ -230,6 +231,10 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       );
     });
   };
+
+  useEffect(() => {
+    if (multiopp || isError) SplashScreen.hideAsync().catch(() => {});
+  }, [multiopp, isError]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ y: 0, animated: false });
@@ -493,7 +498,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
               )}
             </View>
             <View style={styles.shareWrapper}>
-              <ShareOpportunity item={{ kind: 'opp', id: multiopp.id, name: multiopp.name }} />
+              <ShareOpportunity item={{ kind: 'multiopp', id: multiopp.id, name: multiopp.name }} />
             </View>
           </View>
         </View>
