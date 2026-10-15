@@ -2,7 +2,7 @@
   "expo": {
     "name": "CampusCares",
     "slug": "CampusCares",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "orientation": "portrait",
     "icon": "./assets/icons/logo.png",
     "scheme": "campuscares",

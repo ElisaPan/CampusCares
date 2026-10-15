@@ -1,10 +1,10 @@
-import { Platform } from 'react-native';
+import { Platform, StyleSheet } from 'react-native';
 
 
 const modalBg = '#ffffff';
 const modalBorder = '#e5e7eb';
 const textColor = '#1f2937';
-const iconColor = '#3b82f6';
+export const iconColor = '#3b82f6';
 const buttonHoverBg = 'rgba(59, 130, 246, 0.75)';
 const lightOrange = '#ffcf6e';
 const darkOrange = '#fda11c';
@@ -15,7 +15,7 @@ const darkYellow = '#FAA018';
 
 export const cornellRed = '#B31B1B'
 
-export const themes = {
+export const themes = StyleSheet.create({
   attention: {
     backgroundColor: 'rgba(211, 211, 211, 0.298)',
     paddingVertical: 5,
@@ -243,7 +243,7 @@ export const themes = {
   bannerLinkPressed: {
     opacity: 0.9,
   },
-}
+})
 
 const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';

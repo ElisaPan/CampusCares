@@ -1,16 +1,9 @@
-import { Picker } from '@react-native-picker/picker';
+// import { Picker } from '@react-native-picker/picker';
+import * as Theme from '@/constants/theme';
+import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View
-} from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Animated, Dimensions, FlatList, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as api from '../api';
 import { auth, signOut } from '../firebase-config';
 import { useUserStore } from '../hooks/useUserStore';
@@ -26,6 +19,8 @@ const HEARD_ABOUT_OPTIONS = [
   { label: 'Other', value: 'other' },
 ];
 
+const SHEET_OFFSET = Dimensions.get('window').height * 0.6;
+
 export default function RegisterPage() {
   const router = useRouter();
   const { setCurrentUser, setOrganizations, setStudents, setAllOpps } = useUserStore();
@@ -37,8 +32,18 @@ export default function RegisterPage() {
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [heardAbout, setHeardAbout] = useState('');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const selectedOption = HEARD_ABOUT_OPTIONS.find(
+    (o) => o.value === heardAbout && o.value !== ''
+  );
+  const slideAnim = useRef(new Animated.Value(SHEET_OFFSET)).current;
   const [tosChecked, setTosChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isFormValid =
+    firstName.trim() !== '' &&
+    lastName.trim() !== '' &&
+    phone.trim() !== '';
+  const isDisabled = isLoading || !tosChecked || !isFormValid;
   const [error, setError] = useState<string | null>(null);
 
   const handleBackToLogin = async () => {
@@ -46,6 +51,27 @@ export default function RegisterPage() {
     if (router.canDismiss()) router.dismissAll();
     router.replace('/LoginPage');
   };
+  
+  const openPicker = () => {
+    slideAnim.setValue(SHEET_OFFSET);
+    setPickerOpen(true);
+  };
+  const closePicker = () => {
+    Animated.timing(slideAnim, {
+      toValue: SHEET_OFFSET,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => setPickerOpen(false));
+  };
+  useEffect(() => {
+    if (pickerOpen) {
+      Animated.timing(slideAnim, {
+        toValue: 0,
+        duration: 250,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [pickerOpen]);
 
   const validatePhone = (value: string) => {
     const digitsOnly = value.replace(/\D/g, '');
@@ -55,7 +81,7 @@ export default function RegisterPage() {
   const handleRegisterSubmit = async () => {
     setError(null);
 
-    if (!firstName.trim() || !lastName.trim() || !phone.trim()) {
+    if (!isFormValid) {
       setError('Please fill in all required fields.');
       return;
     }
@@ -167,7 +193,7 @@ export default function RegisterPage() {
       <Text style={styles.label}>
         How did you hear about CampusCares? <Text style={styles.optional}>(optional)</Text>
       </Text>
-      <View style={styles.pickerWrapper}>
+      {/* <View style={styles.pickerWrapper}>
         <Picker
           selectedValue={heardAbout}
           onValueChange={setHeardAbout}
@@ -177,7 +203,61 @@ export default function RegisterPage() {
             <Picker.Item key={opt.value} label={opt.label} value={opt.value} />
           ))}
         </Picker>
-      </View>
+      </View> */}
+      <Pressable
+        style={({ pressed }) => [styles.field, pressed && styles.fieldPressed]}
+        onPress={openPicker}
+      >
+        <Text style={[styles.fieldText, !selectedOption && styles.placeholder]}>
+          {selectedOption ? selectedOption.label : HEARD_ABOUT_OPTIONS[0].label}
+        </Text>
+        <MaterialDesignIcons name='chevron-down' size={16} color='#9A9AA5' />
+      </Pressable>
+
+      <Modal
+        visible={pickerOpen}
+        transparent
+        animationType="none"
+        onRequestClose={closePicker}
+        statusBarTranslucent
+      >
+        <Pressable style={styles.backdrop} onPress={closePicker} />
+
+        <Animated.View
+          style={[styles.sheet, { transform: [{ translateY: slideAnim }] }]}
+        >
+          <View style={styles.handle} />
+          <Text style={styles.sheetTitle}>How did you hear about us?</Text>
+
+          <FlatList
+            data={HEARD_ABOUT_OPTIONS}
+            keyExtractor={(item) => item.value}
+            bounces={false}
+            renderItem={({ item }) => {
+              const isDefault = item.value == '';
+              const isSelected = item.value === heardAbout;
+              return (
+                <Pressable
+                  onPress={() => {
+                    setHeardAbout(item.value);
+                    closePicker();
+                  }}
+                  style={({ pressed }) => [
+                    styles.option,
+                    isSelected && !isDefault && styles.optionSelected,
+                    pressed && styles.optionPressed,
+                  ]}
+                >
+                  <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                    {item.label}
+                  </Text>
+                  {isSelected && <Text style={styles.check}>✓</Text>}
+                </Pressable>
+              );
+            }}
+          />
+        </Animated.View>
+      </Modal>
 
       {error && (
         <View style={styles.errorBox}>
@@ -213,7 +293,7 @@ export default function RegisterPage() {
       <Pressable
         style={[styles.submitBtn, (isLoading || !tosChecked) && styles.submitBtnDisabled]}
         onPress={handleRegisterSubmit}
-        disabled={isLoading || !tosChecked}
+        disabled={isDisabled}
       >
         {isLoading ? (
           <ActivityIndicator size="small" color="#fff" />
@@ -286,11 +366,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 12,
     fontSize: 15,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   label: {
-    fontSize: 13,
+    fontSize: 14,
     color: '#374151',
+    marginTop: 6,
     marginBottom: 6,
   },
   optional: {
@@ -308,6 +389,88 @@ const styles = StyleSheet.create({
     height: 50,
     width: '100%',
   },
+  field: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  fieldPressed: {
+    backgroundColor: '#F5F5F8'
+  },
+  fieldText: {
+    fontSize: 14,
+    color: '#1A1A1F',
+    flex: 1
+  },
+  placeholder: {
+    color: '#9A9AA5'
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)'
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 51,
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: Platform.OS === 'ios' ? 28 : 20,
+    maxHeight: '60%',
+  },
+  handle: {
+    alignSelf: 'center',
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D9D9E0',
+    marginBottom: 14,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A1A1F',
+    marginBottom: 8,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+  optionPressed: {
+    backgroundColor: '#F2F2F6'
+  },
+  optionSelected: {
+    backgroundColor: '#EEF2FF'
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#000000'
+  },
+  optionTextSelected: {
+    color: Theme.iconColor,
+    fontWeight: '600'
+  },
+  check: {
+    fontSize: 14,
+    color: Theme.iconColor,
+    fontWeight: '700'
+  },
   errorBox: {
     backgroundColor: '#FEF2F2',
     borderRadius: 8,
@@ -322,6 +485,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 10,
+    marginTop: 4,
     marginBottom: 20,
   },
   checkbox: {
