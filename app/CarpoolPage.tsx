@@ -25,7 +25,7 @@ import { TopFade } from '@/components/TopFade';
 import { mockOpportunities, mockRides, mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity, Ride } from '@/types';
-import { calculateEndTime, canUnregisterFromOpportunity } from '@/utils/timeUtils';
+import { calculateEndTime } from '@/utils/timeUtils';
 
 interface CarpoolPageProps {
   showPopup: (
@@ -79,12 +79,13 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   const rides = USE_MOCKS ? mockRides : backendRides;
 
 
-  const unregistrationCheck = useMemo(() => {
-    if (!opportunity) return;
-    return canUnregisterFromOpportunity(opportunity.date, opportunity.time);
-  }, [opportunity?.date, opportunity?.time]);
+  // const unregistrationCheck = useMemo(() => {
+  //   if (!opportunity) return;
+  //   return canUnregisterFromOpportunity(opportunity.date, opportunity.time);
+  // }, [opportunity?.date, opportunity?.time]);
 
-  const canUnregister = unregistrationCheck?.canUnregister ?? true;
+  // const canUnregister = unregistrationCheck?.canUnregister ?? true;
+
   const isDriver = rides?.some(ride => ride.driver_id == profileUser?.id.toString());
   const userRide = rides?.find(ride => ride.riders.some(rider => rider.user_id == profileUser?.id.toString()));
   const isRider = !!userRide;
@@ -97,8 +98,10 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
   }, [currentUser?.id, carpoolId]);
 
   // Logic to get the time/date
-  const dateObj = new Date(opportunity?.date ?? '');
-  dateObj.setDate(dateObj.getDate() + 1);
+  const [year, month, day] = (opportunity?.date ?? '').split('-').map(Number);
+  const dateObj = new Date(year, month - 1, day);
+  const [hour, min] = (opportunity?.time ?? '').split(':').map(Number);
+  const start = new Date(year, month - 1, day, hour, min);
 
   const displayDate = dateObj.toLocaleDateString('en-US', {
     // weekday: 'long',
@@ -115,8 +118,32 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
 
   const displayEndTime = calculateEndTime(String(opportunity?.date), String(opportunity?.time), Number(opportunity?.duration));
 
+  const CARPOOL_SIGNUP_CUTOFF_HOURS = 1;
+  const CARPOOL_UNREGISTER_CUTOFF_HOURS = 1;
+
+  const getCarpoolStatus = () => {
+    const hoursUntilEvent = (start.getTime() - Date.now()) / (1000 * 60 * 60);
+    return {
+      signupClosed: hoursUntilEvent <= CARPOOL_SIGNUP_CUTOFF_HOURS,
+      canUnregister: hoursUntilEvent > CARPOOL_UNREGISTER_CUTOFF_HOURS,
+      hoursUntilEvent,
+    };
+  };
+
+  const carpoolStatus = useMemo(() => {
+    if (!opportunity) return null;
+    return getCarpoolStatus();
+  }, [opportunity?.date, opportunity?.time]);
+
+  const signupClosed = carpoolStatus?.signupClosed ?? false;
+  const canLeaveRide = carpoolStatus?.canUnregister ?? true;
+
   const onSelectRide = async (id: string) => {
     if (isRider && userRide.id == id) {
+      if (!canLeaveRide) {
+        Alert.alert('Too close to the event', "It's too late to leave this ride. Contact your driver or an organizer.");
+        return;
+      }
       try {
         await removeRider({
           user_id: profileUser?.id,
@@ -124,14 +151,20 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
         });
         queryClient.invalidateQueries({ queryKey: ['rides', carpoolId] });
       } catch (err) {
+        Alert.alert('Could not leave ride', 'Please try again.')
       }
     } else {
+      if (signupClosed) {
+        Alert.alert('Carpool signup closed', 'Signup for this event has closed.');
+        return;
+      }
       setSelectedRideId(id);
       setShowRiderForm(true);
     }
   };
 
   const onAddRide = () => {
+    if (signupClosed) return;
     setShowDriverPopup(true);
     setWaitlisted(Number(carpoolId), false);
   }
@@ -232,7 +265,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
                 <Text style={[styles.location ]}>{opportunity.address}</Text>
               </View>
             }
-            {!canUnregister &&
+            {signupClosed &&
               <View style={styles.deadline}>
                 <Text style={styles.deadlineTxt}>⚠ Carpool rides are now closed</Text>
               </View>
@@ -246,8 +279,8 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
               const extraCount = totalSlots.length - shownSlots.length;
 
               const disableJoinRide =
+                signupClosed ||
                 isDriver ||
-                !canUnregister ||
                 (isRider && userRide?.id !== ride.id) ||
                 (seatsLeft === 0 && userRide?.id !== ride.id);
 
@@ -305,7 +338,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
                   </View>
                   <Pressable
                     onPress={() => onSelectRide(ride.id)}
-                    disabled={seatsLeft == 0 && (!isRider || (isRider && !(userRide.id == ride.id))) || isDriver || (isRider && !(userRide.id == ride.id)) || !canUnregister ? true : false}
+                    disabled={signupClosed || seatsLeft == 0 && (!isRider || (isRider && !(userRide.id == ride.id))) || isDriver || (isRider && !(userRide.id == ride.id))}
                     style={[
                       styles.redBtn,
                       disableJoinRide && styles.disabledJoinBtn,
@@ -319,10 +352,10 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
             <View style={styles.addCard}>
               <Pressable
                 onPress={onAddRide}
-                disabled={!canUnregister || isDriver || isRider ? true : false}
+                disabled={signupClosed || isDriver || isRider}
                 style={[
                   styles.orangeAddBtn,
-                  (!canUnregister || isDriver || isRider) && styles.disabledAddBtn,
+                  (signupClosed || isDriver || isRider) && styles.disabledAddBtn,
                 ]}
               >
                 <Text style={styles.boldWhite}>+ Add Ride</Text>
