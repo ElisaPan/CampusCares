@@ -102,7 +102,8 @@ const OpportunitiesPage: React.FC = () => {
 
   const feedItems = useMemo((): FeedItem[] => {
     try {
-      const now = new Date();
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
 
       // Filter standalone opps (approved, upcoming, visible, not part of a multiopp)
       const standaloneOpps = (opportunities ?? []).map((opp) => {
@@ -110,12 +111,13 @@ const OpportunitiesPage: React.FC = () => {
         const localDate = new Date(year, month - 1, day);
         const [hours, minutes] = opp.time.split(':').map(Number);
         const fullDateTime = new Date(year, month - 1, day, hours, minutes);
+
         return { ...opp, localDate, fullDateTime };
       })
       .filter((opp) => {
         if (!opp.approved) return false;
         if (opp.multiopp) return false;
-        if (opp.fullDateTime.getTime() < now.getTime()) return false;
+        if (opp.localDate.getTime() < startOfToday.getTime()) return false;
         if (!opp.visibility || opp.visibility.length === 0) return true;
         if (!currentUser) return false;
         if (currentUser.admin) return true;
@@ -128,7 +130,7 @@ const OpportunitiesPage: React.FC = () => {
       const visibleMultiOpps = (multiopps ?? []).filter((m) => {
         if (invisibleSet.has(m.id)) return false;
         const hasUpcoming = (m.opportunities ?? []).some(
-          (o) => new Date(o.date).getTime() >= now.getTime()
+          (o) => new Date(o.date).getTime() >= startOfToday.getTime()
         );
         if (!hasUpcoming) return false;
         if (!m.visibility || m.visibility.length === 0) return true;
@@ -162,7 +164,7 @@ const OpportunitiesPage: React.FC = () => {
           const multiOpp = item.data as MultiOpp;
           const upcoming = (multiOpp.opportunities ?? [])
             .map((o) => new Date(o.date).getTime())
-            .filter((t) => t >= now.getTime())
+            .filter((t) => t >= startOfToday.getTime())
             .sort((a, b) => a - b);
           return upcoming[0] ?? Infinity; // no upcoming dates → sort to end
         };
