@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    On click outline with red
- *  High:
- *    -
- *  Low
- *    -
- */
-
 import {
   UploadFile,
   deleteOpportunity,

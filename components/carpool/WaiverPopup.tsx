@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    router.push(`/sign-waiver`)
- *  High:
- *    -
- *  Low
- *    -
- */
-
 import * as Theme from '@/constants/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';

@@ -1,10 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    On error fallback for Opportunity Image
- *    Fix links / router push
- */
-
 import { getProfilePictureSource } from '@/api';
 import * as Theme from '@/constants/theme';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';

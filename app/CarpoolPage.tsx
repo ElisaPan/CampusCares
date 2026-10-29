@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    Update api call to delete ride
- *  High:
- *    -
- *  Low
- *    -
- */
-
 import * as Theme from '@/constants/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';

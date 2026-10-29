@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    -
- *  High:
- *    -
- *  Low
- *    Fix service journal link (See my opportunities)
- */
-
 import { deleteUser as deleteFirebaseUser, signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -523,7 +513,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
               </View>
               {/* See Opportunities */}
               {/* <Pressable
-                onPress={() => router.push(`../ServiceJournal${profileUser.id}`)} //FIXXXXXX
+                onPress={() => router.push(`/ServiceJournal`)}
                 style={styles.footerBtn}
               >
                 <Text style={styles.footerText}>See my opportunities</Text>

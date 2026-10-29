@@ -1,12 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    press join and all orgs show joined, orgs show up in profile, on logout/in disappears
- *  High:
- *    -
- *  Low
- *    -
- */
 import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
 import * as Theme from '@/constants/theme';

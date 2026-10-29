@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    Explore page
- *    Footer
- *  High:
- *    Update numbers
- *  Low
- *    -
- */
 import helpIcon from '@/assets/icons/help.png';
 import locationIcon from '@/assets/icons/location.png';
 import profileCheckIcon from '@/assets/icons/profile-check.png';

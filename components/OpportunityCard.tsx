@@ -1,11 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    Fix links / router push
- *    PeopleIcon
- *    group-detail router.push
- */
-
 import { getProfilePictureSource, removeCarpoolUser } from '@/api';
 import * as Theme from '@/constants/theme';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
