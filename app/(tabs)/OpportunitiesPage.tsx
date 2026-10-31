@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    -
- *  High:
- *    Sign Up button function
- *    Click opportunity link function
- *  Low
- *    Redesign page title formatting
- */
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Modal, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';

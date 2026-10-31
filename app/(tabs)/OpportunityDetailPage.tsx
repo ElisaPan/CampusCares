@@ -1,17 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    On click outline with red
- *  High:
- *    Move edit buttons location
- *    Transfer host dropdown select menu
- *  Low
- *    Address warning "no virtualizedlists/flatlists inside scrollview w/ same orientation
- *       - can break windowing and other functionality, use another virtualized-backed container instead"
- *    Backend editForm option should be true/false. what is it rn?
- *    Show participants with two columns, filling out columnn first
- */
-
 import {
   deleteOpportunity,
   getCurrentOpportunities,

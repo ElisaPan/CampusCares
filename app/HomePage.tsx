@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    Explore page
- *    Footer
- *  High:
- *    Update numbers
- *  Low
- *    -
- */
 import helpIcon from '@/assets/icons/help.png';
 import locationIcon from '@/assets/icons/location.png';
 import profileCheckIcon from '@/assets/icons/profile-check.png';
@@ -426,7 +416,7 @@ const HomePage = () => {
           <AosView animation="zoom-in" delay={100} scrollY={scrollY}>
             <View style={styles.yellowGrid}>
               <View>
-                <Text style={styles.gridHeader}>400+</Text>
+                <Text style={styles.gridHeader}>500+</Text>
                 <Text style={styles.gridSubheader}>Total student volunteers</Text>
               </View>
               <View style={styles.avatarRow}>
@@ -440,7 +430,7 @@ const HomePage = () => {
                   <Image source={scott} alt='student pfp' style={styles.avatar}/>
                 </View>
                 <View style={styles.overflowAvatar}>
-                  <Text style={styles.avatarTxt}>+400</Text>
+                  <Text style={styles.avatarTxt}>+500</Text>
                 </View>
               </View>
             </View>
@@ -456,7 +446,7 @@ const HomePage = () => {
                 <Text style={styles.numDesc}>Community{"\n"}partners</Text>
               </View>
               <View style={styles.numContainer}>
-                <Text style={styles.bigNum}>58</Text>
+                <Text style={styles.bigNum}>60</Text>
                 <Text style={styles.numDesc}>Student{"\n"}organizations</Text>
               </View>
             </View>

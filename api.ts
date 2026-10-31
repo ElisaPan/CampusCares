@@ -382,7 +382,20 @@ export const deleteUser = (id: number): Promise<void> =>
     method: 'DELETE',
 });
 
-// for push notifications
+// -- Push Notifications --
+export type NotificationType =
+  | "event_reminders"
+  | "event_updates"
+  | "event_announcements"
+  | "attendance_confirmation"
+  | "ride_requests"
+  | "friend_request"
+  | "friend_activity"
+  | "new_opp_my_orgs"
+  | "new_opp_suggested";
+
+export type NotificationPrefs = Record<NotificationType, boolean>;
+
 export const savePushToken = async (pushToken: string, userId: number) => {
   const user = auth.currentUser;
   const headers: Record<string, string> = {
@@ -407,6 +420,44 @@ export const savePushToken = async (pushToken: string, userId: number) => {
 
   return response.json();
 };
+
+async function authHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const user = auth.currentUser;
+  if (user) {
+    headers.Authorization = `Bearer ${await user.getIdToken()}`;
+  }
+  return headers;
+}
+
+export async function getNotificationPrefs(): Promise<NotificationPrefs> {
+  const res = await fetch(`${ENDPOINT_URL}/api/notification-preferences`, {
+    headers: await authHeaders(),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    console.error("GET prefs", res.status, body);
+    throw new Error(`Failed to load preferences (${res.status})`);
+  }
+  return res.json();
+}
+
+export async function updateNotificationPref(
+  type: NotificationType,
+  pushEnabled: boolean
+): Promise<NotificationPrefs> {
+  const res = await fetch(`${ENDPOINT_URL}/api/notification-preferences`, {
+    method: "PUT",
+    headers: await authHeaders(),
+    body: JSON.stringify({ type, push_enabled: pushEnabled }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || "Failed to save preference");
+  }
+  return res.json();
+}
+
 
 // Get all user emails - returns array of email strings
 export const getUserEmails = async (): Promise<string[]> => {

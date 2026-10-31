@@ -1,12 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    -
- *  High:
- *    -
- *  Low
- *    -
- */
 import { getProfilePictureSource, updateOrganization } from '@/api';
 import * as Theme from '@/constants/theme';
 import { useGroups } from '@/hooks/useGroups';

@@ -1,13 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    Review (all chatgpt rn)
- *  High:
- *    -
- *  Low
- *    -
- */
-
 import { getRides, requestRideNotification } from "@/api";
 import { useUserStore } from "@/hooks/useUserStore";
 import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";

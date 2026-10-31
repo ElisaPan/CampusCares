@@ -1,12 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    check api createWaiver (uncomment lines 1177-1191)
- *  High:
- *    -
- *  Low
- *    -
- */
 import * as Theme from '@/constants/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { router, useLocalSearchParams } from 'expo-router';

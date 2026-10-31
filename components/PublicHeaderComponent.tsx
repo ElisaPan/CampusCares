@@ -1,12 +1,3 @@
-/*************
- * TODO:
- *  Severe:
- *    
- *  High:
- *    Update numbers
- *  Low
- *    -
- */
 import * as Theme from '@/constants/theme';
 import { router } from 'expo-router';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';

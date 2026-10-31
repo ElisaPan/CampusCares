@@ -1,16 +1,6 @@
-/*************
- * TODO:
- *  Severe:
- *    -
- *  High:
- *    -
- *  Low
- *    Fix service journal link (See my opportunities)
- */
-
 import { deleteUser as deleteFirebaseUser, signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
-import { useRouter } from 'expo-router';
+import { router } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
@@ -26,6 +16,7 @@ import { useGroups } from '@/hooks/useGroups';
 import { useProfilePicture } from '@/hooks/useProfilePicture';
 import { useUserStore } from '@/hooks/useUserStore';
 import { isOpportunity } from '@/utils/isOpp';
+import { Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 
 interface ProfilePageProps {
@@ -38,7 +29,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
   const { getOrgsForUser } = useGroups();
   const { updateProfilePicture } = useProfilePicture();
 
-  const router = useRouter();
   const { width } = useWindowDimensions();
   const isSmallScreen = width < 370;
 
@@ -491,7 +481,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
           {(isCurrentUser) && (
             <View style={styles.footerBlock}>
               {/* Email Subscription */}
-              <View style={styles.emailCard}>
+              {/* <View style={styles.emailCard}>
                 <View>
                   <View style={styles.leftEmailCard}>
                     <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>Email Newsletter</Text>
@@ -520,10 +510,22 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
                     />
                   </Pressable>
                 </View>
-              </View>
+              </View> */}
+              {/* Push Notification Settings */}
+              <Pressable
+                onPress={() => router.push(`/NotificationSettings`)}
+                style={({ pressed }) => [
+                  styles.row,
+                  pressed && { backgroundColor: "#F3F4F6" },
+                ]}
+              >
+                <Ionicons name="notifications-outline" size={20} color="#6B7280" />
+                <Text style={styles.label}>Notification Preferences</Text>
+                <MaterialDesignIcons name="chevron-right" size={18} color="#9CA3AF" />
+              </Pressable>
               {/* See Opportunities */}
               {/* <Pressable
-                onPress={() => router.push(`../ServiceJournal${profileUser.id}`)} //FIXXXXXX
+                onPress={() => router.push(`/ServiceJournal`)}
                 style={styles.footerBtn}
               >
                 <Text style={styles.footerText}>See my opportunities</Text>
@@ -813,30 +815,20 @@ const styles = StyleSheet.create({
   footerBlock: {
     rowGap: 13,
   },
-  emailCard: {
-    display: 'flex',
+  row: {
     flexDirection: 'row',
-    gap: 18,
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    gap: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dfdfdf',
   },
-  leftEmailCard: {
-    display: 'flex',
-    flexDirection: 'column',
+  label: {
     flex: 1,
-  },
-  switchContainer: {
-    width: 44,
-    height: 28,
-    borderRadius: 24,
-    borderWidth: 2,
-    justifyContent: 'center',
-    padding: 2,
-  },
-  knob: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    fontSize: 16,
+    color: "#4b505a",
   },
   footerBtn: {
     width: '100%',
