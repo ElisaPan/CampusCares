@@ -108,6 +108,7 @@ export default function RootLayout() {
                 <Stack.Screen name="RegisterPage" options={{ headerShown: false }} />
                 <Stack.Screen name="HomePage" options={{ headerShown: false }} />
                 <Stack.Screen name="WaiverScreen" options={{ headerShown: false }} />
+                <Stack.Screen name="NotificationSettings" options={{ headerShown: false }} />
               </Stack>
               <PopupMessage
                 isOpen={popup.isOpen}

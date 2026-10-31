@@ -219,7 +219,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     )
   }
 
-  if (!profileUser) return <Text>User not found</Text>;
+  if (!profileUser) {return <Text>User not found</Text>};
   
   if (!opportunityId) return <Text>Missing opportunity ID</Text>;
 
