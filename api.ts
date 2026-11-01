@@ -387,7 +387,7 @@ export type NotificationType =
   | "event_reminders"
   | "event_updates"
   | "event_announcements"
-  | "attendance_confirmation"
+  | "post_event"
   | "ride_requests"
   | "friend_request"
   | "friend_activity"

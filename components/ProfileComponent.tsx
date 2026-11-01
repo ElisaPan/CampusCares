@@ -1,6 +1,7 @@
 import { deleteUser as deleteFirebaseUser, signOut } from '@/firebase-config';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
+import { Settings } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 
@@ -16,7 +17,6 @@ import { useGroups } from '@/hooks/useGroups';
 import { useProfilePicture } from '@/hooks/useProfilePicture';
 import { useUserStore } from '@/hooks/useUserStore';
 import { isOpportunity } from '@/utils/isOpp';
-import { Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 
 interface ProfilePageProps {
@@ -278,6 +278,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
         <View style={styles.page}>
           {/* User info */}
           <View style={styles.centerAlignCard}>
+            <Pressable
+              onPress={() => router.push(`/NotificationSettings`)}
+              style={styles.settingsBtn}
+            >
+              <Settings color='#929292'/>
+            </Pressable>
             <View style={styles.profilePicWrapper}>
               <Image
                 style={styles.profilePic}
@@ -481,7 +487,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
           {(isCurrentUser) && (
             <View style={styles.footerBlock}>
               {/* Email Subscription */}
-              {/* <View style={styles.emailCard}>
+              <View style={styles.emailCard}>
                 <View>
                   <View style={styles.leftEmailCard}>
                     <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f2937' }}>Email Newsletter</Text>
@@ -510,9 +516,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
                     />
                   </Pressable>
                 </View>
-              </View> */}
+              </View>
               {/* Push Notification Settings */}
-              <Pressable
+              {/* <Pressable
                 onPress={() => router.push(`/NotificationSettings`)}
                 style={({ pressed }) => [
                   styles.row,
@@ -522,7 +528,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
                 <Ionicons name="notifications-outline" size={20} color="#6B7280" />
                 <Text style={styles.label}>Notification Preferences</Text>
                 <MaterialDesignIcons name="chevron-right" size={18} color="#9CA3AF" />
-              </Pressable>
+              </Pressable> */}
               {/* See Opportunities */}
               {/* <Pressable
                 onPress={() => router.push(`/ServiceJournal`)}
@@ -608,6 +614,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
     borderRadius: 16,
+    position: 'relative',
     
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -626,6 +633,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  settingsBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
   },
   profilePicWrapper: {
     alignItems: 'center',
@@ -825,8 +837,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#dfdfdf',
   },
+  emailCard: {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: 18,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
+    // paddingHorizontal: 16,
+  },
+  leftEmailCard: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
   label: {
     flex: 1,
+    fontSize: 16,
+    color: "#4b505a",
+  },
+  switchContainer: {
+    width: 44,
+    height: 28,
+    borderRadius: 24,
+    borderWidth: 2,
+    justifyContent: 'center',
+    padding: 2,
+  },
+  knob: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     fontSize: 16,
     color: "#4b505a",
   },

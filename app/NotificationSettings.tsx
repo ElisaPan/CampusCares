@@ -10,18 +10,7 @@ import { TopFade } from '@/components/TopFade';
 import * as Notifications from "expo-notifications";
 import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  AppState,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert, AppState, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 
 type Item = { key: NotificationType; label: string; desc?: string };
 type Section = { title: string; items: Item[] };
@@ -31,10 +20,10 @@ const SECTIONS: Section[] = [
   {
     title: "Events you've joined",
     items: [
-      { key: "event_reminders", label: "Reminders", desc: "Before an event you signed up for" },
-      { key: "event_updates", label: "Event changes", desc: "Time, location, or cancellations" },
+      // { key: "event_reminders", label: "Reminders", desc: "Before an event you signed up for" },
+      // { key: "event_updates", label: "Event changes", desc: "Time, location, or cancellations" },
       { key: "event_announcements", label: "Announcements", desc: "Posts from organizers and participants" },
-      { key: "attendance_confirmation", label: "Attendance confirmation", desc: "After an event" },
+      { key: "post_event", label: "Post-event notifications", desc: "After an event" },
     ],
   },
   {
@@ -53,8 +42,8 @@ const SECTIONS: Section[] = [
   {
     title: "Discover",
     items: [
-      { key: "new_opp_my_orgs", label: "Your organizations", desc: "New opportunities from orgs you're in" },
-      { key: "new_opp_suggested", label: "Suggested", desc: "New opportunities from orgs you've attended before" },
+      { key: "new_opp_my_orgs", label: "Your organizations", desc: "New opportunities from organizations you're in" },
+      { key: "new_opp_suggested", label: "Suggested", desc: "New opportunities from organizations you've attended before" },
     ],
   },
 ];
@@ -124,35 +113,41 @@ export default function NotificationSettings() {
         <BackButton
           label={`Back to Profile`}
         />
-        {!osAllowed && (
-          <View style={styles.banner}>
-            <Text style={styles.bannerText}>
-              Notifications are turned off for this app in your phone's settings,
-              so you won't receive any of these.
-            </Text>
-            <TouchableOpacity onPress={() => Linking.openSettings()}>
-              <Text style={styles.link}>Open Settings</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <Text style={styles.pageTitle}>Settings</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Push Notification Preferences</Text>
+          {!osAllowed && (
+            <View style={styles.banner}>
+              <Text style={styles.bannerText}>
+                Notifications are turned off for this app in your phone's settings,
+                so you won't receive any of these.
+              </Text>
+              <TouchableOpacity onPress={() => Linking.openSettings()}>
+                <Text style={styles.link}>Open Settings</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
-        {SECTIONS.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            {section.items.map((item) => (
-              <View key={item.key} style={styles.row}>
-                <View style={styles.rowText}>
-                  <Text style={styles.label}>{item.label}</Text>
-                  {!!item.desc && <Text style={styles.desc}>{item.desc}</Text>}
+          {SECTIONS.map((section, index) => {
+            const isLastItem = index === SECTIONS.length - 1;
+            return (
+            <View key={section.title} style={[styles.notifSection, !isLastItem && styles.notifNotBottom]}>
+              <Text style={styles.notifSectionTitle}>{section.title}</Text>
+              {section.items.map((item) => (
+                <View key={item.key} style={styles.row}>
+                  <View style={styles.rowText}>
+                    <Text style={styles.label}>{item.label}</Text>
+                    {!!item.desc && <Text style={styles.desc}>{item.desc}</Text>}
+                  </View>
+                  <Switch
+                    value={prefs[item.key] ?? true}
+                    onValueChange={(v) => toggle(item.key, v)}
+                  />
                 </View>
-                <Switch
-                  value={prefs[item.key] ?? true}
-                  onValueChange={(v) => toggle(item.key, v)}
-                />
-              </View>
-            ))}
-          </View>
-        ))}
+              ))}
+            </View>
+          )})}
+        </View>
       </ScrollView>
       <TopFade />
     </View>
@@ -164,6 +159,17 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
+  pageTitle: {
+    fontSize: 30,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  sectionTitle: {
+    color: '#111827',
+    fontSize: 20,
+    fontWeight: '700',
+    paddingTop: 16,
+  },
   center: {
     flex: 1,
     alignItems: "center",
@@ -172,8 +178,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginVertical: 6,
-    paddingVertical: 16,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingBottom: 12,
     borderRadius: 12,
     backgroundColor: "#FFF",
@@ -185,18 +190,26 @@ const styles = StyleSheet.create({
     elevation: 10,
     zIndex: 1,
   },
-  sectionTitle: {
+  notifSectionTitle: {
     fontSize: 13,
     fontWeight: "600",
     color: "#6b7280",
     textTransform: "uppercase",
     marginBottom: 4,
   },
+  notifSection: {
+    marginTop: 16,
+  },
+  notifNotBottom: {
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#bdbdbd',
+    paddingBottom: 12,
+  },
   row: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 10,
+    paddingVertical: 8,
   },
   rowText: {
     flex: 1,
@@ -209,10 +222,12 @@ const styles = StyleSheet.create({
   desc: {
     fontSize: 13,
     color: "#6b7280",
-    marginTop: 2 },
+    marginTop: 2
+  },
   banner: {
     marginHorizontal: 16,
-    marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 4,
     padding: 12,
     borderRadius: 8,
     backgroundColor: "#fef3c7",
