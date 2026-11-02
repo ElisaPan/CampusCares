@@ -1,6 +1,7 @@
 // store/useUserStore.ts
 import { getCurrentOpportunities, getMultiOpps } from '@/api';
 import { FriendshipsResponse, MultiOpp, Opportunity, Organization, SignUp, User } from '@/types';
+import { parseLocalDate } from '@/utils/timeUtils';
 import { create } from 'zustand';
 
 interface PopupMessage {
@@ -80,22 +81,16 @@ export const useUserStore = create<UserStore>((set, get) => ({
         : state.waitlistedCarpoolIds.filter((id) => id !== carpoolId),
     })),
   refreshOppsData: async () => {
-    const { currentUser, setAllOpps } = get();
+    const { setAllOpps } = get();
     try {
-      // if (currentUser) {
-        // const [orgs, opps, multiopps, students] = await Promise.all([
-        //   getOrgs(), getCurrentOpportunities(), getMultiOpps(), getUsers(),
-        // ]);
-        // set({ organizations: orgs, students, allOpps: [...opps, ...multiopps] });
-      // } else {
-        Promise.all([getCurrentOpportunities(), getMultiOpps()])
-          .then(([opps, multiopps]) => {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            const upcomingOpps = opps.filter((o) => new Date(o.date) >= today);
-            setAllOpps([...upcomingOpps, ...multiopps]);
-          })
-      // }
+      const [opps, multiopps] = await Promise.all([
+        getCurrentOpportunities(),
+        getMultiOpps(),
+      ]);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const upcomingOpps = opps.filter((o) => parseLocalDate(o.date) >= today);
+      setAllOpps([...upcomingOpps, ...multiopps]);
     } catch (e) {
       console.error('Failed to refresh app data:', e);
     }
