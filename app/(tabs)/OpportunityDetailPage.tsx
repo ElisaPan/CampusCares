@@ -1,21 +1,11 @@
-import {
-  deleteOpportunity,
-  getCurrentOpportunities,
-  registerForOpp,
-  unregisterForOpp,
-  updateOpportunity,
-  UploadFile,
-  uploadProfilePicture
-} from '@/api';
+import { deleteOpportunity, getCurrentOpportunities, registerForOpp, unregisterForOpp, updateOpportunity, UploadFile, uploadProfilePicture } from '@/api';
 import { Header as MainHeader } from '@/components/HeaderComponent';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
-import {
-  User
-} from '@/types';
+import { User } from '@/types';
 // import AttendanceManager from '@/components/AttendanceManager';
 import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import ShareOpportunity from '@/components/ShareOpportunity';
@@ -39,13 +29,17 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 
-const OpportunityDetailPage: React.FC = () => {
+const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
   const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps, showCarpoolPopup, setShowCarpoolPopup } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
+
+  const params = useLocalSearchParams<{ id: string }>();
+  const id = idProp ?? params.id;
+
   
   const USE_MOCKS = false;
 
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
 
   const sourceStudents = useMemo(
@@ -78,7 +72,13 @@ const OpportunityDetailPage: React.FC = () => {
   //   retry: 1,
   // });
   // const opportunity = oppFromStore ?? fetchedOpp;
-  const { data: opportunity, isError, error } = useOpportunity(id);
+
+  const [deletedId, setDeletedId] = useState<string | null>(null);
+  const isDeleted = deletedId === id;
+
+  const { data: opportunity, isError, error } = useOpportunity(id, {
+    enabled: !isDeleted,
+  });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -399,6 +399,8 @@ const OpportunityDetailPage: React.FC = () => {
   };
 
   const handleDeleteOpportunity = async () => {
+    console.log("Deleting opportunity")
+    if (!opportunity) return;
     const confirmed = await new Promise<boolean>((resolve) => {
       Alert.alert(
         'Delete Opportunity',
@@ -409,19 +411,27 @@ const OpportunityDetailPage: React.FC = () => {
         ]
       );
     });
-
     if (!confirmed) return;
 
+    const deletedId = Number(opportunity.id);
+    console.log(deletedId)
+
     try {
-      if (!opportunity) return <Text>Loading...</Text>
-      await deleteOpportunity(opportunity?.id);
+      await deleteOpportunity(deletedId);
+
+      setDeletedId(id);
+      await queryClient.cancelQueries({ queryKey: ['opportunity', deletedId] });
+
+      setAllOpps(
+        allOpps.filter((o) => !(isOpportunity(o) && o.id === deletedId))
+      );
 
       router.replace('/(tabs)/OpportunitiesPage');
 
       // Refresh opportunities in store
-      const updatedOpps = await getCurrentOpportunities();
-      const multiopps = allOpps.filter((o) => !isOpportunity(o));
-      setAllOpps([...updatedOpps, ...multiopps]);
+      // const updatedOpps = await getCurrentOpportunities();
+      // const multiopps = allOpps.filter((o) => !isOpportunity(o));
+      // setAllOpps([...updatedOpps, ...multiopps]);
     } catch (error: any) {
       Alert.alert('Error', `Error deleting opportunity: ${error.message}`);
     }
@@ -716,6 +726,13 @@ const OpportunityDetailPage: React.FC = () => {
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
 
+  console.log('detail render', { id, isDeleted, hasOpp: !!opportunity, isError, error: error?.message });
+
+  useEffect(() => {
+    console.log('detail MOUNT', id);
+    return () => console.log('detail UNMOUNT', id);
+  }, []);
+
   if (!activeCurrentUser) {
     return (
       <Text style={{ marginTop: 100, padding: 20 }}>
@@ -723,6 +740,8 @@ const OpportunityDetailPage: React.FC = () => {
       </Text>
     );
   }
+
+  if (isDeleted) return <Text>This opportunity was deleted.</Text>;
   
   if (!opportunity) {
     return isError

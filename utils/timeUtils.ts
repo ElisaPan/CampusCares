@@ -131,3 +131,16 @@ export const formatMiniOppTime = (time: string, duration: string | number): stri
 
   return `${startStr} – ${endStr}`;
 };
+
+export const parseLocalDate = (dateStr: string): Date => {
+  const [datePart] = dateStr.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  return new Date(year, month - 1, day);
+};
+
+export const parseLocalDateTime = (dateStr: string, timeStr?: string): Date => {
+  const [datePart, timePart] = dateStr.split('T');
+  const [year, month, day] = datePart.split('-').map(Number);
+  const [hours, minutes] = (timePart ?? timeStr ?? '00:00').split(':').map(Number);
+  return new Date(year, month - 1, day, hours, minutes);
+};

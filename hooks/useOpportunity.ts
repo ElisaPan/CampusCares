@@ -12,7 +12,7 @@ function parseId(raw?: string | string[]): number | null {
   return Number.isInteger(n) && n > 0 ? n : null;
 }
 
-export function useOpportunity(rawId?: string | string[]) {
+export function useOpportunity(rawId?: string | string[], options?: { enabled?: boolean }) {
   const id = parseId(rawId);
   const allOpps = useUserStore((s) => s.allOpps);
 
@@ -27,7 +27,8 @@ export function useOpportunity(rawId?: string | string[]) {
       await auth.authStateReady();
       return getOpportunity(id!);
     },
-    enabled: id != null && !fromStore,
+    initialData: fromStore,
+    enabled: id != null && !fromStore && (options?.enabled ?? true),
     retry: 1,
     staleTime: 60_000,
   });

@@ -904,6 +904,7 @@ export const getCurrentOpportunities = async (): Promise<Opportunity[]> => {
 };
 
 export const getOpportunity = async (id: number): Promise<Opportunity> => {
+  console.log('getOpportunity', id, new Error().stack);
   try {
     const opp = await authenticatedRequest(`/opps/${id}`);
 
