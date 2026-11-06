@@ -21,10 +21,12 @@ export function useEnsureUser() {
         if (typeof (auth as any).authStateReady === 'function') {
           await (auth as any).authStateReady();
         }
+        if (cancelled) return;
+
         const fbUser = auth.currentUser;
         if (!fbUser?.email) {
           setStatus('no-firebase-user');
-          router.replace('/HomePage');
+          router.replace(`/LoginPage`);
           return;
         }
         if (useUserStore.getState().currentUser) {
@@ -33,17 +35,21 @@ export function useEnsureUser() {
         }
         setStatus('fetching-user');
         const token = await fbUser.getIdToken();
+        if (cancelled) return;
+
         const user = await getUserByEmail(fbUser.email, token);
+        if (cancelled) return;
+
         if (!user) {
           setStatus('getUserByEmail-returned-empty');
           return;
         }
-        if (!cancelled && !useUserStore.getState().currentUser) {
+        if (!useUserStore.getState().currentUser) {
           useUserStore.getState().setCurrentUser(user);
         }
         setStatus('done');
       } catch (e: any) {
-        setStatus(`error: ${String(e?.message ?? e)}`);
+        if (!cancelled) setStatus(`error: ${String(e?.message ?? e)}`);
       }
     })();
 

@@ -1,17 +1,16 @@
 import { deleteOpportunity, getCurrentOpportunities, registerForOpp, unregisterForOpp, updateOpportunity, UploadFile, uploadProfilePicture } from '@/api';
+import CarpoolPopup from '@/components/carpool/CarpoolPopup';
 import { Header as MainHeader } from '@/components/HeaderComponent';
+import ShareOpportunity from '@/components/ShareOpportunity';
 import * as Theme from '@/constants/theme';
 import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { mockOrganizations, mockSignups, mockUsers } from '@/data/initialData';
-import { useSignupHandlers } from '@/hooks/useSignupHandlers';
-import { useUserStore } from '@/hooks/useUserStore';
-import { User } from '@/types';
-// import AttendanceManager from '@/components/AttendanceManager';
-import CarpoolPopup from '@/components/carpool/CarpoolPopup';
-import ShareOpportunity from '@/components/ShareOpportunity';
 import { auth } from '@/firebase-config';
 import { useEnsureUser } from '@/hooks/useEnsureUser';
 import { useOpportunity } from '@/hooks/useOpportunity';
+import { useSignupHandlers } from '@/hooks/useSignupHandlers';
+import { useUserStore } from '@/hooks/useUserStore';
+import { User } from '@/types';
 import { isOpportunity } from '@/utils/isOpp';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
 
@@ -61,17 +60,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
           .map((s) => s.opportunityId)
       )
     : currentUserSignupsSet ?? new Set();
-
-  // const singleOpportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
-  // const oppFromStore = singleOpportunities.find((o) => o.id === parseInt(id!));
-
-  // const { data: fetchedOpp, isError, error } = useQuery({
-  //   queryKey: ['opportunity', id],
-  //   queryFn: () => getOpportunity(Number(id)),
-  //   enabled: !oppFromStore && !Number.isNaN(id),
-  //   retry: 1,
-  // });
-  // const opportunity = oppFromStore ?? fetchedOpp;
 
   const [deletedId, setDeletedId] = useState<string | null>(null);
   const isDeleted = deletedId === id;
@@ -134,9 +122,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
         .map((s) => s.userId);
       return signupUserIds.includes(student.id);
     });
-  // signedUpStudents.forEach(s => {
-  //     console.log(s.email);
-  //   });
 
   const isUserSignedUp = opportunity && (opportunity.involved_users
     ? opportunity.involved_users.some(
@@ -243,43 +228,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
     }
   };
 
-
-  // const handleAttendanceSubmitted = async () => {
-  //   try {
-  //     // Fetch updated attendance data from the API
-  //     const attendanceData = await getOpportunityAttendance(opportunity.id);
-
-  //     // Update the opportunity's involved_users with the attendance data
-  //     if (attendanceData.users && opportunity.involved_users) {
-  //       const updatedInvolvedUsers = opportunity.involved_users.map((user) => {
-  //         const attendanceUser = attendanceData.users.find((au: any) => au.user_id === user.id);
-  //         if (attendanceUser) {
-  //           return {
-  //             ...user,
-  //             attended: attendanceUser.attended,
-  //           };
-  //         }
-  //         return user;
-  //       });
-
-  //       // Update the opportunity object
-  //       const updatedOpportunity = {
-  //         ...opportunity,
-  //         involved_users: updatedInvolvedUsers,
-  //         attendance_marked: true,
-  //       };
-
-  //       // Update the opportunities in the parent component
-  //       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-  //     }
-
-  //     alert('Attendance submitted successfully!');
-  //   } catch (error: any) {
-  //     console.error('Error updating attendance data:', error);
-  //     alert('Attendance submitted, but failed to update display. Please refresh the page.');
-  //   }
-  // };
-
   // Admin functions for user management
   const handleUserLookup = () => {
     if (!userLookupName.trim()) {
@@ -296,7 +244,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
   };
 
   const handleRegisterUser = async (userId: number) => {
-    if (!opportunity) return <Text>Loading...</Text>
+    if (!opportunity) return;
     if (signedUpStudents.length >= opportunity.total_slots) {
       Alert.alert('This event has reached its maximum capacity.');
       return;
@@ -320,7 +268,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
   const handleUnregisterUser = async (userId: number) => {
     try {
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       await unregisterForOpp({
         user_id: userId,
         opportunity_id: opportunity.id,
@@ -356,7 +304,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
     if (!confirmed) return;
     setIsTransferringHost(true);
     try {
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       await updateOpportunity(opportunity.id, { host_user_id: selectedTransferUserId });
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
       setShowTransferHost(false);
@@ -385,7 +333,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
     if (!confirmed) return;
 
     try {
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       await updateOpportunity(opportunity.id, { approved: false });
 
       // Update the local opportunity object to reflect changes
@@ -439,7 +387,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
   const handleSaveChanges = async () => {
     setIsSaving(true);
-    if (!editForm.date || !editForm.time) return <Text>Loading...</Text>;
+    if (!editForm.date || !editForm.time) return;
 
     try {
       // Format the date and time correctly using the utility function
@@ -456,7 +404,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
         allow_carpool: editForm.allow_carpool
       };
 
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       await updateOpportunity(opportunity.id, updateData);
       queryClient.invalidateQueries({ queryKey: ['opportunities'] });
 
@@ -500,7 +448,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
   // Slot limit management functions
   const handleUpdateSlotLimit = async () => {
-    if (!newSlotLimit) return <Text>Loading...</Text>;
+    if (!newSlotLimit) return;
 
     if (newSlotLimit < signedUpStudents.length) {
       Alert.alert(
@@ -516,7 +464,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
     setIsUpdatingSlots(true);
     try {
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       await updateOpportunity(opportunity.id, { total_slots: newSlotLimit });
       Alert.alert(`Slot limit updated successfully to ${newSlotLimit}!`);
 
@@ -543,7 +491,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
       const currentComments = opportunity?.comments || [];
       const updatedComments = [...currentComments, newComment.trim()];
 
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       await updateOpportunity(opportunity.id, { comments: updatedComments });
       // Update the local opportunity object to reflect changes
       opportunity.comments = updatedComments;
@@ -609,7 +557,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
       const uploadResult = await uploadProfilePicture(selectedImage);
       const imageUrl = uploadResult;
 
-      if (!opportunity) return <Text>Loading...</Text>
+      if (!opportunity) return;
       // Update the opportunity with the new image URL
       await updateOpportunity(opportunity.id, { image: imageUrl });
 
@@ -631,6 +579,20 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
   const ensureStatus = useEnsureUser();
 
+  const userOrgIds: number[] = activeCurrentUser?.organizationIds ?? []; // <- your field name
+
+  const ready = !!activeCurrentUser && !!opportunity;
+  const hasAccess =
+    ready &&
+    (!opportunity.visibility?.length ||
+      opportunity.visibility.some((id) => userOrgIds.includes(id)));
+
+  useEffect(() => {
+    if ((ready && !hasAccess) || (isError && activeCurrentUser)) {
+      router.replace('/(tabs)/OpportunitiesPage');
+    }
+  }, [ready, hasAccess, isError, activeCurrentUser]);
+  
   useEffect(() => {
     if (opportunity || isError) SplashScreen.hideAsync().catch(() => {});
   }, [opportunity, isError]);
@@ -736,20 +698,18 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
   if (!activeCurrentUser) {
     return (
       <Text style={{ marginTop: 100, padding: 20 }}>
-          {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!opportunity} ensure=${ensureStatus}`}
+        {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!opportunity} ensure=${ensureStatus}`}
       </Text>
     );
   }
-
+  
   if (isDeleted) return <Text>This opportunity was deleted.</Text>;
   
-  if (!opportunity) {
+  if (!opportunity || !hasAccess) {
     return isError
       ? <Text style={{ marginTop: 100, padding: 20 }}>{`Failed to load: ${String(error)}`}</Text>
       : <ActivityIndicator />;
   }
-
-  if (!opportunity || !activeCurrentUser) return <Text>Loading...</Text>;
 
   return (
     <ScrollView
@@ -811,7 +771,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
               
             </View>
             <View style={styles.shareWrapper}>
-              <ShareOpportunity item={{ kind: 'opp', id: opportunity.id, name: opportunity.name }} />
+              <ShareOpportunity item={{ kind: 'opp', id: opportunity.id, name: opportunity.name, visibility: opportunity.visibility }} />
             </View>
           </View>
         </View>
@@ -1232,31 +1192,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
                       {userLookupName.trim() && (
                         <View style={styles.results}>
                           {userLookupResults.length > 0 ? (
-                              /* <FlatList
-                              data={userLookupResults}
-                              keyExtractor={(user) => user.id.toString()}
-                              nestedScrollEnabled
-                              keyboardShouldPersistTaps="handled"
-                              renderItem={({ item: user }) => {
-                                const isAlreadyRegistered = signedUpStudents.some(s => s.id === user.id);
-                                const isThisUserRegistering = registeringUserId === user.id;
-                                return(
-                                  <View style={styles.lookupOneResult}>
-                                    <View>
-                                      <Text style={styles.resultName}>{user.name}</Text>
-                                      <Text style={styles.smallGray600}>{user.email}</Text>
-                                    </View>
-                                    <Pressable
-                                      onPress={() => handleRegisterUser(user.id)}
-                                      disabled={registeringUserId !== null || isAlreadyRegistered}
-                                      style={[styles.resultBtn, isAlreadyRegistered && styles.registeredBtn]}
-                                    >
-                                      <Text style={styles.boldWhite}>{isThisUserRegistering ? 'Registering...' : isAlreadyRegistered ? 'Registered' : 'Register'}</Text>
-                                    </Pressable>
-                                  </View>
-                                )
-                              }}
-                              /> */
                               userLookupResults.map((user) => {
                                 const isAlreadyRegistered = signedUpStudents.some(s => s.id === user.id);
                                 const isThisUserRegistering = registeringUserId === user.id;
@@ -1313,12 +1248,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
           <View style={styles.manageSection}>
             {canManageOpportunity ? (
               <View style={{ rowGap: 24 }}>
-                {/* <AttendanceManager
-                  opportunity={opportunity}
-                  participants={signedUpStudents}
-                  onAttendanceSubmitted={handleAttendanceSubmitted}
-                /> */}
-
                 {/* Slot Limit Management */}
                 <View style={styles.section}>
                   <Text style={styles.sectionHeader}>Slot Management</Text>

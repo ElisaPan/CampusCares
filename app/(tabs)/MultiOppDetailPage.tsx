@@ -371,7 +371,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     if (!confirmed) return;
 
     try {
-      if (!multiopp) return <Text>Loading...</Text>
+      if (!multiopp) return;
       await deleteOpportunity(multiopp.id);
 
       // Refresh opportunities in store
@@ -399,7 +399,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         allow_carpool: editForm.allow_carpool,
       };
 
-      if (!multiopp) return <Text>Loading...</Text>
+      if (!multiopp) return;
 
       await updateMultiOpp(multiopp.id, updateData);
       queryClient.invalidateQueries({ queryKey: ['multiopps'] });
@@ -445,11 +445,18 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
 			: require('@/assets/images/backup.jpeg');
 
   if (!activeCurrentUser) {
-    return <Text>Loading...</Text>;
+    return (
+      <Text style={{ marginTop: 100, padding: 20 }}>
+        {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!multiopp} ensure=${ensureStatus}`}
+      </Text>
+    );
   }
 
-  if (!multiopp) return <Text style={{ textAlign: 'center', color: '#9e9e9e', marginTop: 40 }}>Recurring opportunity not found.</Text>;
-
+  if (!multiopp) {
+    return isError
+      ? <Text style={{ marginTop: 100, padding: 20 }}>{`Failed to load: ${String(error)}`}</Text>
+      : <ActivityIndicator />;
+  }
 
   return (
     <ScrollView
@@ -493,7 +500,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
               )}
             </View>
             <View style={styles.shareWrapper}>
-              <ShareOpportunity item={{ kind: 'multiopp', id: multiopp.id, name: multiopp.name }} />
+              <ShareOpportunity item={{ kind: 'multiopp', id: multiopp.id, name: multiopp.name, visibility: multiopp.visibility }} />
             </View>
           </View>
         </View>
