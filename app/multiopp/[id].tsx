@@ -1,4 +1,4 @@
-import MultiOppDetailPage from "../(tabs)/MultiOppDetailPage";
+import MultiOppDetailPage from "../MultiOppDetailPage";
 
 export default function MultiOppRoute() {
   return <MultiOppDetailPage />;

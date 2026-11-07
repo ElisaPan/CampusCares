@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
-import OpportunityDetailPage from "../(tabs)/OpportunityDetailPage";
+import OpportunityDetailPage from "../OpportunityDetailPage";
 
 export default function OpportunityRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();

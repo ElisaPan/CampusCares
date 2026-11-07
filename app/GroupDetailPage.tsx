@@ -6,7 +6,7 @@ import { isOpportunity } from '@/utils/isOpp';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
@@ -24,11 +24,14 @@ const GroupDetailPage: React.FC = () => {
   const org = allOrgs.find((g) => g.id === parseInt(id!));
   if (!org) {
     return (
-      <View style={styles.loadingView}>
-        <ActivityIndicator size='large' color={Theme.cornellRed} />
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find organization.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.errorLink}>Back</Text>
+        </TouchableOpacity>
       </View>
     )
-  }
+  };
   const isMember = currentUser?.organizationIds && currentUser?.organizationIds.includes(org.id);
 
   const opportunities = useMemo(() => allOpps.filter(isOpportunity), [allOpps]);
@@ -170,11 +173,14 @@ const GroupDetailPage: React.FC = () => {
 
   if (!currentUser) {
     return (
-      <View style={styles.loadingView}>
-        <ActivityIndicator size='large' color={Theme.cornellRed} />
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find user.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
       </View>
     )
-  }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -469,5 +475,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
   },
-
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  errorLink: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
+  },
 })

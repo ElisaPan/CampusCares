@@ -27,7 +27,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 interface MultiOppDetailPageProps {
   staticId?: number;
@@ -446,17 +446,25 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
 
   if (!activeCurrentUser) {
     return (
-      <Text style={{ marginTop: 100, padding: 20 }}>
-        {`currentUser=${!!currentUser} firebase=${!!auth.currentUser} opp=${!!multiopp} ensure=${ensureStatus}`}
-      </Text>
-    );
-  }
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find user.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
 
   if (!multiopp) {
-    return isError
-      ? <Text style={{ marginTop: 100, padding: 20 }}>{`Failed to load: ${String(error)}`}</Text>
-      : <ActivityIndicator />;
-  }
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find opportunity.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
 
   return (
     <ScrollView
@@ -1263,5 +1271,19 @@ const styles = StyleSheet.create({
   flexGap: {
     flexDirection: 'row',
     gap: 8,
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
   },
 })

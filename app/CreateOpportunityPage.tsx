@@ -15,7 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import * as api from '@/api';
 import BackButton from '@/components/BackButton';
@@ -522,7 +522,16 @@ const CreateOpportunityPage: React.FC = () => {
     setDaysOfWeek(updated);
   };
 
-  if (!sourceOrganizations) return <Text>Organizations not found</Text>;
+  if (!sourceOrganizations) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not load organizations.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
   if (!user) {
     return (
       <View style={styles.loadingView}>
@@ -1385,5 +1394,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#E5E7EB",
   },
-
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
+  },
 })

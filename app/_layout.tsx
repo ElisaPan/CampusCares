@@ -98,17 +98,29 @@ export default function RootLayout() {
             <View style={styles.content}>
               <Stack screenOptions={{ headerShown: false, animation: 'none' }}>
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="OpportunityDetailPage"
+                  options={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: true, fullScreenGestureEnabled: true }}
+                />
+                <Stack.Screen name="MultiOppDetailPage"
+                  options={{ headerShown: false, animation: 'slide_from_right', gestureEnabled: true, fullScreenGestureEnabled: true }}
+                />
                 <Stack.Screen name="AboutUs" options={{ headerShown: false }} />
                 <Stack.Screen name="GroupsPage" options={{ headerShown: false }} />
                 <Stack.Screen name="MyOpportunitiesPage" options={{ headerShown: false }} />
-                <Stack.Screen name="NotificationsPage" options={{ animation: 'slide_from_right' }} />
-                <Stack.Screen name="friends/[id]" options={{ animation: 'slide_from_right' }} />
+                <Stack.Screen name="NotificationsPage"
+                  options={{ animation: 'slide_from_right', gestureEnabled: true, fullScreenGestureEnabled: true }}
+                />
+                <Stack.Screen name="FriendsPage"
+                  options={{ animation: 'slide_from_right', gestureEnabled: true, fullScreenGestureEnabled: true }}
+                />
                 <Stack.Screen name="LoginPage" options={{ headerShown: false }} />
                 <Stack.Screen name="SignUpPage" options={{ headerShown: false }} />
                 <Stack.Screen name="RegisterPage" options={{ headerShown: false }} />
                 <Stack.Screen name="HomePage" options={{ headerShown: false }} />
                 <Stack.Screen name="WaiverScreen" options={{ headerShown: false }} />
-                <Stack.Screen name="NotificationSettings" options={{ headerShown: false }} />
+                <Stack.Screen name="NotificationSettings"
+                  options={{ animation: 'slide_from_right', headerShown: false, gestureEnabled: true, fullScreenGestureEnabled: true }}
+                />
               </Stack>
               <PopupMessage
                 isOpen={popup.isOpen}
