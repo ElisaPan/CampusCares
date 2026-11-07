@@ -56,21 +56,21 @@ export default function TabLayout() {
         />
       }
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="OpportunityDetailPage"
         options={{
           href: null,
           headerShown: false
         }}
-      />
+      /> */}
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="MultiOppDetailPage"
         options={{
           href: null,
           headerShown: false
         }}
-      />
+      /> */}
 
       <Tabs.Screen
         name="UserProfile"

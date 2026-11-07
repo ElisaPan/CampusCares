@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { ActivityIndicator, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const GroupsPage = () => {
   const { organizations: allOrgs, currentUser, setCurrentUser, setStudents, students } = useUserStore();
@@ -46,11 +46,14 @@ const GroupsPage = () => {
 
   if (!currentUser) {
     return (
-      <View style={styles.loadingView}>
-        <ActivityIndicator size='large' color={Theme.cornellRed} />
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find user.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
       </View>
     )
-  }
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -648,5 +651,19 @@ const styles = StyleSheet.create({
   cancelBtnTxt: {
     color: '#616161',
     fontWeight: '500',
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
   },
 })

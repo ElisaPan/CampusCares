@@ -1,7 +1,7 @@
 import { User } from '@/types';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { getProfilePictureSource } from '@/api';
 import BackButton from '@/components/BackButton';
@@ -99,14 +99,14 @@ const FriendsPage: React.FC = () => {
 
   if (!profileUser) {
     return (
-      <View style={{ flex: 1, padding: 24 }}>
-        <BackButton
-          label={`Back to Profile`}
-        />
-        <Text>User not found</Text>
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find user.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
       </View>
-    );
-  }
+    )
+  };
   
   return (
     <View style={{ flex: 1 }}>
@@ -269,5 +269,19 @@ const styles = StyleSheet.create({
   followButtonText: {
     fontWeight: "600",
     color: "#374151",
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
   },
 });

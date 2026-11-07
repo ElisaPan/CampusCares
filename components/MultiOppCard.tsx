@@ -90,9 +90,15 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
     const ids = multiopp.opportunities.map((o) => o.id);
     const fullOpps = opportunitiesData.filter((o) => ids.includes(o.id));
     const sorted = [...fullOpps].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    const now = new Date();
-    const upcoming = sorted.filter((o) => new Date(o.date) > now);
+    const open = sorted.filter((o) => (o.involved_users ? o.involved_users.length : 0) < o.total_slots);
+		const startOfToday = new Date();
+		startOfToday.setHours(0, 0, 0, 0);
+		const upcoming = open.filter((o) => {
+			const [y, m, d] = String(o.date).slice(0, 10).split('-').map(Number);
+			return new Date(y, m - 1, d) >= startOfToday;
+		});
     const displayList = upcoming.length > 0 ? upcoming : sorted.length > 0 ? [sorted[0]] : [];
+    // const displayList = open.length > 0 ? open : sorted.length > 0 ? [sorted[0]] : [];
     const displayOpportunities = displayList.slice(0, 2);
 
     return { displayOpportunities, opportunityMap: map };

@@ -3,7 +3,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { Settings } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 import { deleteUser, getProfilePictureSource, getUser, updateUser } from '@/api';
 import { FriendshipStatus, Organization, User } from '@/types';
@@ -172,11 +172,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
 
   if (!profileUser || !localUser) {
     return (
-      <View style={styles.loadingView}>
-        <ActivityIndicator size='large' color={Theme.cornellRed} />
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find user.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
       </View>
     )
-  }
+  };
 
   const handlePickProfilePhoto = async () => {
     try {
@@ -264,7 +267,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
   const isFriend = friendshipStatus === 'friends';
   const requestPending = friendshipStatus === 'sent' || friendshipStatus === 'received';
 
-  if (isLoading) { return <Text>Loading...</Text>; }
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Could not find user.</Text>
+      </View>
+    )
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -892,5 +901,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     textAlign: 'center',
     color: '#FCA5A5',
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
   },
 })

@@ -26,9 +26,9 @@ import * as MailComposer from "expo-mail-composer";
 import { router, useLocalSearchParams } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
 
-const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
+const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {  
   const { currentUserSignupsSet, signups, students, allOpps, organizations, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, setAllOpps, showCarpoolPopup, setShowCarpoolPopup } = useUserStore();
   const { handleSignUp, handleUnSignUp } = useSignupHandlers();
 
@@ -113,7 +113,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
   // Page scroll
   const scrollRef = useRef<ScrollView>(null);
-
   const signedUpStudents = opportunity?.involved_users
     ? opportunity.involved_users.filter((user) => user.registered === true)
     : sourceStudents.filter((student) => {
@@ -688,8 +687,6 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 			? { uri: img }
 			: require('@/assets/images/backup.jpeg');
 
-  console.log('detail render', { id, isDeleted, hasOpp: !!opportunity, isError, error: error?.message });
-
   useEffect(() => {
     console.log('detail MOUNT', id);
     return () => console.log('detail UNMOUNT', id);
@@ -703,12 +700,30 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
     );
   }
   
-  if (isDeleted) return <Text>This opportunity was deleted.</Text>;
+  if (isDeleted) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>This opportunity was deleted.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
   
   if (!opportunity || !hasAccess) {
-    return isError
-      ? <Text style={{ marginTop: 100, padding: 20 }}>{`Failed to load: ${String(error)}`}</Text>
-      : <ActivityIndicator />;
+    return (
+      isError ? (
+        <View style={styles.center}>
+          <Text style={styles.errorText}>No carpool available for this opportunity.</Text>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.link}>Back</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <ActivityIndicator />
+      )
+    );
   }
 
   return (
@@ -2456,6 +2471,20 @@ const styles = StyleSheet.create({
     color: '#9E9E9E',
     fontSize: 14,
     lineHeight: 20,
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
   },
 })
 

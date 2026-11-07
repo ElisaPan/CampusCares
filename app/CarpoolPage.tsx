@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from "expo-router";
 import { Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { cancelRideNotificationRequest, checkWaitlistStatus, deleteRide, getOpportunity, getProfilePictureSource, getRides, removeRider, requestRideNotification } from '@/api';
 import BackButton from '@/components/BackButton';
@@ -219,15 +219,49 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     )
   }
 
-  if (!profileUser) {return <Text>User not found</Text>};
+  if (!profileUser) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>User not found.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
   
-  if (!opportunityId) return <Text>Missing opportunity ID</Text>;
+  if (!opportunityId || !opportunity) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>Couldn't load page.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
 
-  if (!opportunity) return <Text>Opportunity not found</Text>;
+  if (!carpoolId) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>No carpool available for this opportunity.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };
 
-  if (!carpoolId) return <Text>No carpool available for this opportunity.</Text>;
-
-  if (!rides) return <Text>No rides found.</Text>;
+  if (!rides) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>No rides found.</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={styles.link}>Back</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  };;
 
   return (
     <View style={{ flex: 1 }}>
@@ -617,5 +651,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.3,
-  }
+  },
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24
+  },
+  link: {
+    color: "#B31B1B",
+    fontWeight: "600"
+  },
+  errorText: {
+    marginBottom: 8,
+    color: "#111827"
+  },
 })
