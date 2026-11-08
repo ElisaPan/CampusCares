@@ -1,9 +1,8 @@
 import * as Theme from '@/constants/theme';
+import { safeRouter } from '@/utils/safeRouter';
 import { MaterialIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import React from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
-
 
 interface WaiverPopupProps {
   showWaiverPopup: boolean,
@@ -39,7 +38,7 @@ const WaiverPopup: React.FC<WaiverPopupProps> = ({
               style={styles.redBtn}
               onPress={() => {
                 setShowWaiverPopup(false);
-                router.push(`/WaiverScreen?opportunityId=${opportunityId}` as any);
+                safeRouter.push(`/WaiverScreen?opportunityId=${opportunityId}` as any);
               }}
             >
               <Text style={styles.btnTxt}>Sign Waiver</Text>
@@ -47,7 +46,7 @@ const WaiverPopup: React.FC<WaiverPopupProps> = ({
             <Pressable
               onPress={() => {
                 setShowWaiverPopup(false);
-                router.push(`/(tabs)/OpportunitiesPage`);
+                safeRouter.push(`/(tabs)/OpportunitiesPage`);
               }}
             >
               <Text style={styles.note}>

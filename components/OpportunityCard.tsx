@@ -3,11 +3,11 @@ import * as Theme from '@/constants/theme';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity, Organization, User } from '@/types';
+import { safeRouter } from '@/utils/safeRouter';
 import { calculateEndTime } from '@/utils/timeUtils';
 import Octicons from '@expo/vector-icons/Octicons';
 import { useQueryClient } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { Calendar1, Clock } from 'lucide-react-native';
 import React, { useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -92,7 +92,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   const isUserHost = currentUser ? opportunity.host_id === currentUser.id : false;
 
   const handleButtonPress = async () => {
-    if (!currentUser) router.push(`/SignUpPage`);
+    if (!currentUser) safeRouter.push(`/SignUpPage`);
 
     if (currentUser && isUserSignedUp) {
       if (opportunity.allow_carpool) {
@@ -132,10 +132,10 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
   
   const handleCardPress = () => {
     if (!currentUser) {
-      router.push(`/SignUpPage`);
+      safeRouter.push(`/SignUpPage`);
       return;
     }
-    router.push(`/OpportunityDetailPage?id=${opportunity.id}`);
+    safeRouter.push(`/OpportunityDetailPage?id=${opportunity.id}`);
   };
 
   const topOrgs = useMemo(() => {
@@ -164,7 +164,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
 
   const redirectUrl = opportunity.redirect_url;
   const buttonText = eventStarted
-    ? 'Event Already Started'
+    ? 'Sign Up Closed'
     : isUserSignedUp
       ? 'Signed Up ✓'
       : canSignUp
@@ -315,7 +315,7 @@ const OpportunityCard: React.FC<OpportunityCardProps> = ({
                 <Pressable
                   key={org.id}
                   data-pressable-org="true"
-                  onPress={() => router.push(`/GroupDetailPage?id=${org.id}`)}
+                  onPress={() => safeRouter.push(`/GroupDetailPage?id=${org.id}`)}
                   style={styles.orgTag}
                 >
                   <Text>{org.name}</Text>

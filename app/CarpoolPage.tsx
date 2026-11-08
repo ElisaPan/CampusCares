@@ -1,7 +1,7 @@
 import * as Theme from '@/constants/theme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { Trash2 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -15,6 +15,7 @@ import { TopFade } from '@/components/TopFade';
 import { mockOpportunities, mockRides, mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity, Ride } from '@/types';
+import { safeRouter } from '@/utils/safeRouter';
 import { calculateEndTime } from '@/utils/timeUtils';
 
 interface CarpoolPageProps {
@@ -223,7 +224,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>User not found.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -234,7 +235,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Couldn't load page.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -245,7 +246,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>No carpool available for this opportunity.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -256,7 +257,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>No rides found.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -274,7 +275,7 @@ const CarpoolPage: React.FC<CarpoolPageProps> = ({ showPopup }) => {
           <Text style={styles.backTxt}>Back to {opportunity.name}</Text>
         </Pressable> */}
         <BackButton
-          onPress={() => router.push(`/OpportunityDetailPage?id=${opportunityId}`)}
+          onPress={() => safeRouter.push(`/OpportunityDetailPage?id=${opportunityId}`)}
           label={`Back to ${opportunity.name}`}
         />
         <View style={styles.body}>

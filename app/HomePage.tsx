@@ -28,12 +28,11 @@ import scott from '@/public/team_pic/scott.jpg';
 import AosView from '@/components/AOSView';
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
+import { safeRouter } from '@/utils/safeRouter';
 import { Asset } from "expo-asset";
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Image, Pressable, Animated as RNAnimated, ScrollView, StyleSheet, Text, View } from 'react-native';
-
 
 const HomePage = () => {
   const [isVisible, setIsVisible] = useState(true);
@@ -335,7 +334,7 @@ const HomePage = () => {
             <Text style={styles.heroTitle}>Show Our{"\n"}Campus Cares</Text>
             <Text style={styles.heroSubtitle}>Meet new friends, support local organizations, and help us build a community we can all be proud of.</Text>
             <Pressable
-              onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
+              onPress={() => safeRouter.push(`/(tabs)/OpportunitiesPage`)}
               style={styles.exploreBtn}
             >
               <Text style={styles.exploreBtnTxt}>Explore Opportunities</Text>
@@ -397,7 +396,7 @@ const HomePage = () => {
                 <Text style={styles.gridHeader}>825+</Text>
                 <Text style={styles.gridSubheader}>Total hours contributed</Text>
                 <Pressable
-                  onPress={() => router.push(`/SignUpPage`)}
+                  onPress={() => safeRouter.push(`/SignUpPage`)}
                   style={styles.requestBtn}
                 >
                   <Text style={styles.requestBtnTxt}>Request Volunteers</Text>

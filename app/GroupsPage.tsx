@@ -4,9 +4,9 @@ import * as Theme from '@/constants/theme';
 import { useGroups } from '@/hooks/useGroups';
 import { useUserStore } from '@/hooks/useUserStore';
 import { OrganizationType, organizationTypes } from '@/types';
+import { safeRouter } from '@/utils/safeRouter';
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
-import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -48,7 +48,7 @@ const GroupsPage = () => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find user.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -61,7 +61,7 @@ const GroupsPage = () => {
         <View>
           {/* <Pressable
             style={styles.backWrapper}
-            onPress={() => router.back()}
+            onPress={() => safeRouter.back()}
           >
             <MaterialIcons name='chevron-left' size={18} color='#374151' />
             <Text style={styles.backTxt}>Back</Text>
@@ -113,7 +113,7 @@ const GroupsPage = () => {
                         <Pressable
                           key={org.id}
                           style={styles.orgCard}
-                          onPress={() => router.push(`/GroupDetailPage?id=${org.id}`)}
+                          onPress={() => safeRouter.push(`/GroupDetailPage?id=${org.id}`)}
                         >
                           <View style={{ flex: 1 }}>
                             <Text style={styles.orgName}>
@@ -173,7 +173,7 @@ const GroupsPage = () => {
                       <Pressable
                         key={org.id}
                         style={styles.orgCard}
-                        onPress={() => router.push(`/GroupDetailPage?id=${org.id}`)}
+                        onPress={() => safeRouter.push(`/GroupDetailPage?id=${org.id}`)}
                       >
                         <View style={{ flex: 1 }}>
                           <Text style={styles.orgName}>

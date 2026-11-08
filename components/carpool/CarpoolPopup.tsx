@@ -1,7 +1,7 @@
 import { getRides, requestRideNotification } from "@/api";
 import { useUserStore } from "@/hooks/useUserStore";
+import { safeRouter } from '@/utils/safeRouter';
 import { MaterialDesignIcons } from "@react-native-vector-icons/material-design-icons";
-import { router } from "expo-router";
 import React from "react";
 import { Alert, Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -55,7 +55,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
       }
 
       closePopup();
-      router.push({
+      safeRouter.push({
         pathname: '/carpool/[id]',
         params: { id: opportunityId.toString(), mode: 'rider' },
       });
@@ -105,7 +105,7 @@ const CarpoolPopup: React.FC<CarpoolPopupProps> = ({
               style={styles.redBtn}
               onPress={() => {
                 closePopup();
-                router.push({
+                safeRouter.push({
                   pathname: "/carpool/[id]",
                   params: {
                     id: opportunityId.toString(),

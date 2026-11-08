@@ -7,6 +7,7 @@ import { ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView, StyleS
 
 import { deleteUser, getProfilePictureSource, getUser, updateUser } from '@/api';
 import { FriendshipStatus, Organization, User } from '@/types';
+import { safeRouter } from '@/utils/safeRouter';
 import { useLocalSearchParams } from 'expo-router';
 
 import { Header as MainHeader } from '@/components/HeaderComponent';
@@ -174,7 +175,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find user.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -258,7 +259,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
       setOrganizations([]);
       setStudents([]);
       if (router.canDismiss()) router.dismissAll();
-      router.replace(`/HomePage`);
+      safeRouter.replace(`/HomePage`);
     } catch (error) {
       console.error('Delete failed:', error);
     }
@@ -287,12 +288,14 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
         <View style={styles.page}>
           {/* User info */}
           <View style={styles.centerAlignCard}>
-            <Pressable
-              onPress={() => router.push(`/NotificationSettings`)}
-              style={styles.settingsBtn}
-            >
-              <Settings color='#929292'/>
-            </Pressable>
+            { isCurrentUser && (
+              <Pressable
+                onPress={() => safeRouter.push(`/NotificationSettings`)}
+                style={styles.settingsBtn}
+              >
+                <Settings color='#929292'/>
+              </Pressable>
+            )}
             <View style={styles.profilePicWrapper}>
               <Image
                 style={styles.profilePic}
@@ -322,7 +325,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
             <Text style={styles.name} >{profileUser.name}</Text>
             <Text style={styles.email} >{profileUser.email}</Text>
             <View style={styles.info}>
-              <Pressable onPress={() => router.push(`/FriendsPage?id=${profileUser.id}`)}>
+              <Pressable onPress={() => safeRouter.push(`/FriendsPage?id=${profileUser.id}`)}>
                 <Text style={styles.infoText}>
                   {isSmallScreen
                   ? `${loadingFriends ? '...' : profileUserFriends.length}\nFriend${profileUserFriends.length == 1 ? '' : 's'}`
@@ -464,7 +467,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
               {profileUser.name}'s Organizations
             </Text>
             {loadingOrgs ? (
-              <Text style={styles.smallText}>Loading...</Text>
+              <ActivityIndicator size="large" color={Theme.cornellRed} style={{ marginTop: 100 }} />
             ) : userOrgs.length === 0 ? (
               <Text style={styles.smallText}>{profileUser.name} hasn't joined any organizations yet.</Text>
             ) : (
@@ -484,7 +487,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ staticId }) => {
             )}
             {isCurrentUser && (
               <Pressable
-                onPress={() => router.push(`/GroupsPage`)}
+                onPress={() => safeRouter.push(`/GroupsPage`)}
                 style={styles.editBtn}
               >
                 <Text style={styles.redBtnText}>Manage</Text>

@@ -1,6 +1,7 @@
 import * as Theme from '@/constants/theme';
+import { safeRouter } from '@/utils/safeRouter';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { createWaiver } from '../../api';
@@ -56,7 +57,7 @@ const Waiver: React.FC<WaiverProps> = ({ type, opportunityId }) => {
       });
 
       updateCurrentUser({ carpool_waiver_signed: true });
-      router.replace(`/carpool/${opportunityId}`);
+      safeRouter.replace(`/carpool/${opportunityId}`);
     } catch (err) {
       setError("Failed to submit waiver, please try again.");
     }
@@ -74,13 +75,13 @@ const Waiver: React.FC<WaiverProps> = ({ type, opportunityId }) => {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={{marginTop: 34, marginBottom: -8}}>
         {/* <Pressable
-          onPress={() => router.replace(`/OpportunityDetailPage?id=${opportunityId}`)}
+          onPress={() => safeRouter.replace(`/OpportunityDetailPage?id=${opportunityId}`)}
           style={styles.backWrapper}
         >
           <Text style={styles.back}>← Back</Text>
         </Pressable> */}
         <BackButton
-          onPress={() => router.replace(`/OpportunityDetailPage?id=${opportunityId}`)}
+          onPress={() => safeRouter.replace(`/OpportunityDetailPage?id=${opportunityId}`)}
         />
       </View>
       {type === "carpool" && (

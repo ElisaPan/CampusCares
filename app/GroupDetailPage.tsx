@@ -4,12 +4,13 @@ import { useGroups } from '@/hooks/useGroups';
 import { useUserStore } from '@/hooks/useUserStore';
 import { isOpportunity } from '@/utils/isOpp';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
+import { safeRouter } from '@/utils/safeRouter';
 import { FontAwesome6, Ionicons } from '@expo/vector-icons';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 
@@ -26,7 +27,7 @@ const GroupDetailPage: React.FC = () => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find organization.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.errorLink}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -175,7 +176,7 @@ const GroupDetailPage: React.FC = () => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find user.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -188,7 +189,7 @@ const GroupDetailPage: React.FC = () => {
         <View>
           {/* <Pressable
             style={styles.backWrapper}
-            onPress={() => router.back()}
+            onPress={() => safeRouter.back()}
           >
             <MaterialIcons name='chevron-left' size={18} color='#374151' />
             <Text style={styles.backTxt}>Back</Text>
@@ -275,7 +276,7 @@ const GroupDetailPage: React.FC = () => {
                   .map((member) => (
                     <Pressable
                       key={member.id}
-                      onPress={() => router.push(`/UserProfile?id=${member.id}`)}
+                      onPress={() => safeRouter.push(`/UserProfile?id=${member.id}`)}
                       style={styles.memberWrapper}
                     >
                       <Image

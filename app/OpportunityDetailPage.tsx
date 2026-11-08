@@ -12,6 +12,7 @@ import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { User } from '@/types';
 import { isOpportunity } from '@/utils/isOpp';
+import { safeRouter } from '@/utils/safeRouter';
 import { calculateEndTime, formatDateTimeForBackend } from '@/utils/timeUtils';
 
 import { MaterialIcons } from '@expo/vector-icons';
@@ -23,7 +24,7 @@ import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
 import * as MailComposer from "expo-mail-composer";
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -373,7 +374,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
         allOpps.filter((o) => !(isOpportunity(o) && o.id === deletedId))
       );
 
-      router.replace('/(tabs)/OpportunitiesPage');
+      safeRouter.replace('/(tabs)/OpportunitiesPage');
 
       // Refresh opportunities in store
       // const updatedOpps = await getCurrentOpportunities();
@@ -500,7 +501,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
       Alert.alert('Announcement added successfully!');
 
       // Force a re-render by updating the opportunity object
-      router.push({
+      safeRouter.push({
         pathname: `../OpportunityDetailPage`,
         params: { id: opportunity?.id.toString() },
       });
@@ -588,7 +589,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
 
   useEffect(() => {
     if ((ready && !hasAccess) || (isError && activeCurrentUser)) {
-      router.replace('/(tabs)/OpportunitiesPage');
+      safeRouter.replace('/(tabs)/OpportunitiesPage');
     }
   }, [ready, hasAccess, isError, activeCurrentUser]);
   
@@ -678,7 +679,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
       allow_carpool: opportunity?.allow_carpool || false,
     });
 
-    router.push("/CreateOpportunityPage");
+    safeRouter.push("/CreateOpportunityPage");
   };
 
   const img = opportunity?.imageUrl;
@@ -704,7 +705,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>This opportunity was deleted.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -716,7 +717,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
       isError ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>No carpool available for this opportunity.</Text>
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity onPress={() => safeRouter.back()}>
             <Text style={styles.link}>Back</Text>
           </TouchableOpacity>
         </View>
@@ -1150,7 +1151,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
                       key={`${student.id}-${student._lastUpdate || 'no-update'}`}
                       style={styles.student}
                     >
-                      <Pressable onPress={() => router.push(`/UserProfile?id=${student.id}`)}>
+                      <Pressable onPress={() => safeRouter.push(`/UserProfile?id=${student.id}`)}>
                         <Text style={styles.studentName}>{student.name}</Text> 
                       </Pressable>
                       {activeCurrentUser.admin && (
@@ -1252,7 +1253,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
             
             {allowCarpool && (isUserSignedUp || activeCurrentUser.admin) &&
               <Pressable
-                onPress={() => {router.push(`/CarpoolPage?id=${opportunity.id}`)}}
+                onPress={() => {safeRouter.push(`/CarpoolPage?id=${opportunity.id}`)}}
                 style={styles.viewCarpools}
               >
                 <Text style={styles.viewCarpoolsTxt}>View Carpool Rides</Text>
@@ -1528,7 +1529,7 @@ const OpportunityDetailPage: React.FC<{ id?: string }> = ({ id: idProp }) => {
                     return (
                       <View style={{ rowGap: 12 }}>
                         <Pressable
-                          onPress={() => router.push(`/UserProfile?id=${hostUser.id}`)}
+                          onPress={() => safeRouter.push(`/UserProfile?id=${hostUser.id}`)}
                           style={styles.contactBtn}
                         >
                           <View style={styles.contactSymbol}>

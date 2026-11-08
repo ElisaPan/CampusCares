@@ -1,5 +1,5 @@
 import { User } from '@/types';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -10,6 +10,7 @@ import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useFriendships } from '@/hooks/useFriendships';
 import { useUserStore } from '@/hooks/useUserStore';
+import { safeRouter } from '@/utils/safeRouter';
 
 const FriendsPage: React.FC = () => {
   const { friendshipsData, currentUser, setCurrentUser, updateCurrentUser, clearCurrentUser, students, studentsLoaded } = useUserStore();
@@ -57,7 +58,7 @@ const FriendsPage: React.FC = () => {
   const Friend = ({ user }: { user: User }) => (
     <Pressable
       style={styles.friendCard}
-      onPress={() => router.push(`/UserProfile?id=${user.id}`)}
+      onPress={() => safeRouter.push(`/UserProfile?id=${user.id}`)}
     >
       {user.profile_image ? (
         <Image
@@ -101,7 +102,7 @@ const FriendsPage: React.FC = () => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find user.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -113,7 +114,7 @@ const FriendsPage: React.FC = () => {
       <ScrollView style={styles.container}>
         {/* <Pressable
           style={styles.backWrapper}
-          onPress={() => router.back()}
+          onPress={() => safeRouter.back()}
         >
           <MaterialIcons name='chevron-left' size={18} color='#374151' />
           <Text style={styles.backTxt}>Back to Profile</Text>
@@ -143,7 +144,7 @@ const FriendsPage: React.FC = () => {
         )}
         
         {loadingFriends ? (
-          <Text>Loading friends...</Text>
+          <ActivityIndicator size="large" color={Theme.cornellRed} style={{ marginTop: 100 }} />
           ) : profileUserFriends.length > 0 ? (
             // <FlatList
             //   data={profileUserFriends}

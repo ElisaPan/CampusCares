@@ -1,5 +1,5 @@
+import { safeRouter } from '@/utils/safeRouter';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { router } from 'expo-router';
 import { Pressable, StyleSheet, Text } from 'react-native';
 
 interface BackButtonProps {
@@ -13,7 +13,7 @@ export function BackButton({ onPress, label="Back", textSize = 14, color = '#374
   return (
     <Pressable
       style={styles.container}
-      onPress={onPress ?? (() => router.back())}
+      onPress={onPress ?? (() => safeRouter.back())}
       hitSlop={10}
     >
       <MaterialIcons name='chevron-left' size={textSize} color={color} />

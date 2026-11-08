@@ -23,7 +23,7 @@ const NotificationsPage: React.FC = () => {
       <ScrollView style={styles.container}>
         {/* <Pressable
           style={styles.backWrapper}
-          onPress={() => router.back()}
+          onPress={() => safeRouter.back()}
         >
           <MaterialIcons name='chevron-left' size={18} color='#374151' />
           <Text style={styles.backTxt}>Back</Text>
