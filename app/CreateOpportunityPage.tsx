@@ -13,7 +13,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
-import { router, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -24,6 +24,7 @@ import { useCloneOpportunity } from "@/context/CloneOpportunityContext";
 import { useUserStore } from '@/hooks/useUserStore';
 import { MultiOpp, Opportunity, Organization } from '@/types';
 import { isOpportunity } from '@/utils/isOpp';
+import { safeRouter } from '@/utils/safeRouter';
 import { formatDateTimeForBackend } from '@/utils/timeUtils';
 
 import { mockOpportunities, mockOrganizations, mockUsers } from '@/data/initialData';
@@ -472,7 +473,7 @@ const CreateOpportunityPage: React.FC = () => {
       setSuccess(true);
       setClonedOpportunityData(null);
       setTimeout(() => {
-        router.push(`/(tabs)/OpportunitiesPage`);
+        safeRouter.push(`/(tabs)/OpportunitiesPage`);
       }, 2000);
 
       const updatedOpps = await api.getCurrentOpportunities();
@@ -526,7 +527,7 @@ const CreateOpportunityPage: React.FC = () => {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not load organizations.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -551,7 +552,7 @@ const CreateOpportunityPage: React.FC = () => {
           <Text style={styles.back}>← Back to Opportunities</Text>
         </Pressable> */}
         <BackButton
-          onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
+          onPress={() => safeRouter.push(`/(tabs)/OpportunitiesPage`)}
           label={`Back to Opportunities`}
         />
       </View>
@@ -1088,7 +1089,7 @@ const CreateOpportunityPage: React.FC = () => {
 
             <View style={styles.endWrapper}>
               <Pressable
-                onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
+                onPress={() => safeRouter.push(`/(tabs)/OpportunitiesPage`)}
                 style={styles.cancelBtn}
               >
                 <Text style={styles.cancelBtnTxt}>Cancel</Text>

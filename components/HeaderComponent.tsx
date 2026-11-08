@@ -6,7 +6,8 @@ import UserContext from '@/components/user-context';
 import * as Theme from '@/constants/theme';
 import { mockUsers } from '@/data/initialData';
 import { useUserStore } from '@/hooks/useUserStore';
-import { router, useLocalSearchParams } from 'expo-router';
+import { safeRouter } from '@/utils/safeRouter';
+import { useLocalSearchParams } from 'expo-router';
 import { useContext } from 'react';
 
 export const Header = () => {
@@ -35,7 +36,7 @@ export const Header = () => {
     <View style={styles.container}>
 			<View>
 				<Pressable
-					onPress={() => router.push(`/(tabs)/OpportunitiesPage`)}
+					onPress={() => safeRouter.push(`/(tabs)/OpportunitiesPage`)}
 				>
 					<Image
 						style={styles.logo}
@@ -46,7 +47,7 @@ export const Header = () => {
 			</View>
 			<View>
 				<Pressable
-					onPress={() => router.push(`/NotificationsPage`)}
+					onPress={() => safeRouter.push(`/NotificationsPage`)}
 					style={styles.notifBtn}
 				>
 					<Ionicons

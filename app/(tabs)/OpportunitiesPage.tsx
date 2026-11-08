@@ -1,5 +1,5 @@
 import { parseLocalDate, parseLocalDateTime } from '@/utils/timeUtils';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, Linking, Modal, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
@@ -15,6 +15,7 @@ import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { FeedItem, FeedOrderItem, FeedOrderResponse, MultiOpp, Opportunity, User } from '@/types';
 import { isMultiOpp, isOpportunity } from '@/utils/isOpp';
+import { safeRouter } from '@/utils/safeRouter';
 import { useQuery } from '@tanstack/react-query';
 
 const OpportunitiesPage: React.FC = () => {
@@ -180,7 +181,7 @@ const OpportunitiesPage: React.FC = () => {
   const handleExternalSignupConfirm = async () => {
     if (!selectedOpportunity) return;
     if (!currentUser) {
-      router.push(`/LoginPage`);
+      safeRouter.push(`/LoginPage`);
       return;
     }
     if (selectedOpportunity.redirect_url) {
@@ -214,7 +215,7 @@ const OpportunitiesPage: React.FC = () => {
   const { setClonedOpportunityData } = useCloneOpportunity();
   const handleCreateNew = () => {
     setClonedOpportunityData(null);
-    router.push(`/CreateOpportunityPage`);
+    safeRouter.push(`/CreateOpportunityPage`);
   };
 
   const Header = ({ user }: { user: User | null | undefined }) => (

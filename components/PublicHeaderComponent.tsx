@@ -1,5 +1,5 @@
 import * as Theme from '@/constants/theme';
-import { router } from 'expo-router';
+import { safeRouter } from '@/utils/safeRouter';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const PublicHeader = () => {
@@ -7,7 +7,7 @@ const PublicHeader = () => {
     <View style={styles.header}>
       <View>
         <Pressable
-          onPress={() => router.push(`/HomePage`)}
+          onPress={() => safeRouter.push(`/HomePage`)}
         >
           <Image
             style={styles.logo}
@@ -19,14 +19,14 @@ const PublicHeader = () => {
       <View style={styles.headerBtns}>
         <Pressable
           style={styles.loginBtn}
-          onPress={() => router.push('/LoginPage')}
+          onPress={() => safeRouter.push('/LoginPage')}
         >
           <Text style={styles.loginTxt}>Login</Text>
         </Pressable>
 
         <Pressable
           style={styles.signUpBtn}
-          onPress={() => router.push('/SignUpPage')}
+          onPress={() => safeRouter.push('/SignUpPage')}
         >
           <Text style={styles.signUpTxt}>Sign Up</Text>
         </Pressable>

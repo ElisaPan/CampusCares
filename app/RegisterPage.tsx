@@ -1,5 +1,6 @@
 // import { Picker } from '@react-native-picker/picker';
 import * as Theme from '@/constants/theme';
+import { safeRouter } from '@/utils/safeRouter';
 import { MaterialDesignIcons } from '@react-native-vector-icons/material-design-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
@@ -49,7 +50,7 @@ export default function RegisterPage() {
   const handleBackToLogin = async () => {
     await signOut();
     if (router.canDismiss()) router.dismissAll();
-    router.replace('/LoginPage');
+    safeRouter.replace('/LoginPage');
   };
   
   const openPicker = () => {
@@ -139,7 +140,7 @@ export default function RegisterPage() {
       }
 
       if (router.canDismiss()) router.dismissAll();
-      router.replace('/(tabs)/OpportunitiesPage');
+      safeRouter.replace('/(tabs)/OpportunitiesPage');
 
       api.getOrgs().then(setOrganizations).catch(() => {});
       api.getUsersMinimal().then(setStudents).catch(() => {});
@@ -296,7 +297,7 @@ export default function RegisterPage() {
         disabled={isDisabled}
       >
         {isLoading ? (
-          <ActivityIndicator size="small" color="#fff" />
+          <ActivityIndicator size="large" color={Theme.cornellRed} style={{ marginTop: 100 }} />
         ) : (
           <Text style={styles.submitBtnText}>Complete Registration</Text>
         )}

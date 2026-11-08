@@ -3,8 +3,8 @@ import * as Theme from '@/constants/theme';
 import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { MultiOpp, Opportunity, User } from '@/types';
+import { safeRouter } from '@/utils/safeRouter';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -106,10 +106,10 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 
 	const handleCardPress = () => {
 		if (!currentUser) {
-				router.push(`/SignUpPage`);
+				safeRouter.push(`/SignUpPage`);
 				return;
 		}
-		router.push(`/MultiOppDetailPage?id=${multiopp.id}`);
+		safeRouter.push(`/MultiOppDetailPage?id=${multiopp.id}`);
 		};
 	
 	const [pressedStudentId, setPressedStudentId] = useState<number | null>(null);
@@ -229,7 +229,7 @@ const MultiOppCard: React.FC<MultiOppCardProps> = ({
 
 								const buttonDisabled = eventStarted || (!canSignUp && !isUserSignedUp);
 								const buttonText = eventStarted
-									? 'Event Already Started'
+									? 'Sign Up Closed'
 									: isUserSignedUp
 										? 'Signed Up ✓'
 										: canSignUp

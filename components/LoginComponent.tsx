@@ -2,6 +2,7 @@ import * as api from '@/api';
 import { signInWithGoogleIdToken, signOut } from '@/firebase-config';
 import { useUserStore } from '@/hooks/useUserStore';
 import { registerForPushNotifications } from '@/utils/registerForPushNotifications';
+import { safeRouter } from '@/utils/safeRouter';
 import * as Google from 'expo-auth-session/providers/google';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -95,7 +96,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               setAllOpps([...opps, ...multiopps]);
 
               if (router.canDismiss()) router.dismissAll();
-              router.replace(`/(tabs)/OpportunitiesPage`);
+              safeRouter.replace(`/(tabs)/OpportunitiesPage`);
 
               const pushToken = await registerForPushNotifications();
               if (pushToken) {
@@ -106,7 +107,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
               api.getUsersMinimal().then(setStudents).catch(() => {});
 
             } else {
-              router.push(`/RegisterPage`);
+              safeRouter.push(`/RegisterPage`);
             }
           }
         } catch (e: any) {
@@ -169,7 +170,7 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
     <ScrollView style={styles.container}>
       {/* <Pressable
         style={styles.backWrapper}
-        onPress={() => router.back()}
+        onPress={() => safeRouter.back()}
       >
         <MaterialIcons name='chevron-left' size={18} color='#374151' />
         <Text style={styles.backTxt}>Back</Text>
@@ -218,14 +219,14 @@ const Login: React.FC<LoginProps> = ({ mode }) => {
           {mode === 'login' ? (
             <View style={styles.subq}>
               <Text>Don't have an account?</Text>
-              <Pressable onPress={() => router.push(`/SignUpPage`)}>
+              <Pressable onPress={() => safeRouter.push(`/SignUpPage`)}>
                 <Text style={styles.loginLink}>Sign up</Text>
               </Pressable>
             </View>
           ) : (
             <View style={styles.subq}>
               <Text>Already have an account?</Text>
-              <Pressable onPress={() => router.push(`/LoginPage`)}>
+              <Pressable onPress={() => safeRouter.push(`/LoginPage`)}>
                 <Text style={styles.loginLink}>Log in</Text>
               </Pressable>
             </View>

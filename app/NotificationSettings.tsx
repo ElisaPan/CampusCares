@@ -1,14 +1,11 @@
-import {
-  NotificationPrefs,
-  NotificationType,
-  getNotificationPrefs,
-  updateNotificationPref,
-} from "@/api";
+import { NotificationPrefs, NotificationType, getNotificationPrefs, updateNotificationPref, updateUser } from "@/api";
 import BackButton from '@/components/BackButton';
 import { TopFade } from '@/components/TopFade';
+import * as Theme from '@/constants/theme';
+import { useUserStore } from '@/hooks/useUserStore';
+import { safeRouter } from "@/utils/safeRouter";
 
 import * as Notifications from "expo-notifications";
-import { router } from 'expo-router';
 import React, { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, AppState, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 
@@ -49,6 +46,7 @@ const SECTIONS: Section[] = [
 ];
 
 export default function NotificationSettings() {
+  const { currentUser, setCurrentUser } = useUserStore();
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
   const [error, setError] = useState(false);
   const [osAllowed, setOsAllowed] = useState(true);
@@ -88,16 +86,28 @@ export default function NotificationSettings() {
     }
   };
 
-  if (error) {
+  if (error || !currentUser) {
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Couldn't load your settings.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
     );
   }
+
+  const handleEmailSubscriptionUpdate = async () => {
+    try {
+      const newValue = !currentUser.subscribed;
+      await updateUser(currentUser.id, {
+        subscribed: newValue,
+      });
+      setCurrentUser({ ...currentUser, subscribed: newValue });
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+    }
+  };
 
   if (!prefs) {
     return (
@@ -114,6 +124,23 @@ export default function NotificationSettings() {
           label={`Back to Profile`}
         />
         <Text style={styles.pageTitle}>Settings</Text>
+          {/* Email Subscription */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Email Newsletter</Text>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                {/* <Text style={styles.label}>Email Newsletter</Text> */}
+                <Text style={styles.desc}>Get notified about upcoming opportunities</Text>
+              </View>
+              <Switch
+                value={!!currentUser.subscribed}
+                onValueChange={() => handleEmailSubscriptionUpdate()}
+                trackColor={{ false: '#d9d9d9', true: Theme.cornellRed }}
+                thumbColor="#ffffff"
+              />
+            </View>
+          </View>
+        {/** Push Notifications */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Push Notification Preferences</Text>
           {!osAllowed && (
@@ -131,22 +158,27 @@ export default function NotificationSettings() {
           {SECTIONS.map((section, index) => {
             const isLastItem = index === SECTIONS.length - 1;
             return (
-            <View key={section.title} style={[styles.notifSection, !isLastItem && styles.notifNotBottom]}>
-              <Text style={styles.notifSectionTitle}>{section.title}</Text>
-              {section.items.map((item) => (
-                <View key={item.key} style={styles.row}>
-                  <View style={styles.rowText}>
-                    <Text style={styles.label}>{item.label}</Text>
-                    {!!item.desc && <Text style={styles.desc}>{item.desc}</Text>}
+              <View key={section.title} style={[styles.notifSection, !isLastItem && styles.notifNotBottom]}>
+                <Text style={styles.notifSectionTitle}>{section.title}</Text>
+                {section.items.map((item) => (
+                  <View key={item.key} style={styles.row}>
+                    <View style={styles.rowText}>
+                      <Text style={styles.label}>{item.label}</Text>
+                      {!!item.desc && <Text style={styles.desc}>{item.desc}</Text>}
+                    </View>
+                    <Switch
+                      style = {{ marginVertical: 'auto' }}
+                      value={prefs[item.key] ?? true}
+                      onValueChange={(v) => toggle(item.key, v)}
+                      trackColor={{ false: '#d9d9d9', true: Theme.cornellRed }}
+                      thumbColor="#ffffff"
+                      accessibilityLabel={item.label}
+                    />
                   </View>
-                  <Switch
-                    value={prefs[item.key] ?? true}
-                    onValueChange={(v) => toggle(item.key, v)}
-                  />
-                </View>
-              ))}
-            </View>
-          )})}
+                ))}
+              </View>
+            )
+          })}
         </View>
       </ScrollView>
       <TopFade />
@@ -172,8 +204,8 @@ const styles = StyleSheet.create({
   },
   center: {
     flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 24
   },
   section: {
@@ -181,7 +213,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingBottom: 12,
     borderRadius: 12,
-    backgroundColor: "#FFF",
+    backgroundColor: '#FFF',
 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -192,9 +224,9 @@ const styles = StyleSheet.create({
   },
   notifSectionTitle: {
     fontSize: 13,
-    fontWeight: "600",
-    color: "#6b7280",
-    textTransform: "uppercase",
+    fontWeight: '600',
+    color: '#c27c14',
+    textTransform: 'uppercase',
     marginBottom: 4,
   },
   notifSection: {
@@ -206,9 +238,9 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingVertical: 8,
   },
   rowText: {
@@ -217,11 +249,11 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    color: "#111827"
+    color: '#111827'
   },
   desc: {
     fontSize: 13,
-    color: "#6b7280",
+    color: '#6b7280',
     marginTop: 2
   },
   banner: {
@@ -230,7 +262,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     padding: 12,
     borderRadius: 8,
-    backgroundColor: "#fef3c7",
+    backgroundColor: '#fef3c7',
 
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -240,15 +272,15 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   bannerText: {
-    color: "#92400e",
+    color: '#92400e',
     marginBottom: 6
   },
   link: {
-    color: "#B31B1B",
-    fontWeight: "600"
+    color: Theme.cornellRed,
+    fontWeight: '600'
   },
   errorText: {
     marginBottom: 8,
-    color: "#111827"
+    color: '#111827'
   },
 });

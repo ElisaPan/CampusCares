@@ -1,3 +1,4 @@
+import { safeRouter } from '@/utils/safeRouter';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
@@ -20,7 +21,7 @@ const responseListener = useRef<Notifications.Subscription | null>(null);
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response) => {
         const data = response.notification.request.content.data;
-        if (data?.route) router.push(data.route as any);
+        if (data?.route) safeRouter.push(data.route as any);
       }
     );
 

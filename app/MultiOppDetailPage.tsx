@@ -18,13 +18,14 @@ import { useSignupHandlers } from '@/hooks/useSignupHandlers';
 import { useUserStore } from '@/hooks/useUserStore';
 import { Opportunity as OppType, User } from '@/types';
 import { isOpportunity } from '@/utils/isOpp';
+import { safeRouter } from '@/utils/safeRouter';
 import { formatMiniOppTime } from '@/utils/timeUtils';
 
 import { MaterialIcons } from '@expo/vector-icons';
 import { useQueryClient } from '@tanstack/react-query';
 import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Dimensions, Image, Linking, Modal, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -308,11 +309,11 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
         setShowExternalSignupModal(true);
       } else {
         console.log('navigating to:', opp.id);
-        router.push(`/OpportunityDetailPage?id=${opp.id}`);
+        safeRouter.push(`/OpportunityDetailPage?id=${opp.id}`);
       }
     } catch (error) {
       console.error("Error fetching opportunity:", error);
-      router.push(`/OpportunityDetailPage?id=${opp.id}`);
+      safeRouter.push(`/OpportunityDetailPage?id=${opp.id}`);
     }
   };
 
@@ -330,7 +331,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
   const handleExternalSignupConfirm = async () => {
     if (!selectedOpportunity) return;
     if (!activeCurrentUser) {
-      router.push(`/LoginPage`);
+      safeRouter.push(`/LoginPage`);
       return;
     }
     if (selectedOpportunity.redirect_url) {
@@ -342,7 +343,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       console.error('Local signup failed:', err);
     }
     setShowExternalSignupModal(false);
-    router.push(`/OpportunityDetailPage?id=${selectedOpportunity.id}`)
+    safeRouter.push(`/OpportunityDetailPage?id=${selectedOpportunity.id}`)
     setSelectedOpportunity(null);
   };
 
@@ -379,7 +380,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
       const multiopps = allOpps.filter((o) => !isOpportunity(o));
       setAllOpps([...updatedOpps, ...multiopps]);
 
-      router.replace('/(tabs)/OpportunitiesPage');
+      safeRouter.replace('/(tabs)/OpportunitiesPage');
       Alert.alert('Success', 'Opportunity has been deleted successfully!');
     } catch (error: any) {
       Alert.alert('Error', `Error deleting opportunity: ${error.message}`);
@@ -448,7 +449,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find user.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -459,7 +460,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
     return (
       <View style={styles.center}>
         <Text style={styles.errorText}>Could not find opportunity.</Text>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={() => safeRouter.back()}>
           <Text style={styles.link}>Back</Text>
         </TouchableOpacity>
       </View>
@@ -718,7 +719,7 @@ const MultiOppDetailPage: React.FC<MultiOppDetailPageProps> = ({
                         <View style={styles.participantsWrapper}>
                           <Text style={styles.participantsHeader}>Participants:</Text>
                           {loadingParticipants ? (
-                            <Text style={styles.loading}>Loading</Text>
+                            <ActivityIndicator size="small" color={Theme.cornellRed} />
                           ) : participants.length > 0 ? (
                             <View style={styles.participants}>
                               {participants.slice(0, 4).map((u, index) => (
